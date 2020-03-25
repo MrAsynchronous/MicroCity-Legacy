@@ -10,6 +10,7 @@ local PlayerService = {Client = {}}
 --//Api
 
 --//Services
+local PlotService
 
 --//Controllers
 
@@ -17,12 +18,16 @@ local PlayerService = {Client = {}}
 local PlayerClass
 
 --//Locals
+local playerObjects
 
 
 function PlayerService:Start()
     
     game.Players.PlayerAdded:Connect(function(newPlayer)
         local playerObject = PlayerClass.new(newPlayer)
+
+        local plotObject = PlotService:GetPlot(newPlayer)
+        playerObject.PlotObject = plotObject
 
         local leaderstats = Instance.new("Folder")
         leaderstats.Name = "leaderstats"
@@ -37,12 +42,34 @@ function PlayerService:Start()
         populationValue.Name = "Population"
         populationValue.Value = playerObject:GetData("Population")
         populationValue.Parent = leaderstats
+
+        print(plotObject.Name)
+
+        playerObjects[newPlayer] = playerObject
     end)
 
     game.Players.PlayerRemoving:Connect(function(oldPlayer)
-    
+        local playerObject = self:GetPlayerObject(oldPlayer)
+        PlotService:AddPlot(playerObject.PlotObject)
+
+
+        self:RemovePlayerObject(oldPlayer)
     end)
 
+end
+
+
+--//Removes PlayerObject from PlayerObjects array
+--//WILL DELETE PLAYER OBJECT
+--//ONLY CALL AFTER DATA HAS BEEN SAVED
+function PlayerService:RemovePlayerObject(player)
+    playerObjects[player] = nil
+end
+
+
+--//Returns the PlayerObject associated with Player
+function PlayerService:GetPlayerObject(player)
+    return playerObjects[player]
 end
 
 
@@ -50,6 +77,7 @@ function PlayerService:Init()
     --//Api
     
     --//Services
+    PlotService = self.Services.PlotService
     
     --//Controllers
     
@@ -57,7 +85,8 @@ function PlayerService:Init()
     PlayerClass = self.Modules.Classes.PlayerClass
     
     --//Locals
-    
+    playerObjects = {}
+
 end
 
 

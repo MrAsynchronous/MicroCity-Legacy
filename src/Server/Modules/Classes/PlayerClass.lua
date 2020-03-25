@@ -10,9 +10,11 @@ PlayerClass.__index = PlayerClass
 
 --//Api
 local DataStore2
+local TableUtil
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 
 --//Controllers
@@ -22,36 +24,66 @@ local ReplicatedFirst = game:GetService("ReplicatedFirst")
 --//Locals
 local PlayerMetaData
 
+local VALUE_EXCHANGE = {
+	["number"] = "NumberValue",
+	["string"] = "StringValue",
+	["boolean"] = "BoolValue",
+	["table"] = "StringValue",
+}
+
 
 function PlayerClass.new(player)
 
 	local self = setmetatable({
 
 		Player = player,
-		DataKeys = {}
+		DataKeys = {},
 
+		DataFolder = ReplicatedStorage.ReplicatedData:FindFirstChild(tonumber(player.UserId))
 	}, PlayerClass)
 
+	--Construct a new DataFolder
+	--Allows client to easily access parts of PlayersData
+	local dataFolder = Instance.new("Folder")
+	dataFolder.Name = player.UserId
+	dataFolder.Parent = ReplicatedStorage.ReplicatedData
 
 	--Store DataStore2 DataKeys
 	for key, value in pairs(PlayerMetaData.MetaData) do
 		self.DataKeys[key] = DataStore2(key, player)
-	end
 
+		--Values beginning with '_' are not replicated to the Client
+		if (string.sub(key, 1, 1) ~= '_') then
+			--Construct a new serializedNode so client can detect changes efficiently
+			local serializedNode = Instance.new(VALUE_EXCHANGE[type(value)])
+			serializedNode.Name = key
+			serializedNode.Parent = dataFolder
+
+			--Tables are stored as encoded JSON, encode if needed
+			--Else, set value like normal
+			if (type(value) == "table") then
+				serializedNode.Value = TableUtil.EncodeJSON( self:GetData(key) )
+			else
+				serializedNode.Value = self:GetData(key)
+			end
+		end
+	end 
+
+	self.DataFolder = dataFolder
 
 	return self
 end
 
-
+--//Returns DataStore2 Data
 function PlayerClass:GetData(key)
 	return self.DataKeys[key]:Get(PlayerMetaData.MetaData[key])
 end
 
 
+--//Sets DataStore2 Key Data
 function PlayerClass:SetData(key, value)
 	return self.DataKeys[key]:Set(value)
 end
-
 
 
 function PlayerClass:Start()
@@ -66,7 +98,8 @@ end
 function PlayerClass:Init()
 	--//Api
 	DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
-	
+	TableUtil = self.Shared.TableUtil
+
 	--//Services
 	
 	--//Controllers
