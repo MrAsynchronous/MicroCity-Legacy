@@ -27,6 +27,7 @@ local self = PlacementApi
 --//Api
 
 --//Services
+local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local HapticService = game:GetService("HapticService")
@@ -112,6 +113,16 @@ local function UpdatePlacement()
     itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, .2))
 end
 
+PlacementApi.RotateObject = function(actionName, inputState, inputObject)
+    if (inputState == Enum.UserInputState.Begin) then
+        if (inputObject.KeyCode == Enum.KeyCode.R or inputObject.KeyCode == Enum.KeyCode.ButtonR1) then
+            itemRotation = itemRotation - (math.pi / 2)
+        else
+            itemRotation = itemRotation + (math.pi / 2)
+        end
+    end
+end
+
 
 --//Starts the placing process
 --//Clones the model
@@ -126,43 +137,14 @@ function PlacementApi:StartPlacement(itemId)
     --Setup rotation
     itemRotation = math.pi / 2
 
-    --Create connection to detect UserInput
-    UserInputService.InputBegan:Connect(function(inputObject, gameProcessed)
-        if (not gameProcessed) then
-            local UserInputType = inputObject.UserInputType
-            local KeyCode = inputObject.KeyCode    
-
-            if (UserInputType == Enum.UserInputType.MouseButton1 or KeyCode == Enum.KeyCode.ButtonR2) then
-                print("Placing object")
-            end
-
-
-            if (inputObject.UserInputType == Enum.UserInputType.Keyboard) then
-
-                --Rotation via r button
-                if (inputObject.KeyCode == Enum.KeyCode.R) then
-                    itemRotation = itemRotation + math.pi / 2
-                end
-            elseif ((inputObject.UserInputType == Enum.UserInputType.MouseButton1) or inputObject.KeyCode == Enum.KeyCode.ButtonR2) then
-                print("Placing!")
-
-                self.Events.ObjectPlaced:Fire(itemObject)
-            elseif (inputObject.UserInputType == Enum.UserInputType.Gamepad1) then
-
-                --Handle directional rotation via gamepad bumpers
-                if (inputObject.KeyCode == Enum.KeyCode.ButtonR1) then
-                    itemRotation = itemRotation - math.pi / 2
-                elseif (inputObject.KeyCode == Enum.KeyCode.ButtonL1) then
-                    itemRotation = itemRotation + math.pi / 2
-                end
-                
-            end
-        end
-    end)
-
     --Setup grid
     plotObject.PrimaryPart.Grid.Transparency = 0
     plotObject.PrimaryPart.GridDash.Transparency = 0
+
+    --Bind Actions
+    ContextActionService:BindAction("PlaceObject", self.StopPlacement, true, Enum.KeyCode.ButtonR2, Enum.UserInputType.MouseButton1)
+    ContextActionService:BindAction("RotateObject", self.RotateObject, true, Enum.KeyCode.ButtonR1, Enum.KeyCode.ButtonL1, Enum.KeyCode.R)
+    ContextActionService:BindAction("CancelPlacement", self.StopPlacement, true, Enum.KeyCode.X, Enum.KeyCode.ButtonB)
 
     RunService:BindToRenderStep("UpdatePlacement", 1, UpdatePlacement)
 end
@@ -176,6 +158,11 @@ function PlacementApi:StopPlacement()
     --Cleanup grid
     plotObject.PrimaryPart.Grid.Transparency = 1
     plotObject.PrimaryPart.GridDash.Transparency = 1
+
+    --Unbind actions
+    ContextActionService:UnbindAction("PlaceObject")
+    ContextActionService:UnbindAction("CancelPlacement")
+    ContextActionService:UnbindAction("RotateObject")
 
     RunService:UnbindFromRenderStep("UpdatePlacement")
 end
@@ -237,7 +224,12 @@ function PlacementApi:Init()
     --Register signals
     self.Events = {}
     self.Events.ObjectPlaced = Instance.new("BindableEvent")
+    self.Events.PlacementCancelled = Instance.new("BindableEvent")
+
+    self.Events.PlacementCancelled.Parent = script
     self.Events.ObjectPlaced.Parent = script
+
+    self.PlacementCancelled = self.Events.PlacementCancelled.Event
     self.ObjectPlaced = self.Events.ObjectPlaced.Event
 
 end
