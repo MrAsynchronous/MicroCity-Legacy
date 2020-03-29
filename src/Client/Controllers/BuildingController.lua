@@ -11,10 +11,13 @@ local BuildingController = {}
 local PlacementApi
 
 function BuildingController:Start()
-    self.Player.CharacterAdded:Wait()
+    PlacementApi.ObjectPlaced:Connect(function(itemId)
+        PlacementApi:StopPlacing()
+    end)
 
-    PlacementApi:StartPlacement(1)
+    wait(10)
 
+    PlacementApi:StartPlacing(1)
 end
 
 

@@ -12,10 +12,15 @@
         PlacementCancelled => itemId
 
     Methods:
-        StartPlacement
-            int itemId
-            
-        StopPlacement   
+        public void StartPlacing(int ItemId)
+        public void StopPlacing()
+
+        private int Round(int num)
+        private void RotateObject(String actionName, Enum inputState, InputObject inputObject)
+        private void PlaceObject(String actionName, Enum inputState, InputObject inputObject)
+
+        private void CheckSelection()
+        private void UpdatePlacement()
 
 ]]
 
@@ -44,20 +49,48 @@ local mouse
 local camera
 local character
 local plotObject
-local initialized
 
+local itemId
 local plotMin
 local plotMax
 local plotCFrame
 local itemObject
 local itemRotation
 local worldPosition
-local localPosition
 
 local UP = Vector3.new(0, 1, 0)
 local BACK = Vector3.new(0, 0, 1)
 local GRID_SIZE = 1
 local BUILD_HEIGHT = 1024
+
+--[[
+    PRIVATE METHODS
+]]
+
+--//Rotates the object according to input
+local function RotateObject(actionName, inputState, inputObject)
+    if (inputState == Enum.UserInputState.Begin) then
+        if (inputObject.KeyCode == Enum.KeyCode.R or inputObject.KeyCode == Enum.KeyCode.ButtonR1) then
+            itemRotation = itemRotation - (math.pi / 2)
+        else
+            itemRotation = itemRotation + (math.pi / 2)
+        end
+    end
+end
+
+
+--//Fires the ObjectPlaced signal
+local function PlaceObject(_, inputState)
+    if (inputState == Enum.UserInputState.Begin) then
+        self.Events.ObjectPlaced:Fire(itemId)
+    end
+end
+
+
+--//Simple smart-rounding method
+local function Round(num)
+    return (num % 1 >= 0.5 and math.ceil(num) or math.floor(num))
+end
 
 
 --//Bound to RenderStep
@@ -70,9 +103,7 @@ end
 --//Moves model to position of mouse
 --//Big maths
 local function UpdatePlacement()
-    if (not initialized) then return end
-
-    --Raycasting via mousePosition
+    --RayCasting to determine optimal placement position
     local mousePos = UserInputService:GetMouseLocation()
     local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
     local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
@@ -80,10 +111,9 @@ local function UpdatePlacement()
 
     --Calculate model size according to current itemRotation
     local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
-    modelSize = Vector3.new(self:Round(math.abs(modelSize.X)), self:Round(math.abs(modelSize.Y)), self:Round(math.abs(modelSize.Z)))
+    modelSize = Vector3.new(Round(math.abs(modelSize.X)), Round(math.abs(modelSize.Y)), Round(math.abs(modelSize.Z)))
 
     --If itemObject.PrimaryPart.Size is odd, we must place it evenly on the grid
-    --A E S T H E T I C S
     local xAppend = 0
     local zAppend = 0
 
@@ -103,36 +133,29 @@ local function UpdatePlacement()
     local zPosition = (math.floor(hitPosition.Z / GRID_SIZE) * GRID_SIZE) + zAppend
 
     --Clamp positions inside of plot so players cannot scrub outside of plot
-    --A E S T H E T I C S
     xPosition = math.clamp(xPosition, plotMin.X + (modelSize.X / 2), plotMax.X - (modelSize.X / 2))
     zPosition = math.clamp(zPosition, plotMin.Z + (modelSize.Z / 2), plotMax.Z - (modelSize.Z / 2))
 
+    --Construct worldPosition and get a localPosition
     worldPosition = CFrame.new(xPosition, yPosition, zPosition) * CFrame.Angles(0, itemRotation, 0)
-    localPosition = worldPosition:ToObjectSpace(plotCFrame)
 
+    --Set the position of the object
     itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, .2))
 end
 
-PlacementApi.RotateObject = function(actionName, inputState, inputObject)
-    if (inputState == Enum.UserInputState.Begin) then
-        if (inputObject.KeyCode == Enum.KeyCode.R or inputObject.KeyCode == Enum.KeyCode.ButtonR1) then
-            itemRotation = itemRotation - (math.pi / 2)
-        else
-            itemRotation = itemRotation + (math.pi / 2)
-        end
-    end
-end
-
+--[[
+    PUBLIC METHODS
+]]
 
 --//Starts the placing process
 --//Clones the model
 --//Binds function to renderStepped
-function PlacementApi:StartPlacement(itemId)
-    while (not initialized) do wait() end
-
+function PlacementApi:StartPlacing(id)
     --Clone model into current camera
-    itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId).Lvl1:Clone()
+    --IMPLEMENT LEVEL SELECTION
+    itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id).Lvl1:Clone()
     itemObject.Parent = camera
+    itemId = id
 
     --Setup rotation
     itemRotation = math.pi / 2
@@ -142,18 +165,38 @@ function PlacementApi:StartPlacement(itemId)
     plotObject.PrimaryPart.GridDash.Transparency = 0
 
     --Bind Actions
-    ContextActionService:BindAction("PlaceObject", self.StopPlacement, true, Enum.KeyCode.ButtonR2, Enum.UserInputType.MouseButton1)
-    ContextActionService:BindAction("RotateObject", self.RotateObject, true, Enum.KeyCode.ButtonR1, Enum.KeyCode.ButtonL1, Enum.KeyCode.R)
-    ContextActionService:BindAction("CancelPlacement", self.StopPlacement, true, Enum.KeyCode.X, Enum.KeyCode.ButtonB)
+    ContextActionService:BindAction("PlaceObject", PlaceObject, true, Enum.KeyCode.ButtonR2, Enum.UserInputType.MouseButton1)
+        ContextActionService:SetImage("PlaceObject", "rbxassetid://4834693086")
+
+        local placeObjectButton = ContextActionService:GetButton("PlaceObject")
+        placeObjectButton.AnchorPoint = Vector2.new(.5, .5)
+        placeObjectButton.Position = UDim2.new(.725, 0, .35, 0)
+
+    ContextActionService:BindAction("RotateObject", RotateObject, true, Enum.KeyCode.ButtonR1, Enum.KeyCode.ButtonL1, Enum.KeyCode.R)
+        ContextActionService:SetImage("RotateObject", "rbxassetid://4834696114")
+
+        local rotateObjectButton = ContextActionService:GetButton("RotateObject")
+        rotateObjectButton.AnchorPoint = Vector2.new(.5, .5)
+        rotateObjectButton.Position = UDim2.new(.512, 0, .45, 0)
+
+    ContextActionService:BindAction("CancelPlacement", PlacementApi.StopPlacing, true, Enum.KeyCode.X, Enum.KeyCode.ButtonB)
+        ContextActionService:SetImage("CancelPlacement", "rbxassetid://4834678852")
+
+        local cancelButton = ContextActionService:GetButton("CancelPlacement")
+        cancelButton.AnchorPoint = Vector2.new(.5, .5)
+        cancelButton.Position = UDim2.new(.425, 0, .7, 0)
 
     RunService:BindToRenderStep("UpdatePlacement", 1, UpdatePlacement)
 end
 
+
 --//Stops placing object
-function PlacementApi:StopPlacement()
+function PlacementApi:StopPlacing()
     if (itemObject) then itemObject:Destroy() end
+
+    --Reset locals
     worldPosition = nil
-    localPosition = nil
+    itemId = 0
 
     --Cleanup grid
     plotObject.PrimaryPart.Grid.Transparency = 1
@@ -167,20 +210,8 @@ function PlacementApi:StopPlacement()
     RunService:UnbindFromRenderStep("UpdatePlacement")
 end
 
-function PlacementApi:PlaceObject()
-
-end
-
-
---//Simple smart-rounding method
-function PlacementApi:Round(num)
-    return (num % 1 >= 0.5 and math.ceil(num) or math.floor(num))
-end
-
 
 function PlacementApi:Start()
-    character = (self.Player.Character or self.Player.CharacterAdded:Wait())
-
     --Update local plotObject when and if plotObject changes
     PlayerService.SendPlotToClient:Connect(function(newPlot)
         plotObject = newPlot
@@ -188,20 +219,8 @@ function PlacementApi:Start()
         plotCFrame = plotObject.PrimaryPart.CFrame
         plotMin = plotCFrame - (plotObject.PrimaryPart.Size / 2)
         plotMax = plotCFrame + (plotObject.PrimaryPart.Size / 2)
-
-        --Teleport player to plot
-        character:SetPrimaryPartCFrame(plotCFrame + Vector3.new(0, 5, 0))
-
-        initialized = true
     end)
-
-    self.Player.CharacterAdded:Connect(function(newCharacter)
-        character = newCharacter
-
-        --Teleport player to plot
-        character:SetPrimaryPartCFrame(plotCFrame + Vector3.new(0, 5, 0))
-    end)
-
+    
     RunService:BindToRenderStep("SelectionChecking", 0, CheckSelection)
 end
 
@@ -219,7 +238,6 @@ function PlacementApi:Init()
     --//Locals
     mouse = self.Player:GetMouse()
     camera = workspace.CurrentCamera
-    initialized = false
 
     --Register signals
     self.Events = {}

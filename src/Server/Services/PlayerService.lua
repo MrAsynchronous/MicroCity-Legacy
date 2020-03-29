@@ -29,6 +29,7 @@ function PlayerService:Start()
 
         --Grab plotObject
         local plotObject = PlotService:GetPlot(newPlayer)
+        self:FireClientEvent("SendPlotToClient", newPlayer, plotObject)
         playerObject.PlotObject = plotObject
 
         --Create leaderstats
@@ -48,13 +49,11 @@ function PlayerService:Start()
 
         --Send plot to player and cache playerObject
         playerObjects[newPlayer] = playerObject
-        self:FireClientEvent("SendPlotToClient", newPlayer, plotObject)
     end)
 
     game.Players.PlayerRemoving:Connect(function(oldPlayer)
         local playerObject = self:GetPlayerObject(oldPlayer)
         PlotService:AddPlot(playerObject.PlotObject)
-
 
         self:RemovePlayerObject(oldPlayer)
     end)
