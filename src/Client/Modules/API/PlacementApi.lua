@@ -30,6 +30,7 @@ local PlacementApi = {}
 local self = PlacementApi
 
 --//Api
+local Platform
 
 --//Services
 local ContextActionService = game:GetService("ContextActionService")
@@ -56,6 +57,7 @@ local plotMax
 local plotCFrame
 local itemObject
 local itemRotation
+local localPosition
 local worldPosition
 
 local UP = Vector3.new(0, 1, 0)
@@ -82,7 +84,7 @@ end
 --//Fires the ObjectPlaced signal
 local function PlaceObject(_, inputState)
     if (inputState == Enum.UserInputState.Begin) then
-        self.Events.ObjectPlaced:Fire(itemId)
+        self.Events.ObjectPlaced:Fire(itemId, localPosition)
     end
 end
 
@@ -98,6 +100,7 @@ end
 local function CheckSelection()
 
 end
+
 
 --//Bound to RenderStep
 --//Moves model to position of mouse
@@ -138,6 +141,7 @@ local function UpdatePlacement()
 
     --Construct worldPosition and get a localPosition
     worldPosition = CFrame.new(xPosition, yPosition, zPosition) * CFrame.Angles(0, itemRotation, 0)
+    localPosition = plotObject.PrimaryPart.CFrame:ToObjectSpace(worldPosition)
 
     --Set the position of the object
     itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, .2))
@@ -166,25 +170,13 @@ function PlacementApi:StartPlacing(id)
 
     --Bind Actions
     ContextActionService:BindAction("PlaceObject", PlaceObject, true, Enum.KeyCode.ButtonR2, Enum.UserInputType.MouseButton1)
-        ContextActionService:SetImage("PlaceObject", "rbxassetid://4834693086")
-
-        local placeObjectButton = ContextActionService:GetButton("PlaceObject")
-        placeObjectButton.AnchorPoint = Vector2.new(.5, .5)
-        placeObjectButton.Position = UDim2.new(.725, 0, .35, 0)
+        ContextActionService:SetImage("PlaceObject", "rbxassetid://4835092139")
 
     ContextActionService:BindAction("RotateObject", RotateObject, true, Enum.KeyCode.ButtonR1, Enum.KeyCode.ButtonL1, Enum.KeyCode.R)
         ContextActionService:SetImage("RotateObject", "rbxassetid://4834696114")
 
-        local rotateObjectButton = ContextActionService:GetButton("RotateObject")
-        rotateObjectButton.AnchorPoint = Vector2.new(.5, .5)
-        rotateObjectButton.Position = UDim2.new(.512, 0, .45, 0)
-
     ContextActionService:BindAction("CancelPlacement", PlacementApi.StopPlacing, true, Enum.KeyCode.X, Enum.KeyCode.ButtonB)
         ContextActionService:SetImage("CancelPlacement", "rbxassetid://4834678852")
-
-        local cancelButton = ContextActionService:GetButton("CancelPlacement")
-        cancelButton.AnchorPoint = Vector2.new(.5, .5)
-        cancelButton.Position = UDim2.new(.425, 0, .7, 0)
 
     RunService:BindToRenderStep("UpdatePlacement", 1, UpdatePlacement)
 end
@@ -195,6 +187,7 @@ function PlacementApi:StopPlacing()
     if (itemObject) then itemObject:Destroy() end
 
     --Reset locals
+    localPosition = nil
     worldPosition = nil
     itemId = 0
 
@@ -214,11 +207,17 @@ end
 function PlacementApi:Start()
     --Update local plotObject when and if plotObject changes
     PlayerService.SendPlotToClient:Connect(function(newPlot)
-        plotObject = newPlot
+        while (not newPlot.PrimaryPart) do wait() end
 
-        plotCFrame = plotObject.PrimaryPart.CFrame
-        plotMin = plotCFrame - (plotObject.PrimaryPart.Size / 2)
-        plotMax = plotCFrame + (plotObject.PrimaryPart.Size / 2)
+        plotCFrame = newPlot.PrimaryPart.CFrame
+        plotMin = plotCFrame - (newPlot.PrimaryPart.Size / 2)
+        plotMax = plotCFrame + (newPlot.PrimaryPart.Size / 2)
+
+        plotObject = newPlot
+    end)
+
+    self.Player.CharacterAdded:Connect(function(newCharacter)
+        character = newCharacter
     end)
     
     RunService:BindToRenderStep("SelectionChecking", 0, CheckSelection)
@@ -227,6 +226,7 @@ end
 
 function PlacementApi:Init()
     --//Api
+    Platform = self.Shared.Platform
     
     --//Services
     PlayerService = self.Services.PlayerService

@@ -8,11 +8,16 @@
 
 local BuildingController = {}
 
+local PlacementService
 local PlacementApi
 
 function BuildingController:Start()
-    PlacementApi.ObjectPlaced:Connect(function(itemId)
-        PlacementApi:StopPlacing()
+    PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
+        local success = PlacementService:PlaceObject(itemId, localPosition)
+
+        if (success) then
+            PlacementApi:StopPlacing()
+        end
     end)
 
     wait(10)
@@ -22,6 +27,7 @@ end
 
 
 function BuildingController:Init()
+    PlacementService = self.Services.PlacementService
     PlacementApi = self.Modules.API.PlacementApi
 end
 

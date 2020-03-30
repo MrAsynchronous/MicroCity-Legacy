@@ -27,8 +27,10 @@ local plotCFrame
 
 function ClientController:Start()
     --Update local plotObject when and if plotObject changes
-    PlayerService.SendPlotToClient:Connect(function(newPlot)
-        plotCFrame = newPlot.PrimaryPart.CFrame
+    PlayerService.SendPlotToClient:Connect(function(plotObject)
+        while (not plotObject.PrimaryPart) do wait() end
+
+        plotCFrame = plotObject.PrimaryPart.CFrame
     end)
 
     --Spawn character at plot on character reload
