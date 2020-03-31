@@ -35,8 +35,8 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
 
     local newObject = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId).Lvl1:Clone()
-    newObject.Parent = workspace
-    newObject:SetPrimaryPartCFrame(playerObject.PlotObject.PrimaryPart.CFrame:ToWorldSpace(localPosition))
+    newObject.Parent = playerObject.PlotObject.Placements
+    newObject:SetPrimaryPartCFrame(playerObject.PlotObject.Main.CFrame:ToWorldSpace(localPosition))
 
     return true
 end

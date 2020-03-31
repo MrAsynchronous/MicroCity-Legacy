@@ -11,6 +11,9 @@
         ObjectPlaced => itemId
         PlacementCancelled => itemId
 
+        PlacementSelectionStarted => Object
+        PlacementSelectionEnded => Object
+
     Methods:
         public void StartPlacing(int ItemId)
         public void StopPlacing()
@@ -54,11 +57,13 @@ local plotObject
 local itemId
 local plotMin
 local plotMax
+local mouseRay
 local plotCFrame
 local itemObject
 local itemRotation
 local localPosition
 local worldPosition
+local selectedObject
 
 local UP = Vector3.new(0, 1, 0)
 local BACK = Vector3.new(0, 0, 1)
@@ -97,8 +102,30 @@ end
 
 --//Bound to RenderStep
 --//Checks if player is hovering over a placed object
-local function CheckSelection()
+local function CheckSelection(_, inputState)
+    if (inputState == Enum.UserInputState.Begin) then
+        --Create newMouseRay
+        local mousePos = UserInputService:GetMouseLocation()
+        local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
+        local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
+        local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character})
 
+        --Fire StartedSignal if rayPart is being selected for the first time,
+        --Fire EndedSignal if rayPart is not longer selected
+        if (rayPart and rayPart:IsDescendantOf(plotObject.Placements)) then
+            if (not selectedObject) then
+                selectedObject = rayPart:FindFirstAncestorOfClass("Model")
+                
+                self.Events.PlacementSelectionStarted:Fire(selectedObject)
+            end
+        else
+            if (selectedObject) then
+                selectedObject = nil
+
+                self.Events.PlacementSelectionEnded:Fire()
+            end
+        end
+    end
 end
 
 
@@ -106,11 +133,10 @@ end
 --//Moves model to position of mouse
 --//Big maths
 local function UpdatePlacement()
-    --RayCasting to determine optimal placement position
     local mousePos = UserInputService:GetMouseLocation()
     local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
     local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
-    local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {(self.Player.Character or self.Player.CharacterAdded:Wait()), itemObject})
+    local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character, itemObject})
 
     --Calculate model size according to current itemRotation
     local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
@@ -141,7 +167,7 @@ local function UpdatePlacement()
 
     --Construct worldPosition and get a localPosition
     worldPosition = CFrame.new(xPosition, yPosition, zPosition) * CFrame.Angles(0, itemRotation, 0)
-    localPosition = plotObject.PrimaryPart.CFrame:ToObjectSpace(worldPosition)
+    localPosition = plotObject.Main.CFrame:ToObjectSpace(worldPosition)
 
     --Set the position of the object
     itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, .2))
@@ -160,13 +186,14 @@ function PlacementApi:StartPlacing(id)
     itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id).Lvl1:Clone()
     itemObject.Parent = camera
     itemId = id
+    itemObject:SetPrimaryPartCFrame(plotObject.Main.CFrame)
 
     --Setup rotation
     itemRotation = math.pi / 2
 
     --Setup grid
-    plotObject.PrimaryPart.Grid.Transparency = 0
-    plotObject.PrimaryPart.GridDash.Transparency = 0
+    plotObject.Main.Grid.Transparency = 0
+    plotObject.Main.GridDash.Transparency = 0
 
     --Bind Actions
     ContextActionService:BindAction("PlaceObject", PlaceObject, true, Enum.KeyCode.ButtonR2, Enum.UserInputType.MouseButton1)
@@ -183,6 +210,7 @@ end
 
 
 --//Stops placing object
+--//Cleans up client
 function PlacementApi:StopPlacing()
     if (itemObject) then itemObject:Destroy() end
 
@@ -192,8 +220,8 @@ function PlacementApi:StopPlacing()
     itemId = 0
 
     --Cleanup grid
-    plotObject.PrimaryPart.Grid.Transparency = 1
-    plotObject.PrimaryPart.GridDash.Transparency = 1
+    plotObject.Main.Grid.Transparency = 1
+    plotObject.Main.GridDash.Transparency = 1
 
     --Unbind actions
     ContextActionService:UnbindAction("PlaceObject")
@@ -207,20 +235,21 @@ end
 function PlacementApi:Start()
     --Update local plotObject when and if plotObject changes
     PlayerService.SendPlotToClient:Connect(function(newPlot)
-        while (not newPlot.PrimaryPart) do wait() end
-
-        plotCFrame = newPlot.PrimaryPart.CFrame
-        plotMin = plotCFrame - (newPlot.PrimaryPart.Size / 2)
-        plotMax = plotCFrame + (newPlot.PrimaryPart.Size / 2)
+        plotCFrame = newPlot.Main.CFrame
+        plotMin = plotCFrame - (newPlot.Main.Size / 2)
+        plotMax = plotCFrame + (newPlot.Main.Size / 2)
 
         plotObject = newPlot
     end)
 
+    --Initially grab character, and grab character when player resets
+    character = (self.Player.Character or self.Player.CharacterAdded:Wait())
     self.Player.CharacterAdded:Connect(function(newCharacter)
         character = newCharacter
     end)
     
-    RunService:BindToRenderStep("SelectionChecking", 0, CheckSelection)
+    --When player clicks, check if they are selection a previously placed object
+    ContextActionService:BindAction("SelectionChecking", CheckSelection, false, Enum.UserInputType.MouseButton1, Enum.KeyCode.ButtonR2)
 end
 
 
@@ -243,13 +272,18 @@ function PlacementApi:Init()
     self.Events = {}
     self.Events.ObjectPlaced = Instance.new("BindableEvent")
     self.Events.PlacementCancelled = Instance.new("BindableEvent")
+    self.Events.PlacementSelectionStarted = Instance.new("BindableEvent")
+    self.Events.PlacementSelectionEnded = Instance.new("BindableEvent")
 
     self.Events.PlacementCancelled.Parent = script
     self.Events.ObjectPlaced.Parent = script
+    self.Events.PlacementSelectionEnded.Parent = script
+    self.Events.PlacementSelectionStarted.Parent = script
 
+    self.PlacementSelectionStarted = self.Events.PlacementSelectionStarted.Event
+    self.PlacementSelectionEnded = self.Events.PlacementSelectionEnded.Event
     self.PlacementCancelled = self.Events.PlacementCancelled.Event
     self.ObjectPlaced = self.Events.ObjectPlaced.Event
-
 end
 
 return PlacementApi
