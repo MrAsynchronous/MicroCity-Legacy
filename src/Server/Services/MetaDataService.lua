@@ -26,10 +26,49 @@ local DataNodes
 local PlayerData
 
 
+--Client expoded method
+--Calls server method
 function MetaDataService.Client:GetMetaData(player, itemId)
     return self.Server:GetMetaData(itemId)
 end
 
+
+--Returns the indexed itemId
+--Returns MetaData array if found
+--Otherwise return nil
+function MetaDataService:GetMetaData(itemId)
+    return DataNodes[itemId]
+end
+
+
+function MetaDataService:Start()
+    DataNodes = MetaDataContainer.Indexable:GetChildren()
+
+    table.foreach(DataNodes, function(_, rawNode)
+        rawNode = require(rawNode)
+
+        DataNodes[rawNode.ItemId] = rawNode       
+    end)
+end
+
+function MetaDataService:Init()
+    --//Services
+
+    --//Controllers
+
+    --//Classes
+
+    --//Data
+    MetaDataContainer = ReplicatedFirst:WaitForChild("MetaData")
+
+    --//Locals
+    DataNodes = {}
+
+end
+
+return MetaDataService
+
+--[[
 
 --//Retrives MetaData bound to passed itemId
 --//Returns Array if find is successful
@@ -68,46 +107,4 @@ function MetaDataService:GetMetaData(itemId)
     return 0
 end
 
-
-function MetaDataService:Start()
-    DataNodes = MetaDataContainer:GetChildren()
-
-    for index, rawNode in pairs(DataNodes) do
-        DataNodes[index] = require(rawNode)
-    end
-
-end
-
-function MetaDataService:Init()
-    --//Services
-
-    --//Controllers
-
-    --//Classes
-
-    --//Data
-    MetaDataContainer = ReplicatedFirst:WaitForChild("MetaData")
-
-    --//Locals
-    DataNodes = {}
-
-end
-
--- --//Unit Test
--- local NexusUnitTesting = require(game.ServerScriptService:WaitForChild("NexusUnitTesting"))
--- local UnitTest = NexusUnitTesting.UnitTest.new("MetaDataService")
-
--- function UnitTest:Setup()
---     MetaDataService:Init()
---     MetaDataService:Start()
--- end
-
--- function UnitTest:Run()
---     local metaData = MetaDataService:GetMetaData(100)
-    
---     self:AssertEquals(type(metaData), "table", "MetaDataService not returning valid MetaData")
--- end
-
--- NexusUnitTesting:RegisterUnitTest(UnitTest)
-
-return MetaDataService
+]]

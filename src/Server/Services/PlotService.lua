@@ -21,27 +21,24 @@ local PlotService = {Client = {}}
 
 --//Locals
 local plotStack
-local plotsAvailable
+local plotContainer
 
 
 --//Removes and returns the last possible plot in PlotStack
 function PlotService:GetPlot(player)
-    local plotObject = table.remove(plotStack, #plotStack) 
-    plotObject.Parent = workspace.Plots.PlotsTaken
-    return plotObject
+    return table.remove(plotStack, #plotStack) 
 end
 
 
 --//Inserts the plotObject at lastPosition in Stack
 function PlotService:AddPlot(plotObject)
-    plotObject.Parent = workspace.Plots.PlotsAvailable
     return table.insert(plotStack, #plotStack+1, plotObject)
 end
 
 
 --//Iterates through physical world plots, allocations plotStack space for plot
 function PlotService:Start()
-    for _, plotObject in pairs(plotsAvailable:GetChildren()) do
+    for _, plotObject in pairs(plotContainer:GetChildren()) do
         table.insert(plotStack, #plotStack + 1, plotObject)
     end
 end
@@ -58,7 +55,7 @@ function PlotService:Init()
 
     --//Locals
     plotStack = {}
-    plotsAvailable = workspace.Plots.PlotsAvailable
+    plotContainer = workspace.Plots
 	
 end
 

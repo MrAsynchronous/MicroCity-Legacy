@@ -26,16 +26,19 @@ local plotCFrame
 
 
 function ClientController:Start()
-    --Update local plotObject when and if plotObject changes
-    PlayerService.SendPlotToClient:Connect(function(plotObject)
-        plotCFrame = plotObject.Main.CFrame
-    end)
+    local playerPlotValue = self.Player:WaitForChild("PlayerPlot")
+    local playerPlot = playerPlotValue.Value
+
+    --Yield until Plot.Main exists
+    while (not playerPlot:FindFirstChild("Main")) do wait() end
+
+    --Move character to plot
+    local character = (self.Player.Character or self.Player.CharacterAdded:Wait())
+    character:SetPrimaryPartCFrame(playerPlot.Main.CFrame + Vector3.new(0, 5, 0))
 
     --Spawn character at plot on character reload
     self.Player.CharacterAdded:Connect(function(newCharacter)
-        while (not newCharacter or not newCharacter.PrimaryPart) do wait() end
-
-        newCharacter:SetPrimaryPartCFrame(plotCFrame + Vector3.new(0, 5, 0))
+        newCharacter:SetPrimaryPartCFrame(playerPlot.Main.CFrame + Vector3.new(0, 5, 0))
     end)
 end
 

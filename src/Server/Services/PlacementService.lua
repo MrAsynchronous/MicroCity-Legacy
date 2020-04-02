@@ -12,11 +12,13 @@ local PlacementService = {Client = {}}
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local MetaDataService
 local PlayerService
 
 --//Controllers
 
 --//Classes
+local PlacementClass
 
 --//Locals
 
@@ -34,9 +36,7 @@ end
 function PlacementService:PlaceObject(player, itemId, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
 
-    local newObject = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId).Lvl1:Clone()
-    newObject.Parent = playerObject.PlotObject.Placements
-    newObject:SetPrimaryPartCFrame(playerObject.PlotObject.Main.CFrame:ToWorldSpace(localPosition))
+    local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
 
     return true
 end
@@ -56,6 +56,8 @@ function PlacementService:Init()
     --//Controllers
 
     --//Classes
+    MetaDataService = self.Services.MetaDataService
+    PlacementClass = self.Modules.Classes.PlacementClass
 
     --//Locals	
     

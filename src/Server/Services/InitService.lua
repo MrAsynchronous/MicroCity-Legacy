@@ -11,11 +11,13 @@
 
 
 local InitService = {Client = {}}
+InitService.__aeroOrder = 1
 
 --//Api
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
 
 --//Controllers
 
@@ -24,10 +26,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --//Locals
 local itemsRepository
 
-
 function InitService:Start()
     print("Game initializing: ")
     local startTime = os.time()
+
+    --Re-parent Items
+    itemsRepository.Parent = ReplicatedStorage
 
     print("Game initialized! Took: " .. (os.time() - startTime) .. " seconds.")
 end
@@ -44,7 +48,6 @@ function InitService:Init()
 
     --//Locals
     itemsRepository = workspace:WaitForChild("Items")
-    itemsRepository.Parent = ReplicatedStorage
 
 end
 

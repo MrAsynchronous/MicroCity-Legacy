@@ -25,11 +25,15 @@ function PlayerService:Start()
     
     game.Players.PlayerAdded:Connect(function(newPlayer)
         --Create playerObject
-        local playerObject = PlayerClass.new(newPlayer)
-
-        --Grab plotObject
         local plotObject = PlotService:GetPlot(newPlayer)
+        local playerObject = PlayerClass.new(newPlayer)
         playerObject.PlotObject = plotObject
+
+        --Create plotValue
+        local plotValue = Instance.new("ObjectValue")
+        plotValue.Name = "PlayerPlot"
+        plotValue.Value = plotObject
+        plotValue.Parent = newPlayer
 
         --Create leaderstats
         local leaderstats = Instance.new("Folder")
@@ -48,7 +52,6 @@ function PlayerService:Start()
 
         --Send plot to player and cache playerObject
         playerObjects[newPlayer] = playerObject
-        self:FireClientEvent("SendPlotToClient", newPlayer, plotObject)
     end)
 
     game.Players.PlayerRemoving:Connect(function(oldPlayer)
@@ -89,7 +92,6 @@ function PlayerService:Init()
     --//Locals
     playerObjects = {}
 
-    self:RegisterClientEvent("SendPlotToClient")
 end
 
 

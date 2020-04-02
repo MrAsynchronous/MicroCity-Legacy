@@ -60,6 +60,7 @@ local plotMax
 local mouseRay
 local plotCFrame
 local itemObject
+local isColliding
 local itemRotation
 local localPosition
 local worldPosition
@@ -69,10 +70,30 @@ local UP = Vector3.new(0, 1, 0)
 local BACK = Vector3.new(0, 0, 1)
 local GRID_SIZE = 1
 local BUILD_HEIGHT = 1024
+local COLLISION_COLOR = Color3.fromRGB(231, 76, 60)
+local NO_COLLISION_COLOR = Color3.fromRGB(46, 204, 113)
 
 --[[
     PRIVATE METHODS
 ]]
+
+
+--//Checks to see if model is touching another model
+local function CheckCollision()
+    local touchingParts = itemObject.PrimaryPart:GetTouchingParts()
+
+    --Iterate through touching parts
+    for _, part in pairs(touchingParts) do
+
+        --If part IsDescendantOf a placed object, return true
+        if (part:IsDescendantOf(plotObject.Placements)) then
+            return true
+        end
+    end
+
+    return false
+end
+
 
 --//Rotates the object according to input
 local function RotateObject(actionName, inputState, inputObject)
@@ -113,11 +134,9 @@ local function CheckSelection(_, inputState)
         --Fire StartedSignal if rayPart is being selected for the first time,
         --Fire EndedSignal if rayPart is not longer selected
         if (rayPart and rayPart:IsDescendantOf(plotObject.Placements)) then
-            if (not selectedObject) then
-                selectedObject = rayPart:FindFirstAncestorOfClass("Model")
+            selectedObject = rayPart:FindFirstAncestorOfClass("Model")
                 
-                self.Events.PlacementSelectionStarted:Fire(selectedObject)
-            end
+            self.Events.PlacementSelectionStarted:Fire(selectedObject)
         else
             if (selectedObject) then
                 selectedObject = nil
@@ -127,6 +146,7 @@ local function CheckSelection(_, inputState)
         end
     end
 end
+
 
 
 --//Bound to RenderStep
@@ -171,6 +191,16 @@ local function UpdatePlacement()
 
     --Set the position of the object
     itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, .2))
+
+    --Check collision
+    isColliding = CheckCollision()
+
+    --Color bounding box according to collision state
+    if (isColliding) then
+        itemObject.PrimaryPart.Color = COLLISION_COLOR
+    else
+        itemObject.PrimaryPart.Color = NO_COLLISION_COLOR
+    end
 end
 
 --[[
@@ -183,9 +213,13 @@ end
 function PlacementApi:StartPlacing(id)
     --Clone model into current camera
     --IMPLEMENT LEVEL SELECTION
-    itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id).Lvl1:Clone()
+    itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id .. ":1"):Clone()
     itemObject.Parent = camera
     itemId = id
+
+    --Show bounding box, Stub for GetTouchingParts, set position to plot
+    itemObject.PrimaryPart.Transparency = .5
+    itemObject.PrimaryPart.Touched:Connect(function() end)
     itemObject:SetPrimaryPartCFrame(plotObject.Main.CFrame)
 
     --Setup rotation
@@ -217,6 +251,7 @@ function PlacementApi:StopPlacing()
     --Reset locals
     localPosition = nil
     worldPosition = nil
+    isColliding = false
     itemId = 0
 
     --Cleanup grid
@@ -233,14 +268,16 @@ end
 
 
 function PlacementApi:Start()
-    --Update local plotObject when and if plotObject changes
-    PlayerService.SendPlotToClient:Connect(function(newPlot)
-        plotCFrame = newPlot.Main.CFrame
-        plotMin = plotCFrame - (newPlot.Main.Size / 2)
-        plotMax = plotCFrame + (newPlot.Main.Size / 2)
+    local playerPlotValue = self.Player:WaitForChild("PlayerPlot")
+    plotObject = playerPlotValue.Value
 
-        plotObject = newPlot
-    end)
+    --Yield until Plot.Main exists
+    while (not plotObject:FindFirstChild("Main")) do wait() end
+
+    --Setup plot locals
+    plotCFrame = plotObject.Main.CFrame
+    plotMin = plotCFrame - (plotObject.Main.Size / 2)
+    plotMax = plotCFrame + (plotObject.Main.Size / 2)
 
     --Initially grab character, and grab character when player resets
     character = (self.Player.Character or self.Player.CharacterAdded:Wait())

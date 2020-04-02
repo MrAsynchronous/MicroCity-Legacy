@@ -16,7 +16,7 @@ function BuildingController:Start()
         local success = PlacementService:PlaceObject(itemId, localPosition)
 
         if (success) then
-            PlacementApi:StopPlacing()
+        --    PlacementApi:StopPlacing()
         end
     end)
 

@@ -5,7 +5,7 @@
 
 --[[
 
-    Medium between UI and PlacementApi
+    Medium between UI and PlacementApi. Controls the selectionQueue of placements
 
 ]]
 
@@ -33,14 +33,15 @@ local plotObject
 local PlacementSelectionQueue
 
 
-
 function PlacementController:Start()
 
     PlacementApi.PlacementSelectionStarted:Connect(function(placementObject)
         PlacementSelectionQueue.Adornee = placementObject.PrimaryPart
+        PlacementSelectionQueue.Enabled = true
     end)
 
     PlacementApi.PlacementSelectionEnded:Connect(function()
+        PlacementSelectionQueue.Enabled = false
         PlacementSelectionQueue.Adornee = nil
     end)
 
