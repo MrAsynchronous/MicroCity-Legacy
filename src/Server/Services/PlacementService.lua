@@ -13,6 +13,7 @@ local PlacementService = {Client = {}}
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MetaDataService
+local ShoppingService
 local PlayerService
 
 --//Controllers
@@ -36,7 +37,11 @@ end
 function PlacementService:PlaceObject(player, itemId, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
 
-    local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
+    if (ShoppingService:PurchaseItem(playerObject, itemId)) then
+        --Construct a new placementObject, hash into playerObject.Placements
+        local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
+        playerObject.Placements[placementObject.Guid] = placementObject
+    end
 
     return true
 end
@@ -51,12 +56,13 @@ function PlacementService:Init()
     --//Api
 
     --//Services
+    MetaDataService = self.Services.MetaDataService
+    ShoppingService = self.Services.ShoppingService
     PlayerService = self.Services.PlayerService
 
     --//Controllers
 
     --//Classes
-    MetaDataService = self.Services.MetaDataService
     PlacementClass = self.Modules.Classes.PlacementClass
 
     --//Locals	

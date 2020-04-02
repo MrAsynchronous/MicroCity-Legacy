@@ -37,8 +37,9 @@ function PlayerClass.new(player)
 	local self = setmetatable({
 
 		Player = player,
-		DataKeys = {},
+		Placements = {},
 
+		DataKeys = {},
 		DataFolder = ReplicatedStorage.ReplicatedData:FindFirstChild(tonumber(player.UserId))
 	}, PlayerClass)
 
@@ -66,6 +67,15 @@ function PlayerClass.new(player)
 			else
 				serializedNode.Value = self:GetData(key)
 			end
+
+			--Automatically update replicated values
+			self.DataKeys[key]:OnUpdate(function(newValue)
+				if (type(newValue) == "table") then
+					serializedNode.Value = TableUtil.Encode(newValue)
+				else
+					serializedNode.Value = newValue
+				end
+			end)
 		end
 	end 
 
@@ -82,6 +92,9 @@ end
 
 --//Sets DataStore2 Key Data
 function PlayerClass:SetData(key, value)
+	local leaderstatsValue = self.Player.leaderstats:FindFirstChild(key)
+	if (leaderstatsValue) then leaderstatsValue.Value = value end
+
 	return self.DataKeys[key]:Set(value)
 end
 

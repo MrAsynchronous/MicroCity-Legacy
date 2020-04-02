@@ -12,6 +12,8 @@ PlacementClass.__index = PlacementClass
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+
 local MetaDataService
 
 --//Controllers
@@ -29,7 +31,9 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 		LocalPosition = itemPosition,
 
 		Level = 1,
-		Age = 0
+		Age = 0,
+
+		Guid = HttpService:GenerateGUID(false)
 	}, PlacementClass)
 
 	--If placement is being loaded, overwrite Level and Age attributes
