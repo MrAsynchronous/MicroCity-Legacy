@@ -3,6 +3,22 @@
 -- March 17, 2020
 
 
+--[[
+
+	Objects contain various getters and setters to make accessing and setting player information easier
+
+	Methods
+		public PlayerObject PlayerClass.new(Player player)
+
+		public DataStore2Key GetData(String key)
+		public void SetData(String key, Any value)
+
+		public void AddPlacementObject(String guid, PlacementObject placementObject)
+		public PlacementObject GetPlacementObject(String guid)
+		public void RemovePlacementObject(String guid)
+
+]]
+
 
 local PlayerClass = {}
 PlayerClass.__index = PlayerClass
@@ -11,6 +27,7 @@ PlayerClass.__index = PlayerClass
 --//Api
 local DataStore2
 local TableUtil
+local CFrameSerializer
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -20,6 +37,7 @@ local ReplicatedFirst = game:GetService("ReplicatedFirst")
 --//Controllers
 
 --//Classes
+local PlacementClass
 
 --//Locals
 local PlayerMetaData
@@ -33,15 +51,16 @@ local VALUE_EXCHANGE = {
 
 
 function PlayerClass.new(player)
-
 	local self = setmetatable({
 
 		Player = player,
 		Placements = {},
+		PlacementStore = DataStore2("Placements", player),
 
 		DataKeys = {},
 		DataFolder = ReplicatedStorage.ReplicatedData:FindFirstChild(tonumber(player.UserId))
 	}, PlayerClass)
+
 
 	--Construct a new DataFolder
 	--Allows client to easily access parts of PlayersData
@@ -78,11 +97,44 @@ function PlayerClass.new(player)
 			end)
 		end
 	end 
-
 	self.DataFolder = dataFolder
 
 	return self
 end
+
+
+--//Sets the value at index placementGuid to key placementObject
+--//Called when player places a new object
+function PlayerClass:AddPlacementObject(placementObject)
+	self.Placements[placementObject.Guid] = placementObject
+
+	--Update placementStore
+	self.PlacementStore:Update(function(oldTable)
+		oldTable[placementObject.Guid] = placementObject:Encode()
+
+		return oldTable
+	end)
+end
+
+
+--//Sets the value at index placementGuid to nil
+function PlayerClass:RemovePlacementObject(placementGuid)
+	self.Placements[placementGuid] = nil
+
+	--Update placementStore
+	self.PlacementStore:Update(function(oldTable)
+		oldTable[placementGuid] = nil
+
+		return oldTable
+	end)
+end
+
+
+--//Returns the value at index placementGuid
+function PlayerClass:GetPlacementObject(placementGuid)
+	return self.Placements[placementGuid]
+end
+
 
 --//Returns DataStore2 Data
 function PlayerClass:GetData(key)
@@ -112,12 +164,14 @@ function PlayerClass:Init()
 	--//Api
 	DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
 	TableUtil = self.Shared.TableUtil
+	CFrameSerializer = self.Shared.CFrameSerializer
 
 	--//Services
 	
 	--//Controllers
 	
 	--//Classes
+	PlacementClass = self.Modules.Classes.PlacementClass
 	
 	--//Locals
 	PlayerMetaData = require(ReplicatedFirst.MetaData:WaitForChild("Player"))

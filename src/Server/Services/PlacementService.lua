@@ -3,11 +3,22 @@
 -- March 29, 2020
 
 
+--[[
+
+    Handles the Server-wise placement operations
+
+    Methods
+        public boolean PlaceObject(Player player, int itemId, CFrame localPosition)
+
+]]
+
 
 local PlacementService = {Client = {}}
 
 
 --//Api
+local CFrameSerializer
+local TableUtil
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -40,10 +51,29 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
     if (ShoppingService:PurchaseItem(playerObject, itemId)) then
         --Construct a new placementObject, hash into playerObject.Placements
         local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
-        playerObject.Placements[placementObject.Guid] = placementObject
+        playerObject:AddPlacementObject(placementObject)
     end
 
     return true
+end
+
+
+--//Handle the loading of the players placements
+function PlacementService:LoadPlacements(playerObject)
+	local placementData = playerObject.PlacementStore:Get({})
+
+    --Iterate through all the placements
+	for guid, encodedData in pairs(placementData) do
+		local decodedData = TableUtil.DecodeJSON(encodedData)
+
+		--Create new placementObject and add it to index
+		playerObject:AddPlacementObject(PlacementClass.new(
+			decodedData.ItemId,
+			CFrameSerializer:DecodeCFrame(decodedData.CFrame),
+			playerObject,
+			decodedData
+		))
+	end
 end
 
 
@@ -54,6 +84,8 @@ end
 
 function PlacementService:Init()
     --//Api
+    CFrameSerializer = self.Shared.CFrameSerializer
+    TableUtil = self.Shared.TableUtil
 
     --//Services
     MetaDataService = self.Services.MetaDataService

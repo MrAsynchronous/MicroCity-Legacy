@@ -42,14 +42,15 @@ end
 
 
 function MetaDataService:Start()
-    DataNodes = MetaDataContainer.Indexable:GetChildren()
+    local rawNodes = MetaDataContainer.Indexable:GetChildren()
+    
+    for _, rawNode in pairs(rawNodes) do
+        local metaData = require(rawNode)
 
-    table.foreach(DataNodes, function(_, rawNode)
-        rawNode = require(rawNode)
-
-        DataNodes[rawNode.ItemId] = rawNode       
-    end)
+        DataNodes[metaData.ItemId] = metaData
+    end
 end
+
 
 function MetaDataService:Init()
     --//Services

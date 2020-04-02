@@ -6,6 +6,11 @@
 
     Handles the allocation and de-allocation of plots to players
 
+    Methods
+        public Folder GetPlot(Player player)
+        public void AddPlot(Folder plotObject)
+        public void ClearPlot(Folder PlotObject)
+
 ]]
 
 
@@ -33,6 +38,14 @@ end
 --//Inserts the plotObject at lastPosition in Stack
 function PlotService:AddPlot(plotObject)
     return table.insert(plotStack, #plotStack+1, plotObject)
+end
+
+
+--//Clears all placements on plot
+function PlotService:ClearPlot(plotObject)
+    for _, placement in pairs(plotObject.Placements:GetChildren()) do
+        placement:Destroy()
+    end
 end
 
 

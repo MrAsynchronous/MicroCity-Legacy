@@ -3,12 +3,30 @@
 -- March 16, 2020
 
 
+--[[
+
+	Methods
+		public PlacementObject PlacementClass.new(
+			int ItemId,
+			CFrame itemPosition,
+			PlayerObject playerObject,
+			Array saveData
+		)
+
+		public void MoveTo(CFrame itemPosition)
+		public void Remove()
+		public String Encode()
+
+]]
+
 
 local PlacementClass = {}
 PlacementClass.__index = PlacementClass
 
 
 --//Api
+local CFrameSerializer
+local TableUtil
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -40,6 +58,7 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 	if (saveData) then
 		self.Level = saveData.Level
 		self.Age = saveData.Age
+		self.Guid = saveData.Guid
 	end
 
 	--Grab MetaData
@@ -49,9 +68,10 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 	self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":" .. self.Level):Clone()
 	self.PlacedObject.Parent = self.Plot.Placements
 	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
-	
+
 	return self
 end
+
 
 --//Moves ItemObject to desired cframe
 function PlacementClass:MoveTo(itemPosition)
@@ -61,13 +81,29 @@ function PlacementClass:MoveTo(itemPosition)
 end
 
 
+--//Removes model from map
+--//Cleans up MetaTable
 function PlacementClass:Remove()
 	self.ItemObject:Destroy()
 end
 
 
+--//Returns a JSON table containing information to be saved
+function PlacementClass:Encode()
+	return TableUtil.EncodeJSON({
+		Guid = self.Guid,
+		ItemId = self.ItemId,
+		CFrame = CFrameSerializer:EncodeCFrame(self.LocalPosition),
+		Level = self.Level,
+		Age = self.Age
+	})
+end
+
+
 function PlacementClass:Init()
 	--//Api
+	CFrameSerializer = self.Shared.CFrameSerializer
+	TableUtil = self.Shared.TableUtil
 
 	--//Services
 	MetaDataService = self.Services.MetaDataService

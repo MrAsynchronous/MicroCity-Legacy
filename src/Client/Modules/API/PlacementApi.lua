@@ -67,7 +67,7 @@ local localPosition
 local worldPosition
 local selectedObject
 
-local GRID_SIZE = 1
+local GRID_SIZE = 2
 local BUILD_HEIGHT = 1024
 local UP = Vector3.new(0, 1, 0)
 local BACK = Vector3.new(0, 0, 1)
@@ -86,9 +86,10 @@ local function CheckCollision()
 
     --Iterate through touching parts
     for _, part in pairs(touchingParts) do
+        local model = part:FindFirstAncestorOfClass("Model")
 
         --If part IsDescendantOf a placed object, return true
-        if (part:IsDescendantOf(plotObject.Placements)) then
+        if (model and model:IsDescendantOf(plotObject.Placements) and (model.PrimaryPart == part)) then
             return true
         end
     end
@@ -151,7 +152,6 @@ local function CheckSelection(_, inputState)
     end
 end
 
-
 --//Bound to RenderStep
 --//Moves model to position of mouse
 --//Big maths
@@ -169,11 +169,11 @@ local function UpdatePlacement()
     local xAppend = 0
     local zAppend = 0
 
-    if (((modelSize.X / 2) % 2) > 0) then
-        xAppend = 0.5
+    if ((modelSize.X % 2) > 0) then
+    --    xAppend = 0.5
     end
-    if (((modelSize.Z / 2) % 2) > 0) then
-        zAppend = 0.5
+    if ((modelSize.Z % 2) > 0) then
+    --   zAppend = 0.5
     end
 
     --Allow messy placement on the side of previously placed objects
@@ -181,10 +181,9 @@ local function UpdatePlacement()
 
     --Allign placement positions to GRID_SIZE
     local xPosition = (math.floor(hitPosition.X / GRID_SIZE) * GRID_SIZE) + xAppend
-    local yPosition = plotMax.Y + (modelSize.Y / 2)
+    local yPosition = plotCFrame.Y + (plotObject.Main.Size.Y / 2) + (modelSize.Y / 2)
     local zPosition = (math.floor(hitPosition.Z / GRID_SIZE) * GRID_SIZE) + zAppend
 
-    --Clamp positions inside of plot so players cannot scrub outside of plot
     xPosition = math.clamp(xPosition, plotMin.X + (modelSize.X / 2), plotMax.X - (modelSize.X / 2))
     zPosition = math.clamp(zPosition, plotMin.Z + (modelSize.Z / 2), plotMax.Z - (modelSize.Z / 2))
 
@@ -215,6 +214,8 @@ end
 --//Clones the model
 --//Binds function to renderStepped
 function PlacementApi:StartPlacing(id)
+    self:StopPlacing()
+
     --Clone model into current camera
     --IMPLEMENT LEVEL SELECTION
     itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id .. ":1"):Clone()

@@ -156,7 +156,7 @@ function CFrameSerializer:EncodeCFrame(cf, raw)
 end
 
 function CFrameSerializer:DecodeCFrame(cfJson, raw)
-	local serialCF = raw and cfJson or HttpService:JsonDecode(cfJson)
+	local serialCF = raw and cfJson or HttpService:JSONDecode(cfJson)
 	local pos = serialCF.p
 	
 	for i, comp in pairs(pos) do

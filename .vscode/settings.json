@@ -8,6 +8,7 @@
         "wait",
         "game",
         "Enum",
-        "Color3"
+        "Color3",
+        "Vector2"
     ]
 }

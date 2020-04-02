@@ -29,15 +29,15 @@ local PlayerService
 function ShoppingService:PurchaseItem(playerObject, itemId, itemMetaData)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
 
-    if (playerObject:GetData("Cash") >= itemMetaData.Cost) then
+--    if (playerObject:GetData("Cash") >= itemMetaData.Cost) then
         playerObject:SetData("Cash", playerObject:GetData("Cash") - itemMetaData.Cost)
 
         return true
-    else
-        print("Not enough funds!")
+--    else
+--        print("Not enough funds!")
 
-        return false
-    end
+--        return false
+--   end
 end
 
 
