@@ -9,6 +9,7 @@
 
     Methods
         public boolean PlaceObject(Player player, int itemId, CFrame localPosition)
+        public void LoadPlacements(PlayerObject playerObject)
 
 ]]
 
@@ -41,6 +42,19 @@ local PlacementClass
 function PlacementService.Client:PlaceObject(...)
     return self.Server:PlaceObject(...)
 end
+
+function PlacementService.Client:MoveObject(...)
+
+end
+
+function PlacementService.Client:SellObject(...)
+
+end
+
+function PlacementService.Client:UpgradeObject(...)
+
+end
+
 
 --[[
     Server methods
