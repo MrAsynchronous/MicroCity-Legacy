@@ -58,6 +58,7 @@ local itemId
 local plotMin
 local plotMax
 local mouseRay
+local dummyPart
 local plotCFrame
 local itemObject
 local isColliding
@@ -66,10 +67,11 @@ local localPosition
 local worldPosition
 local selectedObject
 
-local UP = Vector3.new(0, 1, 0)
-local BACK = Vector3.new(0, 0, 1)
 local GRID_SIZE = 1
 local BUILD_HEIGHT = 1024
+local UP = Vector3.new(0, 1, 0)
+local BACK = Vector3.new(0, 0, 1)
+local DAMPENING_SPEED = .2
 local COLLISION_COLOR = Color3.fromRGB(231, 76, 60)
 local NO_COLLISION_COLOR = Color3.fromRGB(46, 204, 113)
 
@@ -80,7 +82,7 @@ local NO_COLLISION_COLOR = Color3.fromRGB(46, 204, 113)
 
 --//Checks to see if model is touching another model
 local function CheckCollision()
-    local touchingParts = itemObject.PrimaryPart:GetTouchingParts()
+    local touchingParts = dummyPart:GetTouchingParts()
 
     --Iterate through touching parts
     for _, part in pairs(touchingParts) do
@@ -110,7 +112,9 @@ end
 --//Fires the ObjectPlaced signal
 local function PlaceObject(_, inputState)
     if (inputState == Enum.UserInputState.Begin) then
-        self.Events.ObjectPlaced:Fire(itemId, localPosition)
+        if (not CheckCollision()) then
+            self.Events.ObjectPlaced:Fire(itemId, localPosition)
+        end
     end
 end
 
@@ -148,7 +152,6 @@ local function CheckSelection(_, inputState)
 end
 
 
-
 --//Bound to RenderStep
 --//Moves model to position of mouse
 --//Big maths
@@ -156,7 +159,7 @@ local function UpdatePlacement()
     local mousePos = UserInputService:GetMouseLocation()
     local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
     local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
-    local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character, itemObject})
+    local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character, itemObject, dummyPart})
 
     --Calculate model size according to current itemRotation
     local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
@@ -190,7 +193,8 @@ local function UpdatePlacement()
     localPosition = plotObject.Main.CFrame:ToObjectSpace(worldPosition)
 
     --Set the position of the object
-    itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, .2))
+    dummyPart.CFrame = worldPosition
+    itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED))
 
     --Check collision
     isColliding = CheckCollision()
@@ -217,9 +221,13 @@ function PlacementApi:StartPlacing(id)
     itemObject.Parent = camera
     itemId = id
 
-    --Show bounding box, Stub for GetTouchingParts, set position to plot
+    --Create dummy part,used for checking collisions
+    dummyPart = itemObject.PrimaryPart:Clone()
+    dummyPart.Parent = camera
+    dummyPart.Touched:Connect(function() end)
+
+    --Show bounding box, set position to plot
     itemObject.PrimaryPart.Transparency = .5
-    itemObject.PrimaryPart.Touched:Connect(function() end)
     itemObject:SetPrimaryPartCFrame(plotObject.Main.CFrame)
 
     --Setup rotation
@@ -247,6 +255,7 @@ end
 --//Cleans up client
 function PlacementApi:StopPlacing()
     if (itemObject) then itemObject:Destroy() end
+    if (dummyPart) then dummyPart:Destroy() end
 
     --Reset locals
     localPosition = nil
