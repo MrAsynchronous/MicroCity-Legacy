@@ -14,8 +14,8 @@ local PlacementService
 local PlacementApi
 
 function BuildingController:Start()
-    PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local success = PlacementService:PlaceObject(itemId, localPosition)
+    PlacementApi.ObjectPlaced:Connect(function(itemId, worldPosition)
+        local success = PlacementService:PlaceObject(itemId, worldPosition)
 
         if (success) then
         --    PlacementApi:StopPlacing()

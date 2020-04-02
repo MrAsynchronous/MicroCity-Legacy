@@ -58,6 +58,7 @@ local itemId
 local plotMin
 local plotMax
 local mouseRay
+local plotSize
 local dummyPart
 local plotCFrame
 local itemObject
@@ -120,9 +121,23 @@ local function PlaceObject(_, inputState)
 end
 
 
---//Simple smart-rounding method
-local function Round(num)
-    return (num % 1 >= 0.5 and math.ceil(num) or math.floor(num))
+--//Calculates the proper CFrame and Size for the canvas
+--//Taking into consideration the rotation of the model
+local function CalcCanvas()
+	local canvasSize = plotObject.Main.Size
+
+	-- want to create CFrame such that cf.lookVector == self.CanvasPart.CFrame.upVector
+	-- do this by using object space and build the CFrame
+	local back = Vector3.new(0, -1, 0)
+	local top = Vector3.new(0, 0, -1)
+	local right = Vector3.new(-1, 0, 0)
+
+	-- convert to world space
+	local cf = plotObject.Main.CFrame * CFrame.fromMatrix(-back*canvasSize/2, right, top, back)
+	-- use object space vectors to find the width and height
+	local size = Vector2.new((canvasSize * right).magnitude, (canvasSize * top).magnitude)
+
+	return cf, size
 end
 
 
@@ -152,6 +167,7 @@ local function CheckSelection(_, inputState)
     end
 end
 
+
 --//Bound to RenderStep
 --//Moves model to position of mouse
 --//Big maths
@@ -162,33 +178,23 @@ local function UpdatePlacement()
     local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character, itemObject, dummyPart})
 
     --Calculate model size according to current itemRotation
-    local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
-    modelSize = Vector3.new(Round(math.abs(modelSize.X)), Round(math.abs(modelSize.Y)), Round(math.abs(modelSize.Z)))
+	local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
+	modelSize = Vector3.new(math.abs(modelSize.x), math.abs(modelSize.y), math.abs(modelSize.z))
 
-    --If itemObject.PrimaryPart.Size is odd, we must place it evenly on the grid
-    local xAppend = 0
-    local zAppend = 0
+	--Get model size and position relative to the plot
+	local lpos = plotCFrame:pointToObjectSpace(hitPosition);
+	local size2 = (plotSize - Vector2.new(modelSize.x, modelSize.z))/2
 
-    if ((modelSize.X % 2) > 0) then
-    --    xAppend = 0.5
-    end
-    if ((modelSize.Z % 2) > 0) then
-    --   zAppend = 0.5
-    end
+	--Constrain model withing the bounds of the plot
+	local x = math.clamp(lpos.x, -size2.x, size2.x);
+    local y = math.clamp(lpos.y, -size2.y, size2.y);
 
-    --Allow messy placement on the side of previously placed objects
-    hitPosition = hitPosition + (normal * (modelSize / 2))
+    --Align model GRID_SIZE
+	x = math.sign(x)*((math.abs(x) - math.abs(x) % GRID_SIZE) + (size2.x % GRID_SIZE))
+	y = math.sign(y)*((math.abs(y) - math.abs(y) % GRID_SIZE) + (size2.y % GRID_SIZE))
 
-    --Allign placement positions to GRID_SIZE
-    local xPosition = (math.floor(hitPosition.X / GRID_SIZE) * GRID_SIZE) + xAppend
-    local yPosition = plotCFrame.Y + (plotObject.Main.Size.Y / 2) + (modelSize.Y / 2)
-    local zPosition = (math.floor(hitPosition.Z / GRID_SIZE) * GRID_SIZE) + zAppend
-
-    xPosition = math.clamp(xPosition, plotMin.X + (modelSize.X / 2), plotMax.X - (modelSize.X / 2))
-    zPosition = math.clamp(zPosition, plotMin.Z + (modelSize.Z / 2), plotMax.Z - (modelSize.Z / 2))
-
-    --Construct worldPosition and get a localPosition
-    worldPosition = CFrame.new(xPosition, yPosition, zPosition) * CFrame.Angles(0, itemRotation, 0)
+    --Calculate the worldSpace and ObjectSpace CFrame
+    worldPosition = plotCFrame * CFrame.new(x, y, -modelSize.y/2) * CFrame.Angles(-math.pi/2, itemRotation, 0)
     localPosition = plotObject.Main.CFrame:ToObjectSpace(worldPosition)
 
     --Set the position of the object
@@ -285,9 +291,7 @@ function PlacementApi:Start()
     while (not plotObject:FindFirstChild("Main")) do wait() end
 
     --Setup plot locals
-    plotCFrame = plotObject.Main.CFrame
-    plotMin = plotCFrame - (plotObject.Main.Size / 2)
-    plotMax = plotCFrame + (plotObject.Main.Size / 2)
+    plotCFrame, plotSize = CalcCanvas()
 
     --Initially grab character, and grab character when player resets
     character = (self.Player.Character or self.Player.CharacterAdded:Wait())
