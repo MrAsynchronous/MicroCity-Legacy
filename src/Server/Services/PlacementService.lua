@@ -35,30 +35,22 @@ local PlacementClass
 
 --//Locals
 
---[[
-    Client-exposed methods
-]]
-
-function PlacementService.Client:PlaceObject(...)
-    return self.Server:PlaceObject(...)
-end
-
-function PlacementService.Client:MoveObject(...)
-
-end
-
-function PlacementService.Client:SellObject(...)
-
-end
-
-function PlacementService.Client:UpgradeObject(...)
-
-end
-
 
 --[[
     Server methods
 ]]
+--//Moves a PlacementObject to the new localPosition
+function PlacementService:MoveObject(player, guid, localPosition)
+    local playerObject = PlayerService:GetPlayerObject(player)
+    local placementObject = playerObject:GetPlacementObject(guid)
+
+    placementObject:Move(localPosition)
+
+    return true
+end
+
+
+--//Places the requested object
 function PlacementService:PlaceObject(player, itemId, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
 
@@ -91,8 +83,23 @@ function PlacementService:LoadPlacements(playerObject)
 end
 
 
-function PlacementService:Start()
-	
+--[[
+    Client-exposed methods
+]]
+function PlacementService.Client:PlaceObject(...)
+    return self.Server:PlaceObject(...)
+end
+
+function PlacementService.Client:MoveObject(...)
+    return self.Server:MoveObject(...)
+end
+
+function PlacementService.Client:SellObject(...)
+
+end
+
+function PlacementService.Client:UpgradeObject(...)
+
 end
 
 

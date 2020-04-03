@@ -19,6 +19,7 @@ local PlacementApi
 --//Services
 local ContextActionService = game:GetService("ContextActionService")
 
+local PlacementService
 local PlayerService
 local PlayerGui
 
@@ -48,6 +49,15 @@ function PlacementController:Start()
         PlacementSelectionQueue.Adornee = nil
     end)
 
+    --Button binds
+    local buttonContainer = PlacementSelectionQueue.Buttons
+
+    --Invoke PlacementApi
+    buttonContainer.Move.MouseButton1Click:Connect(function()
+        if (PlacementSelectionQueue.Adornee) then
+            PlacementService:StartPlacing(nil, true, PlacementSelectionQueue.Adornee:FindFirstAncestorOfClass("Model"))
+        end
+    end)
 end
 
 
@@ -56,6 +66,7 @@ function PlacementController:Init()
     PlacementApi = self.Modules.API.PlacementApi
 
     --//Services
+    PlacementService = self.Services.PlacementService
     PlayerService = self.Services.PlayerService
     PlayerGui = self.Player:WaitForChild("PlayerGui")
 

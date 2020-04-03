@@ -55,10 +55,8 @@ local character
 local plotObject
 
 local itemId
-local plotMin
-local plotMax
-local mouseRay
 local plotSize
+local isMoving
 local dummyPart
 local plotCFrame
 local itemObject
@@ -106,6 +104,16 @@ local function RotateObject(actionName, inputState, inputObject)
             itemRotation = itemRotation - (math.pi / 2)
         else
             itemRotation = itemRotation + (math.pi / 2)
+        end
+    end
+end
+
+
+--//Fires the ObjectMoved signal
+local function MoveObject(_, inputState)
+    if (inputState == Enum.UserInputState.Begin) then
+        if (not CheckCollision()) then
+            self.Events.ObjectMoved:Fire(itemId, localPosition)
         end
     end
 end
@@ -216,17 +224,27 @@ end
     PUBLIC METHODS
 ]]
 
+
+
 --//Starts the placing process
 --//Clones the model
 --//Binds function to renderStepped
-function PlacementApi:StartPlacing(id)
+function PlacementApi:StartPlacing(id, placementObject)
     self:StopPlacing()
 
-    --Clone model into current camera
-    --IMPLEMENT LEVEL SELECTION
-    itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id .. ":1"):Clone()
-    itemObject.Parent = camera
-    itemId = id
+    --If placementObject is a valid arg, player is moving object
+    if (placementObject) then
+        isMoving = true
+
+        itemObject = placementObject
+        itemObject.Parent = camera
+    else
+        --Clone model into current camera
+        --IMPLEMENT LEVEL SELECTION
+        itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id .. ":1"):Clone()
+        itemObject.Parent = camera
+        itemId = id
+    end
 
     --Create dummy part,used for checking collisions
     dummyPart = itemObject.PrimaryPart:Clone()
@@ -268,6 +286,7 @@ function PlacementApi:StopPlacing()
     localPosition = nil
     worldPosition = nil
     isColliding = false
+    isMoving = false
     itemId = 0
 
     --Cleanup grid
@@ -316,25 +335,22 @@ function PlacementApi:Init()
     --//Classes
     
     --//Locals
-    mouse = self.Player:GetMouse()
     camera = workspace.CurrentCamera
+    mouse = self.Player:GetMouse()
 
     --Register signals
     self.Events = {}
-    self.Events.ObjectPlaced = Instance.new("BindableEvent")
-    self.Events.PlacementCancelled = Instance.new("BindableEvent")
     self.Events.PlacementSelectionStarted = Instance.new("BindableEvent")
     self.Events.PlacementSelectionEnded = Instance.new("BindableEvent")
+    self.Events.PlacementCancelled = Instance.new("BindableEvent")
+    self.Events.ObjectPlaced = Instance.new("BindableEvent")
+    self.Events.ObjectMoved = Instance.new("BindableEvent")
 
-    self.Events.PlacementCancelled.Parent = script
-    self.Events.ObjectPlaced.Parent = script
-    self.Events.PlacementSelectionEnded.Parent = script
-    self.Events.PlacementSelectionStarted.Parent = script
-
-    self.PlacementSelectionStarted = self.Events.PlacementSelectionStarted.Event
-    self.PlacementSelectionEnded = self.Events.PlacementSelectionEnded.Event
-    self.PlacementCancelled = self.Events.PlacementCancelled.Event
+    self.ObjectMoved = self.Events.ObjectMoved.Event
     self.ObjectPlaced = self.Events.ObjectPlaced.Event
+    self.PlacementCancelled = self.Events.PlacementCancelled.Event
+    self.PlacementSelectionEnded = self.Events.PlacementSelectionEnded.Event
+    self.PlacementSelectionStarted = self.Events.PlacementSelectionStarted.Event
 end
 
 return PlacementApi
