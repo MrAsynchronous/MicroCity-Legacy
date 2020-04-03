@@ -106,8 +106,10 @@ local function deactivateCollisions()
         part.CanCollide = false
     end
 
-    itemObject.PrimaryPart.CanCollide = false
-    itemObject.Base.CanCollide = false
+    if (itemObject:FindFirstChild("Base")) then
+        itemObject.Base.CanCollide = false
+    end
+
     dummyPart.CanCollide = false
 end
 
@@ -118,9 +120,9 @@ local function activateCollisions()
         part.CanCollide = true
     end
 
-    itemObject.PrimaryPart.CanCollide = true
-    itemObject.Base.CanCollide = true
-    dummyPart.CanCollide = true
+    if (itemObject:FindFirstChild("Base")) then
+        itemObject.Base.CanCollide = true
+    end
 end
 
 
@@ -201,7 +203,7 @@ end
 --//Bound to RenderStep
 --//Moves model to position of mouse
 --//Big maths
-local function UpdatePlacement()
+local function UpdatePlacement(isInitialUpdate)
     local mousePos = UserInputService:GetMouseLocation()
     local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
     local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
@@ -229,7 +231,13 @@ local function UpdatePlacement()
 
     --Set the position of the object
     dummyPart.CFrame = worldPosition
-    itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED))
+
+    --Immedietely snap itemObject to proper position
+    if (isInitialUpdate == true) then
+        itemObject:SetPrimaryPartCFrame(worldPosition)
+    else
+        itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED))
+    end    
 
     --Check collision
     isColliding = CheckCollision()
@@ -245,8 +253,6 @@ end
 --[[
     PUBLIC METHODS
 ]]
-
-
 
 --//Starts the placing process
 --//Clones the model
@@ -276,7 +282,6 @@ function PlacementApi:StartPlacing(id)
 
     --Show bounding box, set position to plot
     itemObject.PrimaryPart.Transparency = .5
-    itemObject:SetPrimaryPartCFrame(plotObject.Main.CFrame)
 
     --Setup rotation
     itemRotation = math.pi / 2
@@ -297,7 +302,8 @@ function PlacementApi:StartPlacing(id)
 
     ContextActionService:BindAction("CancelPlacement", PlacementApi.StopPlacing, true, Enum.KeyCode.X, Enum.KeyCode.ButtonB)
         ContextActionService:SetImage("CancelPlacement", "rbxassetid://4834678852")
-
+    
+    UpdatePlacement(true)
     RunService:BindToRenderStep("UpdatePlacement", 1, UpdatePlacement)
 end
 

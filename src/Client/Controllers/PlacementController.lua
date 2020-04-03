@@ -66,6 +66,13 @@ function PlacementController:Start()
             selectedModel = nil
         end
     end)
+
+    buttonContainer.Sell.MouseButton1Click:Connect(function()
+        PlacementService:SellObject(selectedModel.Name)
+
+        PlacementSelectionQueue.Adornee = nil
+        selectedModel = nil
+    end)
 end
 
 

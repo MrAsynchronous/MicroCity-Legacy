@@ -41,6 +41,10 @@ function ShoppingService:PurchaseItem(playerObject, itemId, itemMetaData)
 end
 
 
+function ShoppingService:SellItem(playerObject, profit)
+    playerObject:SetData("Cash", playerObject:GetData("Cash") + profit) 
+end
+
 
 function ShoppingService:Start()
 	

@@ -86,7 +86,8 @@ end
 --//Removes model from map
 --//Cleans up MetaTable
 function PlacementClass:Remove()
-	self.ItemObject:Destroy()
+	self.PlacedObject:Destroy()
+	self = nil
 end
 
 

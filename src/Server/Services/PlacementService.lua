@@ -35,11 +35,24 @@ local PlayerService
 local PlacementClass
 
 --//Locals
-
+local SELL_EXCHANGE_RATE = 40 --percent
 
 --[[
     Server methods
 ]]
+--//Sells a PlacedObject
+function PlacementService:SellObject(player, guid)
+    local playerObject = PlayerService:GetPlayerObject(player)
+    local placementObject = playerObject:GetPlacementObject(guid)
+    local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
+
+    local discountedProfit = itemMetaData.Cost * .4
+    ShoppingService:SellItem(playerObject, discountedProfit)
+
+    placementObject:Remove()
+    playerObject:RemovePlacementObject(guid)
+end
+
 --//Moves a PlacementObject to the new localPosition
 function PlacementService:MoveObject(player, guid, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
@@ -98,7 +111,7 @@ function PlacementService.Client:MoveObject(...)
 end
 
 function PlacementService.Client:SellObject(...)
-
+    return self.Server:SellObject(...)
 end
 
 function PlacementService.Client:UpgradeObject(...)
@@ -122,7 +135,7 @@ function PlacementService:Init()
     PlacementClass = self.Modules.Classes.PlacementClass
 
     --//Locals	
-    
+    SELL_EXCHANGE_RATE = SELL_EXCHANGE_RATE / 100
 end
 
 
