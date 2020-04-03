@@ -21,6 +21,8 @@
         private int Round(int num)
         private void RotateObject(String actionName, Enum inputState, InputObject inputObject)
         private void PlaceObject(String actionName, Enum inputState, InputObject inputObject)
+        private void ActivateCollisions()
+        private void DeactivateCollisions()
 
         private void CheckSelection()
         private void UpdatePlacement()
@@ -98,6 +100,30 @@ local function CheckCollision()
 end
 
 
+--//Disables Collisions for all parts in itemObject
+local function deactivateCollisions()
+    for _, part in pairs(itemObject.Decor:GetChildren()) do
+        part.CanCollide = false
+    end
+
+    itemObject.PrimaryPart.CanCollide = false
+    itemObject.Base.CanCollide = false
+    dummyPart.CanCollide = false
+end
+
+
+--//Enables Collisions for all parts in itemObject
+local function activateCollisions()
+    for _, part in pairs(itemObject.Decor:GetChildren()) do
+        part.CanCollide = true
+    end
+
+    itemObject.PrimaryPart.CanCollide = true
+    itemObject.Base.CanCollide = true
+    dummyPart.CanCollide = true
+end
+
+
 --//Rotates the object according to input
 local function RotateObject(actionName, inputState, inputObject)
     if (inputState == Enum.UserInputState.Begin) then
@@ -114,6 +140,7 @@ end
 local function PlaceObject(_, inputState)
     if (inputState == Enum.UserInputState.Begin) then
         if (not CheckCollision()) then
+            --Fire proper event according to operation
             if (isMoving) then
                 self.Events.ObjectMoved:Fire(itemObject.Name, localPosition)
             else
@@ -254,6 +281,9 @@ function PlacementApi:StartPlacing(id)
     --Setup rotation
     itemRotation = math.pi / 2
 
+    --Disable collisions
+    deactivateCollisions()
+
     --Setup grid
     plotObject.Main.Grid.Transparency = 0
     plotObject.Main.GridDash.Transparency = 0
@@ -280,6 +310,7 @@ function PlacementApi:StopPlacing(moveToOriginalCFrame)
         if (itemObject) then
             itemObject.Parent = plotObject.Placements
             itemObject.PrimaryPart.Transparency = 1
+            activateCollisions()
 
             --If player cancelled or server errored, return placement to original position
             if (moveToOriginalCFrame) then

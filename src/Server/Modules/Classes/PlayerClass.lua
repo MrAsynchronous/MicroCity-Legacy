@@ -105,7 +105,7 @@ end
 
 --//Sets the value at index placementGuid to key placementObject
 --//Called when player places a new object
-function PlayerClass:AddPlacementObject(placementObject)
+function PlayerClass:SetPlacementObject(placementObject)
 	self.Placements[placementObject.Guid] = placementObject
 
 	--Update placementStore

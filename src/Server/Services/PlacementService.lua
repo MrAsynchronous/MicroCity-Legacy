@@ -8,6 +8,7 @@
     Handles the Server-wise placement operations
 
     Methods
+        public boolean MoveObject(Player player, String guid, CFrame localPosition)
         public boolean PlaceObject(Player player, int itemId, CFrame localPosition)
         public void LoadPlacements(PlayerObject playerObject)
 
@@ -43,8 +44,10 @@ local PlacementClass
 function PlacementService:MoveObject(player, guid, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
-
     placementObject:MoveTo(localPosition)
+
+    --Update placement hash
+    playerObject:SetPlacementObject(placementObject)
 
     return true
 end
@@ -57,7 +60,7 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
     if (ShoppingService:PurchaseItem(playerObject, itemId)) then
         --Construct a new placementObject, hash into playerObject.Placements
         local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
-        playerObject:AddPlacementObject(placementObject)
+        playerObject:SetPlacementObject(placementObject)
     end
 
     return true
@@ -73,7 +76,7 @@ function PlacementService:LoadPlacements(playerObject)
 		local decodedData = TableUtil.DecodeJSON(encodedData)
 
 		--Create new placementObject and add it to index
-		playerObject:AddPlacementObject(PlacementClass.new(
+		playerObject:SetPlacementObject(PlacementClass.new(
 			decodedData.ItemId,
 			CFrameSerializer:DecodeCFrame(decodedData.CFrame),
 			playerObject,

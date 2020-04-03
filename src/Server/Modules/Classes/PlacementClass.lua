@@ -77,8 +77,9 @@ end
 --//Moves ItemObject to desired cframe
 function PlacementClass:MoveTo(itemPosition)
 	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(itemPosition))
-
 	self.LocalPosition = itemPosition
+
+	return true
 end
 
 
