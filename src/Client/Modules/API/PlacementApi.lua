@@ -65,6 +65,7 @@ local itemRotation
 local localPosition
 local worldPosition
 local selectedObject
+local initialPosition
 
 local GRID_SIZE = 2
 local BUILD_HEIGHT = 1024
@@ -109,21 +110,15 @@ local function RotateObject(actionName, inputState, inputObject)
 end
 
 
---//Fires the ObjectMoved signal
-local function MoveObject(_, inputState)
-    if (inputState == Enum.UserInputState.Begin) then
-        if (not CheckCollision()) then
-            self.Events.ObjectMoved:Fire(itemId, localPosition)
-        end
-    end
-end
-
-
 --//Fires the ObjectPlaced signal
 local function PlaceObject(_, inputState)
     if (inputState == Enum.UserInputState.Begin) then
         if (not CheckCollision()) then
-            self.Events.ObjectPlaced:Fire(itemId, localPosition)
+            if (isMoving) then
+                self.Events.ObjectMoved:Fire(itemObject.Name, localPosition)
+            else
+                self.Events.ObjectPlaced:Fire(itemId, localPosition)
+            end
         end
     end
 end
@@ -229,15 +224,16 @@ end
 --//Starts the placing process
 --//Clones the model
 --//Binds function to renderStepped
-function PlacementApi:StartPlacing(id, placementObject)
+function PlacementApi:StartPlacing(id)
     self:StopPlacing()
 
     --If placementObject is a valid arg, player is moving object
-    if (placementObject) then
+    if (type(id) == "userdata") then
         isMoving = true
 
-        itemObject = placementObject
+        itemObject = id
         itemObject.Parent = camera
+        initialPosition = itemObject.PrimaryPart.CFrame
     else
         --Clone model into current camera
         --IMPLEMENT LEVEL SELECTION
@@ -278,16 +274,33 @@ end
 
 --//Stops placing object
 --//Cleans up client
-function PlacementApi:StopPlacing()
-    if (itemObject) then itemObject:Destroy() end
+function PlacementApi:StopPlacing(moveToOriginalCFrame)
+    --Special cleanup for moving objects
+    if (isMoving) then
+        if (itemObject) then
+            itemObject.Parent = plotObject.Placements
+            itemObject.PrimaryPart.Transparency = 1
+
+            --If player cancelled or server errored, return placement to original position
+            if (moveToOriginalCFrame) then
+                itemObject:SetPrimaryPartCFrame(initialPosition)
+            end
+        end
+    else
+        if (itemObject) then itemObject:Destroy() end
+    end
+
     if (dummyPart) then dummyPart:Destroy() end
 
     --Reset locals
+    initialPosition = nil
     localPosition = nil
     worldPosition = nil
     isColliding = false
     isMoving = false
     itemId = 0
+
+    itemObject = nil
 
     --Cleanup grid
     plotObject.Main.Grid.Transparency = 1

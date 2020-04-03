@@ -44,7 +44,7 @@ function PlacementService:MoveObject(player, guid, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
 
-    placementObject:Move(localPosition)
+    placementObject:MoveTo(localPosition)
 
     return true
 end

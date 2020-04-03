@@ -30,6 +30,7 @@ local PlayerGui
 --//Locals
 local camera
 local plotObject
+local selectedModel
 
 local PlacementSelectionQueue
 
@@ -41,21 +42,28 @@ function PlacementController:Start()
         PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, placementObject.PrimaryPart.Size.Y, 0)
         PlacementSelectionQueue.Adornee = placementObject.PrimaryPart
         PlacementSelectionQueue.Enabled = true
+
+        selectedModel = placementObject
     end)
 
     --When player stops selecting placement, hide GUI
     PlacementApi.PlacementSelectionEnded:Connect(function()
         PlacementSelectionQueue.Enabled = false
         PlacementSelectionQueue.Adornee = nil
+
+        selectedModel = nil
     end)
 
     --Button binds
-    local buttonContainer = PlacementSelectionQueue.Buttons
+    local buttonContainer = PlacementSelectionQueue.Container.Buttons
 
     --Invoke PlacementApi
     buttonContainer.Move.MouseButton1Click:Connect(function()
-        if (PlacementSelectionQueue.Adornee) then
-            PlacementService:StartPlacing(nil, true, PlacementSelectionQueue.Adornee:FindFirstAncestorOfClass("Model"))
+        if (selectedModel) then
+            PlacementApi:StartPlacing(selectedModel)
+
+            PlacementSelectionQueue.Adornee = nil
+            selectedModel = nil
         end
     end)
 end

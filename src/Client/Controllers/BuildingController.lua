@@ -18,7 +18,17 @@ function BuildingController:Start()
         local success = PlacementService:PlaceObject(itemId, worldPosition)
 
         if (success) then
-        --    PlacementApi:StopPlacing()
+            PlacementApi:StopPlacing()
+        end
+    end)
+
+    PlacementApi.ObjectMoved:Connect(function(itemGuid, worldPosition)
+        local success = PlacementService:MoveObject(itemGuid, worldPosition)
+
+        if (success) then
+            PlacementApi:StopPlacing(false)
+        else
+            PlacementApi:StopPlacing(true)
         end
     end)
 
