@@ -34,7 +34,7 @@ local selectedPlacement
 function PlacementController:Start()
     
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local placementSuccess = PlacementService:PlaceObject(itemId, CFrame.new(100, 50, 100))
+        local placementSuccess = PlacementService:PlaceObject(itemId, localPosition)
 
     end)
 
