@@ -16,15 +16,19 @@
         PlacementSelectionEnded => Object
 
     Methods:
-        public void StartPlacing(int ItemId)
-        public void StopPlacing()
+        public void StartPlacing(int ItemId OR Model PlacementModel)
+        public void StopPlacing(Boolean MoveToOriginalCFrame)
 
+        private Object hitPart, CFrame hitPosition, NormalId hitSurface CastRay()
+        private void ShowGrid()
+        private void HideGrid()
         private int Round(int num)
-        private void RotateObject(String actionName, Enum inputState, InputObject inputObject)
-        private void PlaceObject(String actionName, Enum inputState, InputObject inputObject)
         private void ActivateCollisions()
         private void DeactivateCollisions()
+        private void RotateObject(String actionName, Enum inputState, InputObject inputObject)
+        private void PlaceObject(String actionName, Enum inputState, InputObject inputObject)
 
+        private void CheckHover()
         private void CheckSelection()
         private void UpdatePlacement()
 
@@ -43,6 +47,7 @@ local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local HapticService = game:GetService("HapticService")
+local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
 local PlayerService
@@ -52,6 +57,7 @@ local PlayerService
 --//Classes
 
 --//Locals
+local camera
 local character
 local plotObject
 
@@ -68,18 +74,46 @@ local worldPosition
 local selectedObject
 local initialWorldPosition
 local initialLocalPosition
+local placementSelectionBox
 
 local GRID_SIZE = 2
 local BUILD_HEIGHT = 1024
+local DAMPENING_SPEED = .2
 local UP = Vector3.new(0, 1, 0)
 local BACK = Vector3.new(0, 0, 1)
-local DAMPENING_SPEED = .2
+local SELECTION_BOX_THICKNESS = .05
+local MAX_INTERACTION_DISTANCE = 30
 local COLLISION_COLOR = Color3.fromRGB(231, 76, 60)
 local NO_COLLISION_COLOR = Color3.fromRGB(46, 204, 113)
+
 
 --[[
     PRIVATE METHODS
 ]]
+
+
+--//Cast a ray from the mouseOrigin to the mouseTarget
+local function CastRay(ignoreList)
+    local mousePos = UserInputService:GetMouseLocation()
+    local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
+    local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
+
+    return workspace:FindPartOnRayWithIgnoreList(mouseRay, ignoreList)
+end
+
+
+--//Smoothly shows the PlotObject's grid pattern
+local function ShowGrid()
+    plotObject.Main.Grid.Transparency = 0
+    plotObject.Main.GridDash.Transparency = 0
+end
+
+
+--//Smoothly hides the plotObject's grid pattern
+local function HideGrid()
+    plotObject.Main.Grid.Transparency = 1
+    plotObject.Main.GridDash.Transparency = 1
+end
 
 
 --//Rounds a number up or down
@@ -179,19 +213,15 @@ local function CalcCanvas()
 end
 
 
---//Bound to RenderStep
+--//Bound to Click, Tap, Trigger
 --//Checks if player is hovering over a placed object
 local function CheckSelection(_, inputState)
-    if (inputState == Enum.UserInputState.Begin) then
-        --Create newMouseRay
-        local mousePos = UserInputService:GetMouseLocation()
-        local mouseUnitRay = self.Camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
-        local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
-        local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character})
+    if (itemObject == nil and inputState == Enum.UserInputState.Begin) then
+        local rayPart, hitPosition, normal = CastRay({character})
 
         --Fire StartedSignal if rayPart is being selected for the first time,
         --Fire EndedSignal if rayPart is not longer selected
-        if (rayPart and rayPart:IsDescendantOf(plotObject.Placements)) then
+        if (rayPart and rayPart:IsDescendantOf(plotObject.Placements) and (rayPart.Position - character.PrimaryPart.Position).magnitude <= MAX_INTERACTION_DISTANCE) then
             selectedObject = rayPart:FindFirstAncestorOfClass("Model")
                 
             self.Events.PlacementSelectionStarted:Fire(selectedObject)
@@ -206,14 +236,30 @@ local function CheckSelection(_, inputState)
 end
 
 
+--//Bound to RenderStepped
+--//Adornee a selection box to placementObjects currently being hovered
+local function CheckHover()
+    local rayPart = CastRay({character})
+
+    if (rayPart) then
+        local parentModel = rayPart:FindFirstAncestorOfClass("Model")
+
+        if (parentModel and parentModel:IsDescendantOf(plotObject.Placements) and (rayPart.Position - character.PrimaryPart.Position).magnitude <= MAX_INTERACTION_DISTANCE) then
+            placementSelectionBox.Adornee = parentModel.PrimaryPart
+        else
+            placementSelectionBox.Adornee = nil
+        end
+    else
+        placementSelectionBox.Adornee = nil
+    end
+end
+
+
 --//Bound to RenderStep
 --//Moves model to position of mouse
 --//Big maths
 local function UpdatePlacement(isInitialUpdate)
-    local mousePos = UserInputService:GetMouseLocation()
-    local mouseUnitRay = self.Camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
-    local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
-    local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character, itemObject, dummyPart})
+    local _, hitPosition = CastRay({character, itemObject, dummyPart})
 
     --Calculate model size according to current itemRotation
 	local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
@@ -244,6 +290,7 @@ local function UpdatePlacement(isInitialUpdate)
     else
         itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED))
     end    
+    
 
     --Check collision
     isColliding = CheckCollision()
@@ -266,25 +313,28 @@ end
 function PlacementApi:StartPlacing(id)
     self:StopPlacing()
 
+    --Show grid
+    ShowGrid()
+
     --If placementObject is a valid arg, player is moving object
     if (type(id) == "userdata") then
         isMoving = true
 
         itemObject = id
-        itemObject.Parent = self.Camera
+        itemObject.Parent = camera
         initialWorldPosition = itemObject.PrimaryPart.CFrame
         initialLocalPosition = plotObject.Main.CFrame:ToObjectSpace(initialWorldPosition)
     else
         --Clone model into current camera
         --IMPLEMENT LEVEL SELECTION
         itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id .. ":1"):Clone()
-        itemObject.Parent = self.Camera
+        itemObject.Parent = camera
         itemId = id
     end
 
     --Create dummy part,used for checking collisions
     dummyPart = itemObject.PrimaryPart:Clone()
-    dummyPart.Parent = self.Camera
+    dummyPart.Parent = camera
     dummyPart.Touched:Connect(function() end)
 
     --Show bounding box, set position to plot
@@ -296,10 +346,6 @@ function PlacementApi:StartPlacing(id)
     --Disable collisions
     deactivateCollisions()
 
-    --Setup grid
-    plotObject.Main.Grid.Transparency = 0
-    plotObject.Main.GridDash.Transparency = 0
-
     --Bind Actions
     ContextActionService:BindAction("PlaceObject", PlaceObject, true, Enum.KeyCode.ButtonR2, Enum.UserInputType.MouseButton1)
         ContextActionService:SetImage("PlaceObject", "rbxassetid://4835092139")
@@ -310,6 +356,7 @@ function PlacementApi:StartPlacing(id)
     ContextActionService:BindAction("CancelPlacement", PlacementApi.StopPlacing, true, Enum.KeyCode.X, Enum.KeyCode.ButtonB)
         ContextActionService:SetImage("CancelPlacement", "rbxassetid://4834678852")
     
+    --Initially snap itemObject to proper position
     UpdatePlacement(true)
     RunService:BindToRenderStep("UpdatePlacement", 1, UpdatePlacement)
 end
@@ -318,6 +365,9 @@ end
 --//Stops placing object
 --//Cleans up client
 function PlacementApi:StopPlacing(moveToOriginalCFrame)
+    --Hide grid
+    HideGrid()
+
     --Special cleanup for moving objects
     if (isMoving) then
         if (itemObject) then
@@ -378,6 +428,7 @@ function PlacementApi:Start()
     end)
     
     --When player clicks, check if they are selection a previously placed object
+    RunService:BindToRenderStep("HoverSelectionQueue", 2, CheckHover)
     ContextActionService:BindAction("SelectionChecking", CheckSelection, false, Enum.UserInputType.MouseButton1, Enum.KeyCode.ButtonR2)
 end
 
@@ -394,6 +445,10 @@ function PlacementApi:Init()
     --//Classes
     
     --//Locals
+    camera = workspace.CurrentCamera
+    placementSelectionBox = Instance.new("SelectionBox")
+    placementSelectionBox.Parent = camera
+    placementSelectionBox.LineThickness = SELECTION_BOX_THICKNESS
 
     --Register signals
     self.Events = {}

@@ -8,6 +8,7 @@
     Handles the Server-wise placement operations
 
     Methods
+        public boolean SellObject(Player player, String guid)
         public boolean MoveObject(Player player, String guid, CFrame localPosition)
         public boolean PlaceObject(Player player, int itemId, CFrame localPosition)
         public void LoadPlacements(PlayerObject playerObject)
@@ -44,13 +45,20 @@ local SELL_EXCHANGE_RATE = 40 --percent
 function PlacementService:SellObject(player, guid)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
-    local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
+    --If placementObject doesn't exits, return false
+    if (not placementObject) then 
+        return false, "The requested PlacementObject does not exist!"
+    end
+
+    local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
     local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
     ShoppingService:SellItem(playerObject, discountedProfit)
 
-    placementObject:Remove()
+    --Remove placementObject from PlacementMap
+    --Remove MetaTable
     playerObject:RemovePlacementObject(guid)
+    placementObject:Remove()
 
     return true
 end
@@ -59,9 +67,14 @@ end
 function PlacementService:MoveObject(player, guid, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
-    placementObject:MoveTo(localPosition)
 
-    --Update placement hash
+    --If placementObject doesn't exist, return false
+    if (not placementObject) then
+        return false, "The requested PlacementObject does not exist!"
+    end
+
+    --//Move object and update PlacementMap
+    placementObject:MoveTo(localPosition)
     playerObject:SetPlacementObject(placementObject)
 
     return true
