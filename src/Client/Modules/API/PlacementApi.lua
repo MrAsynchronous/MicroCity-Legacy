@@ -290,8 +290,7 @@ local function UpdatePlacement(isInitialUpdate)
     else
         itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED))
     end    
-
-    print(localPosition.Y)
+    
 
     --Check collision
     isColliding = CheckCollision()
