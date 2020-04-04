@@ -42,7 +42,9 @@ end
 
 
 function ShoppingService:SellItem(playerObject, profit)
-    playerObject:SetData("Cash", playerObject:GetData("Cash") + profit) 
+    playerObject:SetData("Cash", playerObject:GetData("Cash") + profit)
+
+    return true
 end
 
 

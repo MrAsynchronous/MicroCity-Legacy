@@ -8,7 +8,8 @@
     Interface for controlling the players ability to place objects, edit objects
 
     Events:
-        ObjectPlaced => itemId
+        ObjectPlaced => itemId, LocalSpace position
+        ObjectMoved => itemId, LocalSpace newPosition, LocalSpace oldPosition
         PlacementCancelled => itemId
 
         PlacementSelectionStarted => Object
@@ -51,8 +52,6 @@ local PlayerService
 --//Classes
 
 --//Locals
-local mouse
-local camera
 local character
 local plotObject
 
@@ -67,7 +66,8 @@ local itemRotation
 local localPosition
 local worldPosition
 local selectedObject
-local initialPosition
+local initialWorldPosition
+local initialLocalPosition
 
 local GRID_SIZE = 2
 local BUILD_HEIGHT = 1024
@@ -80,6 +80,12 @@ local NO_COLLISION_COLOR = Color3.fromRGB(46, 204, 113)
 --[[
     PRIVATE METHODS
 ]]
+
+
+--//Rounds a number up or down
+local function RoundNumber(n)
+    return n % 1 >= 0.5 and math.ceil(n) or math.floor(n)
+end
 
 
 --//Checks to see if model is touching another model
@@ -144,7 +150,7 @@ local function PlaceObject(_, inputState)
         if (not CheckCollision()) then
             --Fire proper event according to operation
             if (isMoving) then
-                self.Events.ObjectMoved:Fire(itemObject.Name, localPosition)
+                self.Events.ObjectMoved:Fire(itemObject.Name, localPosition, initialLocalPosition)
             else
                 self.Events.ObjectPlaced:Fire(itemId, localPosition)
             end
@@ -179,7 +185,7 @@ local function CheckSelection(_, inputState)
     if (inputState == Enum.UserInputState.Begin) then
         --Create newMouseRay
         local mousePos = UserInputService:GetMouseLocation()
-        local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
+        local mouseUnitRay = self.Camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
         local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
         local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character})
 
@@ -205,13 +211,13 @@ end
 --//Big maths
 local function UpdatePlacement(isInitialUpdate)
     local mousePos = UserInputService:GetMouseLocation()
-    local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
+    local mouseUnitRay = self.Camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
     local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
     local rayPart, hitPosition, normal = workspace:FindPartOnRayWithIgnoreList(mouseRay, {character, itemObject, dummyPart})
 
     --Calculate model size according to current itemRotation
 	local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
-	modelSize = Vector3.new(math.abs(modelSize.x), math.abs(modelSize.y), math.abs(modelSize.z))
+    modelSize = Vector3.new(math.abs(RoundNumber(modelSize.x)), math.abs(RoundNumber(modelSize.y)), math.abs(RoundNumber(modelSize.z)))
 
 	--Get model size and position relative to the plot
 	local lpos = plotCFrame:pointToObjectSpace(hitPosition);
@@ -265,19 +271,20 @@ function PlacementApi:StartPlacing(id)
         isMoving = true
 
         itemObject = id
-        itemObject.Parent = camera
-        initialPosition = itemObject.PrimaryPart.CFrame
+        itemObject.Parent = self.Camera
+        initialWorldPosition = itemObject.PrimaryPart.CFrame
+        initialLocalPosition = plotObject.Main.CFrame:ToObjectSpace(initialWorldPosition)
     else
         --Clone model into current camera
         --IMPLEMENT LEVEL SELECTION
         itemObject = ReplicatedStorage.Items.Buildings:FindFirstChild(id .. ":1"):Clone()
-        itemObject.Parent = camera
+        itemObject.Parent = self.Camera
         itemId = id
     end
 
     --Create dummy part,used for checking collisions
     dummyPart = itemObject.PrimaryPart:Clone()
-    dummyPart.Parent = camera
+    dummyPart.Parent = self.Camera
     dummyPart.Touched:Connect(function() end)
 
     --Show bounding box, set position to plot
@@ -320,17 +327,19 @@ function PlacementApi:StopPlacing(moveToOriginalCFrame)
 
             --If player cancelled or server errored, return placement to original position
             if (moveToOriginalCFrame) then
-                itemObject:SetPrimaryPartCFrame(initialPosition)
+                itemObject:SetPrimaryPartCFrame(initialWorldPosition)
             end
         end
     else
         if (itemObject) then itemObject:Destroy() end
     end
 
+    --Destroy dummyPart
     if (dummyPart) then dummyPart:Destroy() end
 
     --Reset locals
-    initialPosition = nil
+    initialWorldPosition = nil
+    initialLocalPosition = nil
     localPosition = nil
     worldPosition = nil
     isColliding = false
@@ -385,8 +394,6 @@ function PlacementApi:Init()
     --//Classes
     
     --//Locals
-    camera = workspace.CurrentCamera
-    mouse = self.Player:GetMouse()
 
     --Register signals
     self.Events = {}

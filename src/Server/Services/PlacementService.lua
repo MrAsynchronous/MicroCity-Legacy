@@ -46,11 +46,13 @@ function PlacementService:SellObject(player, guid)
     local placementObject = playerObject:GetPlacementObject(guid)
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
-    local discountedProfit = itemMetaData.Cost * .4
+    local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
     ShoppingService:SellItem(playerObject, discountedProfit)
 
     placementObject:Remove()
     playerObject:RemovePlacementObject(guid)
+
+    return true
 end
 
 --//Moves a PlacementObject to the new localPosition

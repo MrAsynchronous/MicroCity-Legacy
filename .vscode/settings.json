@@ -10,6 +10,9 @@
         "Enum",
         "Color3",
         "Vector2",
-        "CFrame"
+        "CFrame",
+        "Random",
+        "Instance",
+        "workspace"
     ]
 }

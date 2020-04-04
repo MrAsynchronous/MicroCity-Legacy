@@ -66,7 +66,7 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 
 	--Navigate to proper repo, clone item of passed level, or default level
 	self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":" .. self.Level):Clone()
-	self.PlacedObject.Parent = self.Plot.Placements
+	self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
 	self.PlacedObject.Name = self.Guid
 	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
 

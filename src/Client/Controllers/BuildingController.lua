@@ -10,28 +10,9 @@ local BuildingController = {}
 
 local UserInputService = game:GetService("UserInputService")
 
-local PlacementService
 local PlacementApi
 
 function BuildingController:Start()
-    PlacementApi.ObjectPlaced:Connect(function(itemId, worldPosition)
-        local success = PlacementService:PlaceObject(itemId, worldPosition)
-
-        if (success) then
-            PlacementApi:StopPlacing()
-        end
-    end)
-
-    PlacementApi.ObjectMoved:Connect(function(itemGuid, worldPosition)
-        local success = PlacementService:MoveObject(itemGuid, worldPosition)
-
-        if (success) then
-            PlacementApi:StopPlacing(false)
-        else
-            PlacementApi:StopPlacing(true)
-        end
-    end)
-
     UserInputService.InputBegan:Connect(function(inputObject, gameProccessed)
         if (not gameProccessed) then
             if (inputObject.KeyCode == Enum.KeyCode.One) then
@@ -53,7 +34,6 @@ end
 
 
 function BuildingController:Init()
-    PlacementService = self.Services.PlacementService
     PlacementApi = self.Modules.API.PlacementApi
 end
 
