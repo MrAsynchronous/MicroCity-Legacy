@@ -16,6 +16,7 @@ local PlacementController = {}
 
 --//Api
 local PlacementApi
+local RoadApi
 
 --//Services
 local PlacementService
@@ -104,6 +105,7 @@ end
 function PlacementController:Init()
     --//Api
     PlacementApi = self.Modules.API.PlacementApi
+    RoadApi = self.Modules.API.RoadApi
 
     --//Services
     PlacementService = self.Services.PlacementService

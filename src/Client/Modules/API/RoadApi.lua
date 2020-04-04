@@ -30,7 +30,8 @@ local MetaDataService
 local VehicleClass
 
 --//Locals
-local plotVisualizer
+local PlayerGui
+local PlotVisualizer
 local plotObject
 
 local roadIndex
@@ -76,8 +77,7 @@ end
 
 --//Creates interval to spawn vehicles
 function RoadApi:Start()
-    plotVisualizer = self.PlayerGui:WaitForChild("PlotVisualizer")
-    plotObject = self.Player:WaitForChild("PlayerPlot").Value
+
 
     --Instantiate roadIndex
     for i=0, plotObject:WaitForChild("Main").Size.X, 2 do
@@ -105,11 +105,15 @@ function RoadApi:Init()
     --//Controllers
 
     --//Classes
-    VehicleClass = self.Modules.Classes.VehicleClass
+    PlayerGui = self.Player:WaitForChild("PlayerGui")
+    PlotVisualizer = PlayerGui:WaitForChild("PlotVisualizer")
+    plotObject = self.Player:WaitForChild("PlayerPlot").Value
 
     --//Locals
     roadIndex = {}
     visualIndex = {}
+
+    return true
 end
 
 
