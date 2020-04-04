@@ -1,13 +1,14 @@
 -- Placement Controller
 -- MrAsync
--- March 30, 2020
+-- April 3, 2020
 
 
 --[[
 
-    Medium between UI and PlacementApi. Controls the selectionQueue of placements
+    Handle signals and method calls from and to the PlacementApi
 
 ]]
+
 
 
 local PlacementController = {}
@@ -15,109 +16,86 @@ local PlacementController = {}
 
 --//Api
 local PlacementApi
-local RoadApi
 
 --//Services
-local ContextActionService = game:GetService("ContextActionService")
-
 local PlacementService
-local PlayerService
 
 --//Controllers
 
 --//Classes
 
 --//Locals
-local plotObject
-local selectedModel
-
+local PlayerGui
 local PlacementSelectionQueue
+
+local selectedPlacement
 
 
 function PlacementController:Start()
-    while (not plotObject.Main) do wait() end
-
-    --Load objects into roadIndex
-    for _, road in pairs(plotObject.Placements.Roads:GetChildren()) do
-        local localPosition = plotObject.Main.CFrame:ToObjectSpace(road.PrimaryPart.CFrame)
-
-        RoadApi:AddRoad(localPosition)
-    end
-
-    --Bind to ObjectPlaced signal
+    
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local success = PlacementService:PlaceObject(itemId, localPosition)
+        local placementSuccess = PlacementService:PlaceObject(itemId, CFrame.new(100, 50, 100))
 
-        --If place successful
-        if (success) then
-
-            --Add road to roadIndex
-            RoadApi:AddRoad(localPosition)
-        end
     end)
 
+    PlacementApi.ObjectMoved:Connect(function(itemId, localPosition, oldPosition)
+        local moveSuccess = PlacementService:MoveObject(itemId, localPosition)
 
-    --Bind to ObjectMoved signal
-    PlacementApi.ObjectMoved:Connect(function(itemGuid, newLocalPosition, originalLocalPosition)
-        local success = PlacementService:MoveObject(itemGuid, newLocalPosition)
+        if (moveSuccess) then
+            PlacementApi:StopPlacing()
 
-        --If move successful
-        if (success) then
-            PlacementApi:StopPlacing(false)
-
-            --Remove road from roadIndex
-            --Add road to roadIndex
-            RoadApi:RemoveRoad(originalLocalPosition)
-            RoadApi:AddRoad(newLocalPosition)
         else
             PlacementApi:StopPlacing(true)
         end
     end)
-
-
-    --When player selects placement, show GUI
+    
+    --When player selects placed object, setup PlacementSelectionQueue, tween
     PlacementApi.PlacementSelectionStarted:Connect(function(placementObject)
         PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, placementObject.PrimaryPart.Size.Y, 0)
         PlacementSelectionQueue.Adornee = placementObject.PrimaryPart
         PlacementSelectionQueue.Enabled = true
 
-        selectedModel = placementObject
+        --Only tween UI if selectedPlacement fresh, or hot-selecting a different placementObject
+        if (not selectedPlacement or (selectedPlacement and (placementObject ~= selectedPlacement))) then
+            PlacementSelectionQueue.Container.Size = UDim2.new(0, 0, 0, 0)
+            PlacementSelectionQueue.Container:TweenSize(UDim2.new(1, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quint, .25, true)
+        end
+        
+        selectedPlacement = placementObject
     end)
 
-
-    --When player stops selecting placement, hide GUI
-    PlacementApi.PlacementSelectionEnded:Connect(function()
-        PlacementSelectionQueue.Enabled = false
-        PlacementSelectionQueue.Adornee = nil
-
-        selectedModel = nil
-    end)
-
-
-    --Button binds
-    local buttonContainer = PlacementSelectionQueue.Container.Buttons
-
-    --Move object
-    buttonContainer.Move.MouseButton1Click:Connect(function()
-        if (selectedModel) then
-            PlacementApi:StartPlacing(selectedModel)
-
+    --When player stops selecting a placedObject, tween, cleanup PlacementSelectionQueue
+    PlacementApi.PlacementSelectionEnded:Connect(function(placementObject)
+        --Tween UI out, when tween finished, reset placementSelectionQueue
+        PlacementSelectionQueue.Container:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quint, .25, true, function()        
+            PlacementSelectionQueue.Enabled = false
             PlacementSelectionQueue.Adornee = nil
-            selectedModel = nil
+        end)
+
+        selectedPlacement = nil
+    end)
+
+
+    --[[
+
+        PLACEMENTSELECTIONQUEUE BUTTON BINDS
+
+    ]]
+    local actionButtons = PlacementSelectionQueue.Container.Buttons
+
+    actionButtons.Sell.MouseButton1Click:Connect(function()
+        if (selectedPlacement) then
+            local success = PlacementService:SellObject(selectedPlacement.Name)
+
         end
     end)
 
-    --Sell object
-    buttonContainer.Sell.MouseButton1Click:Connect(function()
-        local oldLocalPosition = plotObject.Main.CFrame:ToObjectSpace(selectedModel.PrimaryPart.CFrame)
-        local success = PlacementService:SellObject(selectedModel.Name)
+    actionButtons.Move.MouseButton1Click:Connect(function()
+        if (selectedPlacement) then
+            PlacementApi:StartPlacing(selectedPlacement)
 
-        PlacementSelectionQueue.Adornee = nil
-        selectedModel = nil
-
-        --If sell is a success, remove road from roadIndex
-        if (success) then
-            RoadApi:RemoveRoad(oldLocalPosition)
+            PlacementSelectionQueue.Adornee = nil
+            selectedPlacement = nil
         end
     end)
 end
@@ -126,20 +104,18 @@ end
 function PlacementController:Init()
     --//Api
     PlacementApi = self.Modules.API.PlacementApi
-    RoadApi = self.Modules.API.RoadApi
 
     --//Services
     PlacementService = self.Services.PlacementService
-    PlayerService = self.Services.PlayerService
 
     --//Controllers
-    
+
     --//Classes
 
     --//Locals
-    plotObject = self.Player:WaitForChild("PlayerPlot").Value
-    PlacementSelectionQueue = self.PlayerGui:WaitForChild("PlacementSelectionQueue")
-
+    PlayerGui = self.Player:WaitForChild("PlayerGui")
+    PlacementSelectionQueue = PlayerGui:WaitForChild("PlacementSelectionQueue")
+        
 end
 
 
