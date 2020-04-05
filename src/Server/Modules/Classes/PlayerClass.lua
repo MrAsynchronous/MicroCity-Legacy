@@ -16,6 +16,7 @@
 		public void AddPlacementObject(String guid, PlacementObject placementObject)
 		public PlacementObject GetPlacementObject(String guid)
 		public void RemovePlacementObject(String guid)
+		public void CleanPlot()
 
 ]]
 
@@ -100,6 +101,16 @@ function PlayerClass.new(player)
 	self.DataFolder = dataFolder
 
 	return self
+end
+
+
+--//Called when player resets plot of leaves the game
+function PlayerClass:CleanPlot()
+	for _, placementObject in pairs(self.Placements) do
+		placementObject:Remove()
+
+		wait()
+	end
 end
 
 

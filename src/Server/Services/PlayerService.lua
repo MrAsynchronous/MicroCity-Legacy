@@ -40,14 +40,20 @@ function PlayerService:Start()
         local playerObject = PlayerClass.new(newPlayer)
         playerObject.PlotObject = plotObject
 
-        --Load placements
-        PlacementService:LoadPlacements(playerObject)
+        --Create client-required values
+        local plotLoadedValue = Instance.new("BoolValue")
+        plotLoadedValue.Name = "PlotLoaded"
+        plotLoadedValue.Value = false
+        plotLoadedValue.Parent = newPlayer
 
         --Create plotValue
         local plotValue = Instance.new("ObjectValue")
         plotValue.Name = "PlayerPlot"
-        plotValue.Value = plotObject
         plotValue.Parent = newPlayer
+        plotValue.Value = plotObject
+
+        --Load placements
+        PlacementService:LoadPlacements(playerObject)
 
         --Create leaderstats
         local leaderstats = Instance.new("Folder")
@@ -70,6 +76,7 @@ function PlayerService:Start()
 
     game.Players.PlayerRemoving:Connect(function(oldPlayer)
         local playerObject = self:GetPlayerObject(oldPlayer)
+        playerObject:CleanPlot()
 
         --Push plot into PlotStack, remove PlayerObject
         PlotService:AddPlot(playerObject.PlotObject)

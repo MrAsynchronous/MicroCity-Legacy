@@ -14,6 +14,8 @@ local MetaDataService = {Client = {}}
 --//Services
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 
+local PlayerService
+
 --//Controllers
 
 --//Classes
@@ -29,15 +31,23 @@ local PlayerData
 --Client expoded method
 --Calls server method
 function MetaDataService.Client:GetMetaData(player, itemId)
-    return self.Server:GetMetaData(itemId)
+    return self.Server:GetMetaData(itemId, player)
 end
 
 
 --Returns the indexed itemId
 --Returns MetaData array if found
 --Otherwise return nil
-function MetaDataService:GetMetaData(itemId)
-    return DataNodes[itemId]
+function MetaDataService:GetMetaData(itemId, player)
+    --If itemId parameter is a valid itemId, return indexed table
+    if (type(itemId) == "number") then
+        return DataNodes[itemId]
+    else
+        local playerObject = PlayerService:GetPlayerObject(player)
+        local placementObject = playerObject:GetPlacementObject(itemId)
+
+        return DataNodes[placementObject.ItemId]
+    end
 end
 
 
@@ -54,6 +64,7 @@ end
 
 function MetaDataService:Init()
     --//Services
+    PlayerService = self.Services.PlayerService
 
     --//Controllers
 

@@ -412,11 +412,7 @@ end
 
 
 function PlacementApi:Start()
-    local playerPlotValue = self.Player:WaitForChild("PlayerPlot")
-    plotObject = playerPlotValue.Value
-
-    --Yield until Plot.Main exists
-    while (not plotObject:FindFirstChild("Main")) do wait() end
+    plotObject = self.Player:WaitForChild("PlayerPlot").Value
 
     --Setup plot locals
     plotCFrame, plotSize = CalcCanvas()

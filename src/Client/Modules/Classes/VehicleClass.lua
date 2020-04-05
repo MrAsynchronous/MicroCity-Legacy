@@ -19,10 +19,10 @@ VehicleClass.__index = VehicleClass
 --//Locals
 
 
-function VehicleClass.new(start, destination, vehicleIndex, plotObject)
+function VehicleClass.new(start, vehicleIndex, plotObject)
     local self = setmetatable({
         StartingPoint = start,
-        EndingPoint = destination
+        CurrentPoint = start
     }, VehicleClass)
 
 

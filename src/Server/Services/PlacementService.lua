@@ -109,8 +109,13 @@ function PlacementService:LoadPlacements(playerObject)
 			CFrameSerializer:DecodeCFrame(decodedData.CFrame),
 			playerObject,
 			decodedData
-		))
-	end
+        ))
+        
+        wait()
+    end
+    
+    --Tell client that their plot has been loaded
+    self:FireClientEvent("OnPlotLoadComplete", playerObject.Player)
 end
 
 
@@ -151,6 +156,8 @@ function PlacementService:Init()
 
     --//Locals	
     SELL_EXCHANGE_RATE = SELL_EXCHANGE_RATE / 100
+
+    self:RegisterClientEvent("OnPlotLoadComplete")
 end
 
 

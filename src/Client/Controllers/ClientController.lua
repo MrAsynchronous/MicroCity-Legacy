@@ -22,23 +22,17 @@ local PlayerService
 --//Classes
 
 --//Locals
-local plotCFrame
+local plotObject
 
 
 function ClientController:Start()
-    local playerPlotValue = self.Player:WaitForChild("PlayerPlot")
-    local playerPlot = playerPlotValue.Value
-
-    --Yield until Plot.Main exists
-    while (not playerPlot:FindFirstChild("Main")) do wait() end
-
     --Move character to plot
     local character = (self.Player.Character or self.Player.CharacterAdded:Wait())
-    character:SetPrimaryPartCFrame(playerPlot.Main.CFrame + Vector3.new(0, 5, 0))
+    character:SetPrimaryPartCFrame(plotObject.Main.CFrame + Vector3.new(0, 5, 0))
 
     --Spawn character at plot on character reload
     self.Player.CharacterAdded:Connect(function(newCharacter)
-        newCharacter:SetPrimaryPartCFrame(playerPlot.Main.CFrame + Vector3.new(0, 5, 0))
+        newCharacter:SetPrimaryPartCFrame(plotObject.Main.CFrame + Vector3.new(0, 5, 0))
     end)
 end
 
@@ -54,6 +48,7 @@ function ClientController:Init()
     --//Classes
 
     --//Locals	
+    plotObject = self.Player:WaitForChild("PlayerPlot").Value
     
 end
 
