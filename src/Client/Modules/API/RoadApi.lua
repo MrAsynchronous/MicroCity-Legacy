@@ -12,6 +12,7 @@
         public void RemoveRoad(LocalSpace localPosition)
 
         private Vector2 GetCellFromCFrame(LocalSpace localPosition)
+        private Array GetAdjacentRoads(Vector2 cellPosition)
 ]]
 
 
@@ -53,11 +54,67 @@ local function GetCellFromCFrame(localPosition)
 end
 
 
+local function GetCFrameFromCell(cellPosition)
+    local relativeToCorner = CFrame.new(Vector3.new(
+        (cellPosition.Row * 2) + 1,
+        0,
+        -(cellPosition.Column * 2) + 1
+    ))
+
+    local relativeToWorld = plotCornerPosition:ToWorldSpace(relativeToCorner)
+
+    return relativeToWorld
+end
+
+
+--//Indexes adjacent cell's and packs them into an array
+local function GetAdjacentRoads(baseCell)
+    local nonUsedAdjacentCells = {}
+
+    --Create new array with adjacentCells
+    --Front, back, left, right
+    local adjacentCells = {
+        {Row = math.clamp(baseCell.Row - 1, 1, #roadMap), Column = baseCell.Column},
+        {Row = math.clamp(baseCell.Row + 1, 1, #roadMap), Column = baseCell.Column},
+        {Row = baseCell.Row, Column = baseCell.Column - 1, 1, #roadMap},
+        {Row = baseCell.Row, Column = baseCell.Column + 1, 1, #roadMap}
+    }
+    
+    --Insert valid, non-used cells into array
+    for _, adjacentCell in pairs(adjacentCells) do
+        if ((adjacentCell.Row and adjacentCell.Column) and (adjacentCell.Row ~= baseCell.Row and adjacentCell.Column ~= baseCell.Column)) then
+            table.insert(nonUsedAdjacentCells, adjacentCell)
+        end
+    end
+
+    return nonUsedAdjacentCells
+end
+
+
+local function GetNearestRoad(previousCell, baseCell)
+    local adjacentRoads = GetAdjacentRoads(previousCell, baseCell)
+
+    --If no adjacent roads exist, return
+    if (#adjacentRoads == 0) then return end
+
+
+end
+
+
+--//Pathfinding Algorithm
+--//Generates a random path for a vehicle to follow
+function RoadApi:GeneratePath(startingCell)
+    local vehiclePath = {startingCell}
+
+    GetNearestRoad(startingCell, startingCell)
+end
+
+
 --//Adds node relative to localPosition
 function RoadApi:AddRoad(localPosition)
     local cellPosition = GetCellFromCFrame(localPosition)
 
-    print(cellPosition.Row, cellPosition.Column)
+    print(#GetAdjacentRoads(cellPosition))
 
     roadMap[cellPosition.Row][cellPosition.Column] = localPosition
     visualIndex[cellPosition.Row][cellPosition.Column].BackgroundColor3 = Color3.fromRGB(0, 255, 0);
