@@ -61,11 +61,6 @@ function PlacementController:Start()
         --If placement was successful and placementType was a road ,
         if (placementSuccess) then
             local itemMetaData = MetaDataService:GetMetaData(itemId)
-
-            --Add road to roadMap
-            if (itemMetaData.Type == "Road") then
-                RoadApi:AddRoad(localPosition)
-            end
         end
     end)
 
@@ -74,13 +69,7 @@ function PlacementController:Start()
 
         if (moveSuccess) then
             local itemMetaData = MetaDataService:GetMetaData(guid)
-            PlacementApi:StopPlacing()
-
-            --Add road to roadMap
-            if (itemMetaData.Type == "Road") then
-                RoadApi:AddRoad(localPosition)
-                RoadApi:RemoveRoad(oldPosition)
-            end            
+            PlacementApi:StopPlacing()       
         else
             PlacementApi:StopPlacing(true)
         end
@@ -118,19 +107,7 @@ function PlacementController:Start()
         if (selectedPlacement) then
             HideQueue()
 
-            --Cache MetaData and the objects CFrame
-            local objectMetaData = MetaDataService:GetMetaData(selectedPlacement.Name)
-            local objectCFrame = selectedPlacement.PrimaryPart.CFrame
             local success = PlacementService:SellObject(selectedPlacement.Name)
-
-            --If selloff is a success
-            if (success) then
-                --And object sold was a Road
-                if (objectMetaData.Type == "Road") then
-                    --Remove road from roadMap
-                    RoadApi:RemoveRoad(PlotObject.Main.CFrame:ToObjectSpace(objectCFrame))
-                end
-            end
         end
     end)
 
