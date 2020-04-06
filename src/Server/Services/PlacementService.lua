@@ -89,6 +89,13 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         --Construct a new placementObject, hash into playerObject.Placements
         local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
         playerObject:SetPlacementObject(placementObject)
+
+        --Auto intersection
+        local adjacentRegion3 = Region3.new(
+            
+        )
+
+
     end
 
     return true

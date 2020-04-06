@@ -47,6 +47,7 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 		ItemId = itemId,
 		Plot = playerObject.PlotObject,
 		LocalPosition = itemPosition,
+		WorldPosition = playerObject.PlotObject.Main.CFrame:ToWorldSpace(itemPosition),
 
 		Level = 1,
 		Age = 0,
