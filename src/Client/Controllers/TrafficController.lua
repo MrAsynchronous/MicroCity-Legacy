@@ -38,6 +38,9 @@ local roadIndex
 local spawnCount
 local randomObject
 
+local SPEED = 0.06
+local POLICE_SPEED = 0.1
+
 
 --//Returns a road model randomly picked from all adjacent roads
 local function GetAdjacentRoads()
@@ -81,7 +84,6 @@ local function UpdateVehicles()
         --Grab adjacentRoad
         local baseBuilding, startingRoad = GetAdjacentRoads()
         if (not baseBuilding or not startingRoad) then return end
-
         local vehiclePath = RoadApi:GeneratePath(startingRoad)
 
         --Clone vehicle, set position
@@ -111,11 +113,17 @@ local function UpdateVehicles()
                 vehicles[vehicleModel].CurrentRoad = vehicles[vehicleModel].CurrentRoad + 1
             end
 
+            --If vehicle is a police car, update every 10 frames
+            if (vehicleModel.Name == "Police" and (spawnCount % 10) == 0) then
+                vehicleModel.Lights.Red.SurfaceLight.Enabled = not vehicleModel.Lights.Red.SurfaceLight.Enabled
+                vehicleModel.Lights.Blue.SurfaceLight.Enabled = not vehicleModel.Lights.Blue.SurfaceLight.Enabled
+            end
+
             --Lerp from current position to CurrentRoadPosition facing the nextRoadPosition
             local nextRoadPosition = vehiclePath[math.clamp(info.CurrentRoad + 1, 1, #vehiclePath)].PrimaryPart.Position
             vehicleModel:SetPrimaryPartCFrame(vehicleModel.PrimaryPart.CFrame:Lerp(
                 CFrame.new(road.PrimaryPart.Position, nextRoadPosition),
-                0.06
+                SPEED
             ))
         end
     end
