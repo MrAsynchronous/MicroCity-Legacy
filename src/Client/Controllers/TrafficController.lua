@@ -114,6 +114,7 @@ local function UpdateVehicles()
             end
 
             --If vehicle is a police car, update every 10 frames
+            --Woot woot it's the sound of da police
             if (vehicleModel.Name == "Police" and (spawnCount % 10) == 0) then
                 vehicleModel.Lights.Red.SurfaceLight.Enabled = not vehicleModel.Lights.Red.SurfaceLight.Enabled
                 vehicleModel.Lights.Blue.SurfaceLight.Enabled = not vehicleModel.Lights.Blue.SurfaceLight.Enabled
