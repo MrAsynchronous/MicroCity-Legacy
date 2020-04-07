@@ -40,15 +40,9 @@ function PlayerService:Start()
         local playerObject = PlayerClass.new(newPlayer)
         playerObject.PlotObject = plotObject
 
-        --Create client-required values
-        local plotLoadedValue = Instance.new("BoolValue")
-        plotLoadedValue.Name = "PlotLoaded"
-        plotLoadedValue.Value = false
-        plotLoadedValue.Parent = newPlayer
-
         --Create plotValue
         local plotValue = Instance.new("ObjectValue")
-        plotValue.Name = "PlayerPlot"
+        plotValue.Name = "PlotObject"
         plotValue.Parent = newPlayer
         plotValue.Value = plotObject
 

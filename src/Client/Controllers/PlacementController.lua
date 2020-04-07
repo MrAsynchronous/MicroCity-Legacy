@@ -20,7 +20,6 @@ local PlacementController = {}
 
 --//Api
 local PlacementApi
-local RoadApi
 
 --//Services
 local PlacementService
@@ -41,12 +40,12 @@ local selectedPlacement
 
 local function ShowQueue()
     PlacementSelectionQueue.Container.Size = UDim2.new(0, 0, 0, 0)
-    PlacementSelectionQueue.Container:TweenSize(UDim2.new(1, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quint, .25, true)
+    PlacementSelectionQueue.Container:TweenSize(UDim2.new(1, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.25, true)
 end
 
 
 local function HideQueue()
-    PlacementSelectionQueue.Container:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quint, .25, true, function()        
+    PlacementSelectionQueue.Container:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quint, 0.25, true, function()        
         PlacementSelectionQueue.Enabled = false
         PlacementSelectionQueue.Adornee = nil
     end)
@@ -125,7 +124,6 @@ end
 function PlacementController:Init()
     --//Api
     PlacementApi = self.Modules.API.PlacementApi
-    RoadApi = self.Modules.API.RoadApi
 
     --//Services
     PlacementService = self.Services.PlacementService
@@ -139,7 +137,7 @@ function PlacementController:Init()
     PlayerGui = self.Player:WaitForChild("PlayerGui")
     PlacementSelectionQueue = PlayerGui:WaitForChild("PlacementSelectionQueue")
 
-    PlotObject = self.Player:WaitForChild("PlayerPlot").Value
+    PlotObject = self.Player:WaitForChild("PlotObject").Value
         
 end
 

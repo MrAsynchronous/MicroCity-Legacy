@@ -412,7 +412,7 @@ end
 
 
 function PlacementApi:Start()
-    plotObject = self.Player:WaitForChild("PlayerPlot").Value
+    plotObject = self.Player:WaitForChild("PlotObject").Value
 
     --Setup plot locals
     plotCFrame, plotSize = CalcCanvas()

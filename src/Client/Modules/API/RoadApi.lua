@@ -8,11 +8,10 @@
     Used to convert localPositions of roads to cellPositions in roadIndex
 
     Methods
-        public void AddRoad(LocalSpace localPosition)
-        public void RemoveRoad(LocalSpace localPosition)
+        public Array GeneratePath(Model startingRoad)
 
-        private Vector2 GetCellFromCFrame(LocalSpace localPosition)
-        private Array GetAdjacentRoads(Vector2 cellPosition)
+        private Array GetAdjacentRoads(Model currentRoad, Model lastRoad)
+        private Model GetNextRoad(Model currentRoad, Model lastRoad)
 ]]
 
 
@@ -72,36 +71,22 @@ end
 
 --//Generates a path for a vehicle to follow
 --//Traces roads until roads end
-local function GeneratePath(startingRoad)
+function RoadApi:GeneratePath(startingRoad)
     local currentRoad = GetNextRoad(startingRoad)
     local roads = {startingRoad, currentRoad}
 
     repeat
         currentRoad = GetNextRoad(currentRoad, roads[math.clamp(#roads - 1, 1, #roads)])
         table.insert(roads, currentRoad)
-
-        if (currentRoad) then
-            currentRoad.PrimaryPart.Transparency = 0
-            currentRoad.PrimaryPart.Color = Color3.fromRGB(0, 255, 0)
-        end
-
-        wait()
     until (not currentRoad)
+
+    return roads
 end
 
 
 --//Creates interval to spawn vehicles
 function RoadApi:Start()
-    UserInputService.InputBegan:Connect(function(inputObject, gameProcessed)
-        if (inputObject.KeyCode == Enum.KeyCode.B) then
-            for _, road in pairs(PlotObject.Placements.Roads:GetChildren()) do
-                road.PrimaryPart.Transparency = 1
-                road.PrimaryPart.Color = Color3.fromRGB(0, 0, 0)
-            end
-        
-            GeneratePath(PlotObject.Placements.Roads:GetChildren()[1])
-        end
-    end)
+    PlotObject = self.Player:WaitForChild("PlotObject").Value
 end
 
 
@@ -117,7 +102,6 @@ function RoadApi:Init()
     --//Classes
 
     --//Locals
-    PlotObject = self.Player.PlayerPlot.Value
     RandomObject = Random.new(os.time())
 
 end
