@@ -78,7 +78,6 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 
 	--Reconstruct CFrame
 	self.LocalPosition = CFrame.new(xPosition, yPosition, zPosition, R00, R01, R02, R10, R11, R12, R20, R21, R22)
-
 	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
 
 	return self
