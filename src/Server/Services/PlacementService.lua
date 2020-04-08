@@ -38,6 +38,35 @@ local PlacementClass
 --//Locals
 local SELL_EXCHANGE_RATE = 40 --percent
 
+
+--[[
+    Private methods
+]]
+--//Returns an array containing all adjacent roads
+--//Region3 based
+local function GetAdjacentRoads(playerObject, placedRoad)
+    local roadPosition = placedRoad.PrimaryPart.Position
+    local adjacentRegion = Region3.new(roadPosition - Vector3.new(1, 1, 1), roadPosition + Vector3.new(1, 1, 1))
+    local roadsInRegion = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, playerObject.PlotObject.Placements.Roads:GetChildren(), math.huge)
+    local modelsInRegion = {}
+
+    --Iterate through all parts in Region3
+    for i, part in pairs(roadsInRegion) do
+        --Find model and localize positions
+        local model = part:FindFirstAncestorOfClass("Model")
+        local position = model.PrimaryPart.Position
+        local positionDifference = roadPosition - position
+
+        --Only add model if model is not currentRoad model is not already in index, and if it is directly adjacent with a tolerance of .25 studs
+        if ((model ~= placedRoad) and (not table.find(modelsInRegion, model)) and (math.abs(positionDifference.X) <= 0.25 or math.abs(positionDifference.Z) <= 0.25)) then
+            table.insert(modelsInRegion, model)
+        end
+    end
+
+    return modelsInRegion
+end
+
+
 --[[
     Server methods
 ]]
@@ -89,6 +118,11 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         --Construct a new placementObject, hash into playerObject.Placements
         local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
         playerObject:SetPlacementObject(placementObject)
+
+        --Auto-Intersection
+        local adjacentRoads = GetAdjacentRoads(playerObject, placementObject.PlacedObject)
+        print(#adjacentRoads)
+
     end
 
     return true
