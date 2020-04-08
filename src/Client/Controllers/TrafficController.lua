@@ -29,8 +29,10 @@ local PlacementService
 
 --//Locals
 local PlotObject
-local VehicleIndex
+local SoundLibrary
 local RoadContainer
+local TrafficVehicles
+local EmergencyVehicles
 local BuildingContainer
 
 local vehicles
@@ -84,12 +86,26 @@ local function UpdateVehicles()
         --Grab adjacentRoad
         local baseBuilding, startingRoad = GetAdjacentRoads()
         if (not baseBuilding or not startingRoad) then return end
+
+        --Create vehicle path with more than 5 nodes
         local vehiclePath = RoadApi:GeneratePath(startingRoad)
 
-        --Clone vehicle, set position
-        local vehicleModel = VehicleIndex[randomObject:NextInteger(1, #VehicleIndex)]:Clone()
-        vehicleModel.Parent = PlotObject.Vehicles
+        --1/25 chance of a police car
+        local sound
+        local vehicleModel
+        if (randomObject:NextInteger(1, 25) == 13) then
+            sound = SoundLibrary.Siren:Clone()
+            vehicleModel = EmergencyVehicles.Police:Clone()
+        else
+            sound = SoundLibrary.Car:Clone()
+            vehicleModel = TrafficVehicles[randomObject:NextInteger(1, #TrafficVehicles)]:Clone()
+        end
+
+        --Parent vehicle, sound, play sound
         vehicleModel:SetPrimaryPartCFrame(CFrame.new(baseBuilding.PrimaryPart.Position, vehiclePath[1].PrimaryPart.Position))
+        vehicleModel.Parent = PlotObject.Vehicles
+        sound.Parent = vehicleModel.PrimaryPart
+        sound:Play()
 
         --Add vehicle to index
         vehicles[vehicleModel] = {
@@ -152,9 +168,12 @@ function TrafficController:Init()
 
     --//Locals
     PlotObject = self.Player:WaitForChild("PlotObject").Value
-    VehicleIndex = ReplicatedStorage.Items.Vehicles:GetChildren()
+    SoundLibrary = self.Player.PlayerScripts:WaitForChild("SoundLibrary")
     RoadContainer = PlotObject.Placements.Roads
     BuildingContainer = PlotObject.Placements.Buildings
+
+    TrafficVehicles = ReplicatedStorage.Items.Vehicles.Traffic:GetChildren()
+    EmergencyVehicles = ReplicatedStorage.Items.Vehicles.Emergency
 
     vehicles = {}
     spawnCount = 1;
