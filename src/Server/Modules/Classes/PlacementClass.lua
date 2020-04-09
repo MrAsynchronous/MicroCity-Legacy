@@ -84,6 +84,22 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 end
 
 
+--//Updates the level and model of the placed object
+function PlacementClass:Upgrade()
+	print("Upgrading!")
+
+	self.Level = math.clamp(self.level, 1, (#self.MetaData.Upgrades or 1))
+
+	self.PlacedObject:Destroy()
+	self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(self.ItemId .. ":" .. self.Level):Clone()
+	self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
+	self.PlacedObject.Name = self.Guid
+	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
+
+	return true
+end
+
+
 --//Moves ItemObject to desired cframe
 function PlacementClass:MoveTo(itemPosition)
 	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(itemPosition))
