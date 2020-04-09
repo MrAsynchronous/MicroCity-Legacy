@@ -52,11 +52,10 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
         playerObject:SetPlacementObject(placementObject)
 
-        --Auto-Intersection
-        local adjacentRoads = RoadIntersection:GetAdjacentRoads(playerObject, placementObject.PlacedObject)
+        return true, placementObject.PlacedObject
     end
 
-    return true
+    return false
 end
 
 --//Sells a PlacedObject
@@ -81,6 +80,14 @@ function PlacementService:SellObject(player, guid)
     return true
 end
 
+--//Upgrades a placedObject
+function PlacementService:UpgradeObject(player, guid)
+    local playerObject = PlayerService:GetPlayerObject(player)
+    local placementObject = playerObject:GetPlacementObject(guid)
+
+    return placementObject:Upgrade()
+end
+
 --//Moves a PlacementObject to the new localPosition
 function PlacementService:MoveObject(player, guid, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
@@ -101,7 +108,8 @@ end
 
 --//Handle the loading of the players placements
 function PlacementService:LoadPlacements(playerObject)
-	local placementData = playerObject.PlacementStore:Get({})
+    local placementData = playerObject.PlacementStore:Get({})
+    local objectsLoaded = 0
 
     --Iterate through all the placements
 	for guid, encodedData in pairs(placementData) do
@@ -114,8 +122,11 @@ function PlacementService:LoadPlacements(playerObject)
 			playerObject,
 			decodedData
         ))
-        
-        wait()
+
+        objectsLoaded =objectsLoaded + 1;
+        if (objectsLoaded % 3 == 0) then
+            wait()
+        end
     end
     
     --Tell client that their plot has been loaded
@@ -139,7 +150,7 @@ function PlacementService.Client:SellObject(...)
 end
 
 function PlacementService.Client:UpgradeObject(...)
-
+    return self.Server:UpgradeObject(...)
 end
 
 

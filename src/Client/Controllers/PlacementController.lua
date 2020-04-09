@@ -20,6 +20,7 @@ local PlacementController = {}
 
 --//Api
 local PlacementApi
+local RoadApi
 
 --//Services
 local PlacementService
@@ -52,14 +53,29 @@ local function HideQueue()
 end
 
 
+local function HandleIntersections(baseRoad)
+    if (not baseRoad.PrimaryPart) then return end
+
+    local adjacentRoads = RoadApi:GetAdjacentRoads(baseRoad, baseRoad)
+
+    for _, road in pairs(adjacentRoads) do
+        PlacementService:UpgradeObject(road.Name)
+    end
+end
+
+
 function PlacementController:Start()
 
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local placementSuccess = PlacementService:PlaceObject(itemId, localPosition)
+        local placementSuccess, model = PlacementService:PlaceObject(itemId, localPosition)
 
-        --If placement was successful and placementType was a road ,
+        --If placement was successful and placementType was a road, 
         if (placementSuccess) then
             local itemMetaData = MetaDataService:GetMetaData(itemId)
+
+            if (itemMetaData.Type == "Road") then
+                HandleIntersections(model)
+            end
         end
     end)
 
@@ -68,7 +84,7 @@ function PlacementController:Start()
 
         if (moveSuccess) then
             local itemMetaData = MetaDataService:GetMetaData(guid)
-            PlacementApi:StopPlacing()       
+            PlacementApi:StopPlacing()
         else
             PlacementApi:StopPlacing(true)
         end
@@ -124,6 +140,7 @@ end
 function PlacementController:Init()
     --//Api
     PlacementApi = self.Modules.API.PlacementApi
+    RoadApi = self.Modules.API.RoadApi
 
     --//Services
     PlacementService = self.Services.PlacementService
