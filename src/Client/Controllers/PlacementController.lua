@@ -52,6 +52,11 @@ local function HideQueue()
     end)
 end
 
+local function ResetSelection()
+    PlacementSelectionQueue.Adornee = nil
+    selectedPlacement = nil
+end
+
 
 local function HandleIntersections(baseRoad)
     if (not baseRoad.PrimaryPart) then return end
@@ -130,8 +135,13 @@ function PlacementController:Start()
         if (selectedPlacement) then
             PlacementApi:StartPlacing(selectedPlacement)
 
-            PlacementSelectionQueue.Adornee = nil
-            selectedPlacement = nil
+            ResetSelection()
+        end
+    end)
+
+    actionButtons.Upgrade.MouseButton1Click:Connect(function()
+        if (selectedPlacement) then
+            ResetSelection()
         end
     end)
 end
