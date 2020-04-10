@@ -90,10 +90,10 @@ function RoadApi:GetAdjacentRoads(currentRoad, lastRoad)
     return modelsInRegion
 end
 
+
 --[[
     PRIVATE METHODS
 ]]
-
 --//Returns a random road from the returned array of adjacent roads
 --//Returns nil of no roads are found
 local function GetNextRoad(currentRoad, lastRoad)
@@ -111,7 +111,7 @@ function RoadApi:GeneratePath(startingRoad)
     repeat
         currentRoad = GetNextRoad(currentRoad, roads[math.clamp(#roads - 1, 1, #roads)])
         table.insert(roads, currentRoad)
-    until (not currentRoad)
+    until (not currentRoad or (#roads > 20))
 
     return roads
 end

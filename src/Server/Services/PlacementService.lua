@@ -59,7 +59,7 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
 end
 
 --//Sells a PlacedObject
-function PlacementService:SellObject(player, guid)
+function PlacementService:SellPlacement(player, guid)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
 
@@ -81,7 +81,7 @@ function PlacementService:SellObject(player, guid)
 end
 
 --//Upgrades a placedObject
-function PlacementService:UpgradeObject(player, guid)
+function PlacementService:UpgradePlacement(player, guid)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
 
@@ -89,7 +89,7 @@ function PlacementService:UpgradeObject(player, guid)
 end
 
 --//Moves a PlacementObject to the new localPosition
-function PlacementService:MoveObject(player, guid, localPosition)
+function PlacementService:MovePlacement(player, guid, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
 
@@ -141,16 +141,16 @@ function PlacementService.Client:PlaceObject(...)
     return self.Server:PlaceObject(...)
 end
 
-function PlacementService.Client:MoveObject(...)
-    return self.Server:MoveObject(...)
+function PlacementService.Client:MovePlacement(...)
+    return self.Server:MovePlacement(...)
 end
 
-function PlacementService.Client:SellObject(...)
-    return self.Server:SellObject(...)
+function PlacementService.Client:SellPlacement(...)
+    return self.Server:SellPlacement(...)
 end
 
-function PlacementService.Client:UpgradeObject(...)
-    return self.Server:UpgradeObject(...)
+function PlacementService.Client:UpgradePlacement(...)
+    return self.Server:UpgradePlacement(...)
 end
 
 
