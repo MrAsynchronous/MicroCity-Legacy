@@ -13,6 +13,7 @@
         "CFrame",
         "Random",
         "Instance",
-        "workspace"
+        "workspace",
+        "UDim2"
     ]
 }
