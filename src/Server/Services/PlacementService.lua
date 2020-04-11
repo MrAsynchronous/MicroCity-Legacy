@@ -84,8 +84,13 @@ end
 function PlacementService:UpgradePlacement(player, guid)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
+    local success = placementObject:Upgrade()
 
-    return placementObject:Upgrade()
+    if (success) then
+        playerObject:SetPlacementObject(placementObject)
+
+        return true
+    end
 end
 
 --//Moves a PlacementObject to the new localPosition
