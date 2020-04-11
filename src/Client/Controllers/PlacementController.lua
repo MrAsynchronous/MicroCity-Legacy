@@ -117,7 +117,13 @@ function PlacementController:Start()
 
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local upgradeSuccess = PlacementService:UpgradePlacement(selectedPlacement.Name)
+            local upgradeSuccess, upgradedModel = PlacementService:UpgradePlacement(selectedPlacement.Name)
+
+            --Reset selection queue to new model
+            if (upgradeSuccess and upgradedModel) then
+                PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, upgradedModel.PrimaryPart.Size.Y, 0)
+                PlacementSelectionQueue.Adornee = upgradedModel.PrimaryPart
+            end
         end
     end)
 

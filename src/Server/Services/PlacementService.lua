@@ -8,8 +8,9 @@
     Handles the Server-wise placement operations
 
     Methods
-        public boolean SellObject(Player player, String guid)
-        public boolean MoveObject(Player player, String guid, CFrame localPosition)
+        public boolean SellPlacement(Player player, String guid)
+        public boolean MovePlacement(Player player, String guid, CFrame localPosition)
+        public boolean, object UpgradePlacement(Player player, String guid)
         public boolean PlaceObject(Player player, int itemId, CFrame localPosition)
         public void LoadPlacements(PlayerObject playerObject)
 
@@ -89,7 +90,7 @@ function PlacementService:UpgradePlacement(player, guid)
     if (success) then
         playerObject:SetPlacementObject(placementObject)
 
-        return true
+        return true, placementObject.PlacedObject
     end
 end
 
