@@ -88,6 +88,7 @@ function PlacementClass:Upgrade()
 	self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
 	self.PlacedObject.Name = self.Guid
 
+	--Reconstruct CFrame to account for model size differences
 	self.LocalPosition = self:ConstructPosition(self.LocalPosition)
 	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
 
