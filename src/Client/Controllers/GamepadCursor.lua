@@ -18,7 +18,7 @@ local PlayerGui
 
 --//Controllers
 local PlayerModule
-local ControlModule
+local PlayerControl
 
 --//Classes
 
@@ -61,9 +61,9 @@ local function Setup()
     UserInputService.MouseIconEnabled = false
     GuiService.GuiNavigationEnabled = false
     GuiService.AutoSelectGuiEnabled = false
-    ControlModule:Disable()
+    PlayerControl:Disable()
     Cursor.Visible = true
-
+    
     --Create new connection to input changed to detect thumbstick movements
     inputChangedConnection = UserInputService.InputChanged:Connect(function(input, gameProcessed)
         if (input.KeyCode == THUMBSTICK_KEY) then
@@ -75,7 +75,7 @@ local function Setup()
         end
     end)
 
-    Cursor.Position = UDim2.new(0, CursorGui.AbsoluteSize.X / 2, 0, CursorGui.AbsoluteSize.Y / 2)
+    currentPosition = UDim2.new(0, CursorGui.AbsoluteSize.X / 2, 0, CursorGui.AbsoluteSize.Y / 2)
     RunService:BindToRenderStep("CursorUpdate", 4, UpdateCursor)
 end
 
@@ -85,15 +85,17 @@ local function Cleanup()
     UserInputService.MouseIconEnabled = true
     GuiService.GuiNavigationEnabled = true
     GuiService.AutoSelectGuiEnabled = true
-    ControlModule:Enable()
     Cursor.Visible = false
-    
+
+    GuiService.SelectedObject = nil
+    PlayerControl:Enable()
+
     --Disconnect InputChanged event
     if (inputChangedConnection) then
         inputChangedConnection:Disconnect()
     end
 
-    RunService:UnbindToRenderStep("CursorUpdate", 4, UpdateCursor)
+    RunService:UnbindFromRenderStep("CursorUpdate")
 end
 
 
@@ -104,6 +106,7 @@ function GamepadCursor:Start()
 
             if (isInCursorMode) then
                 Setup()
+                
             else
                 Cleanup()
             end
@@ -116,17 +119,17 @@ function GamepadCursor:Init()
     --//Api
 
     --//Services
-    PlayerScripts = PlayerGui:WaitForChild("PlayerScripts")
+    PlayerScripts = self.Player:WaitForChild("PlayerScripts")
     PlayerGui = self.Player:WaitForChild("PlayerGui")
 
     --//Controllers
     PlayerModule = PlayerScripts:WaitForChild("PlayerModule")
-    ControlModule = require(PlayerModule:WaitForChild("ControlModule"))
+    PlayerControl = require(PlayerModule:WaitForChild("ControlModule"))
 
     --//Classes
 
     --//Locals
-    CursorGui = PlayerGui:WaitForChild("ControllerCursor")
+    CursorGui = PlayerGui:WaitForChild("GamepadCursor")
     Cursor = CursorGui.Pointer
 
     isInCursorMode = false
