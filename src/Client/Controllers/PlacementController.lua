@@ -115,16 +115,16 @@ function PlacementController:Start()
         end
     end)
 
+    actionButtons.Upgrade.MouseButton1Click:Connect(function()
+        if (selectedPlacement) then
+            local upgradeSuccess = PlacementService:UpgradePlacement(selectedPlacement.Name)
+        end
+    end)
+
     actionButtons.Move.MouseButton1Click:Connect(function()
         if (selectedPlacement) then     
             HideQueue()      
             PlacementApi:StartPlacing(selectedPlacement)
-        end
-    end)
-
-    actionButtons.Upgrade.MouseButton1Click:Connect(function()
-        if (selectedPlacement) then
-            local upgradeSuccess = PlacementService:UpgradePlacement(selectedPlacement.Name)
         end
     end)
 end
