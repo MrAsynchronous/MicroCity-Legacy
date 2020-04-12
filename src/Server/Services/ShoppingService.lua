@@ -26,6 +26,22 @@ local PlayerService
 --//Locals
 
 
+--//Returns true if player can afford a cost
+--//Subtracts cost from player's cash balance
+function ShoppingService:CanAffordCost(playerObject, cost)
+    local cashValue = playerObject:GetData("Cash")
+
+    --If player can afford cost, subtract and return true
+    if (cashValue >= cost) then
+        playerObject:SetData("Cash", playerObject:GetData("Cash") - cost)
+
+        return true
+    else
+        return false
+    end
+end
+
+
 function ShoppingService:PurchaseItem(playerObject, itemId, itemMetaData)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
 

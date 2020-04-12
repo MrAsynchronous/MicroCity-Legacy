@@ -54,17 +54,25 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
         playerObject:SetPlacementObject(placementObject)
 
+        --Edit player population
+        playerObject:Set("Population", playerObject:Get("Population") + itemMetaData.Population)
+
         return true, placementObject.PlacedObject
     end
 
     return false
 end
 
+
 --//Sells a PlacedObject
 function PlacementService:SellPlacement(player, guid)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
+
+    --Update population to reflect change
+    --Takes into account current level
+    playerObject:SetData("Population", playerObject:GetData("Population") - (itemMetaData.Population * placementObject.Level))
 
     --Remove placementObject from PlacementMap
     --Remove MetaTable
@@ -78,18 +86,31 @@ function PlacementService:SellPlacement(player, guid)
     return true
 end
 
+
 --//Upgrades a placedObject
 function PlacementService:UpgradePlacement(player, guid)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
-    local success = placementObject:Upgrade()
+    local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
-    if (success) then
-        playerObject:SetPlacementObject(placementObject)
+    --Verify if object can be upgraded
+    if (placementObject:CanUpgrade()) then
+        --Localize upgrade cost
+        local upgradeData = itemMetaData.Upgrades[placementObject.Level]
+        
+        --If player can afford upgrade
+        if (ShoppingService:CanAffordCost(playerObject, upgradeData.Cost)) then
+            placementObject:Upgrade()
 
-        return true, placementObject.PlacedObject
+            return true, placementObject.PlacedObject
+        else
+            return false
+        end
+    else
+        return false
     end
 end
+
 
 --//Moves a PlacementObject to the new localPosition
 function PlacementService:MovePlacement(player, guid, localPosition)

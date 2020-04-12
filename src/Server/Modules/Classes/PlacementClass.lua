@@ -77,22 +77,39 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 end
 
 
+--//Returns the next available level
+function PlacementClass:CanUpgrade()
+	local nextLevel = (math.clamp(self.Level + 1, 1, (#self.MetaData.Upgrades + 1) or 1))
+
+	--Return true if next upgrade is available, false otherwise
+	if (nextLevel > self.Level) then
+		return true
+	else
+		return false
+	end
+end
+
+
 --//Updates the level and model of the placed object
+--//Precondition: Object can be upgraded
 function PlacementClass:Upgrade()
-	--Increase level, remove old model
+	local currentLevel = self.Level
+	
+	--Increase level but clamp between minimum and maximum levels
 	self.Level = math.clamp(self.Level + 1, 1, ((#self.MetaData.Upgrades + 1) or 1))
-	self.PlacedObject:Destroy()
+	
+	if (self.Level > currentLevel) then
+		self.PlacedObject:Destroy()
 
-	--Replace with new model
-	self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(self.ItemId .. ":" .. self.Level):Clone()
-	self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
-	self.PlacedObject.Name = self.Guid
-
-	--Reconstruct CFrame to account for model size differences
-	self.LocalPosition = self:ConstructPosition(self.LocalPosition)
-	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
-
-	return true
+		--Replace with new model
+		self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(self.ItemId .. ":" .. self.Level):Clone()
+		self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
+		self.PlacedObject.Name = self.Guid
+	
+		--Reconstruct CFrame to account for model size differences
+		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
+		self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
+	end
 end
 
 
