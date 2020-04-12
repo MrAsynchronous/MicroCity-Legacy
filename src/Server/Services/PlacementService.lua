@@ -47,6 +47,7 @@ local SELL_EXCHANGE_RATE = 40 --percent
 --//Places the requested object
 function PlacementService:PlaceObject(player, itemId, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
+    local itemMetaData = MetaDataService:GetMetaData(itemId)
 
     if (ShoppingService:PurchaseItem(playerObject, itemId)) then
         --Construct a new placementObject, hash into playerObject.Placements
@@ -63,20 +64,16 @@ end
 function PlacementService:SellPlacement(player, guid)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
-
-    --If placementObject doesn't exits, return false
-    if (not placementObject) then 
-        return false, "The requested PlacementObject does not exist!"
-    end
-
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
-    local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
-    ShoppingService:SellItem(playerObject, discountedProfit)
 
     --Remove placementObject from PlacementMap
     --Remove MetaTable
     playerObject:RemovePlacementObject(guid)
     placementObject:Remove()
+
+    --Calculate return 
+    local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
+    ShoppingService:SellItem(playerObject, discountedProfit)
 
     return true
 end
@@ -98,11 +95,6 @@ end
 function PlacementService:MovePlacement(player, guid, localPosition)
     local playerObject = PlayerService:GetPlayerObject(player)
     local placementObject = playerObject:GetPlacementObject(guid)
-
-    --If placementObject doesn't exist, return false
-    if (not placementObject) then
-        return false, "The requested PlacementObject does not exist!"
-    end
 
     --//Move object and update PlacementMap
     placementObject:MoveTo(localPosition)
@@ -128,8 +120,9 @@ function PlacementService:LoadPlacements(playerObject)
 			playerObject,
 			decodedData
         ))
-
-        objectsLoaded =objectsLoaded + 1;
+ 
+        --Load objects in triplets
+        objectsLoaded = objectsLoaded + 1;
         if (objectsLoaded % 3 == 0) then
             wait()
         end
