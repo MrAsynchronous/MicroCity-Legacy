@@ -27,6 +27,7 @@
         private void DeactivateCollisions()
         private void RotateObject(String actionName, Enum inputState, InputObject inputObject)
         private void PlaceObject(String actionName, Enum inputState, InputObject inputObject)
+        private void ChangeInputType(int preferredTye)
 
         private void CheckHover()
         private void CheckSelection()
@@ -56,6 +57,7 @@ local PlayerService
 --//Controllers
 
 --//Classes
+local Maid
 
 --//Locals
 local camera
@@ -69,6 +71,7 @@ local dummyPart
 local plotCFrame
 local itemObject
 local isColliding
+local currentMaid
 local itemRotation
 local localPosition
 local worldPosition
@@ -105,8 +108,8 @@ local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 
 
 --//Cast a ray from the mouseOrigin to the mouseTarget
-local function CastRay(ignoreList)
-    local mousePos = UserInputService:GetMouseLocation()
+local function CastRay(ignoreList, mobileTouchPositions)
+    local mousePos = ((mobileTouchPositions or {})[1] or UserInputService:GetMouseLocation())
     local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
     local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
 
@@ -223,8 +226,10 @@ end
 
 --//Bound to Click, Tap, Trigger
 --//Checks if player is hovering over a placed object
-local function CheckSelection()
-    local rayPart, hitPosition, normal = CastRay({character})
+local function CheckSelection(mobileTouchPositions)
+    if (itemObject) then return end
+
+    local rayPart, hitPosition, normal = CastRay({character}, mobileTouchPositions)
 
     --Fire StartedSignal if rayPart is being selected for the first time,
     --Fire EndedSignal if rayPart is not longer selected
@@ -257,6 +262,35 @@ local function CheckHover()
         end
     else
         placementSelectionBox.Adornee = nil
+    end
+end
+
+
+--//Changes core keybinds to accomadate new input type
+local function ChangeInputType(newPreferredType)
+    if (newPreferredType == UserInput.Preferred.Gamepad) then
+        local gamePad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
+
+        --When trigger is triggered, check selection
+        gamePad.ButtonDown:Connect(function(keyCode)
+            if (keyCode == CONSOLE_PLACE_BIND) then
+                CheckSelection()
+            end
+        end)
+    elseif (newPreferredType == UserInput.Preferred.Mobile) then
+        local mobile = UserInput:Get("Mobile")
+
+        --When player taps screen, check selection
+        mobile.TouchTapInWorld:Connect(function(touchPositions)
+            CheckSelection(touchPositions)
+        end)
+    else
+        local mouse = UserInput:Get("Mouse")
+
+        --When a player clicks mouse, check selections
+        mouse.LeftDown:Connect(function()
+            CheckSelection()
+        end)
     end
 end
 
@@ -344,7 +378,7 @@ function PlacementApi:StartPlacing(id)
     dummyPart.Touched:Connect(function() end)
 
     --Show bounding box, set position to plot
-    itemObject.PrimaryPart.Transparency = .5
+    itemObject.PrimaryPart.Transparency = 0.5
 
     --Setup rotation
     itemRotation = math.pi / 2
@@ -357,7 +391,7 @@ function PlacementApi:StartPlacing(id)
     if (preferredInput == UserInput.Preferred.Gamepad) then
         local gamePad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
 
-        gamePad.ButtonDown:Connect(function(keyCode)
+        currentMaid:GiveTask(gamePad.ButtonDown:Connect(function(keyCode)
             if (keyCode == CONSOLE_PLACE_BIND) then
                 PlaceObject()
                 
@@ -367,7 +401,7 @@ function PlacementApi:StartPlacing(id)
             elseif (keyCode == CONSOLE_STOP_BIND) then
                 self.StopPlacing()
             end
-        end)
+        end))
     elseif (preferredInput == UserInput.Preferred.Mobile) then
         local mobile  = UserInput:Get("Mobile")
 
@@ -376,17 +410,17 @@ function PlacementApi:StartPlacing(id)
         local mouse = UserInput:Get("Mouse")
         local keyboard = UserInput:Get("Keyboard")
 
-        mouse.LeftDown:Connect(function()
+        currentMaid:GiveTask(mouse.LeftDown:Connect(function()
             PlaceObject()
-        end)
+        end))
 
-        keyboard.KeyDown:Connect(function(keyCode)
+        currentMaid:GiveTask(keyboard.KeyDown:Connect(function(keyCode)
             if (keyCode == PC_ROTATE_BIND) then
                 RotateObject(keyCode)
             elseif (keyCode == PC_STOP_BIND) then
                 self.StopPlacing()
             end
-        end)
+        end))
     end
     
     --Initially snap itemObject to proper position
@@ -436,13 +470,15 @@ function PlacementApi:StopPlacing(moveToOriginalCFrame)
     plotObject.Main.GridDash.Transparency = 1
 
     --Unbind actions
-
+    currentMaid:DoCleaning()
 
     RunService:UnbindFromRenderStep("UpdatePlacement")
 end
 
 
 function PlacementApi:Start()
+    currentMaid = Maid.new()
+
     plotObject = self.Player:WaitForChild("PlotObject").Value
 
     --Setup plot locals
@@ -456,7 +492,12 @@ function PlacementApi:Start()
       
     --When player clicks, check if they are selection a previously placed object
     RunService:BindToRenderStep("HoverSelectionQueue", 2, CheckHover)
-    ContextActionService:BindAction("SelectionChecking", CheckSelection, false, Enum.UserInputType.MouseButton1, Enum.KeyCode.ButtonR2)
+
+    --Handle selectionQueue
+    ChangeInputType(UserInput:GetPreferred())
+    UserInput.PreferredChanged:Connect(function(newPreferred)
+        ChangeInputType(newPreferred)
+    end)
 end
 
 
@@ -471,6 +512,7 @@ function PlacementApi:Init()
     --//Controllers
     
     --//Classes
+    Maid = self.Shared.Maid
     
     --//Locals
     camera = workspace.CurrentCamera
