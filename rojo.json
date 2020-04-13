@@ -22,6 +22,10 @@
       "path": "src/Shared",
       "target": "ReplicatedStorage.Aero.Shared"
     },
+    "MetaData" {
+      "path": "src/Shared",
+      "target": "ReplicatedStorage.MetaData"
+    },
     "_ReplicatedFirst": {
       "path": "src/_framework/rep_first",
       "target": "ReplicatedFirst.Aero"

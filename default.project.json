@@ -9,6 +9,9 @@
         "Shared": {
           "$path": "src/Shared"
         }
+      },
+      "MetaData": {
+        "$path": "src/MetaData"
       }
     },
     "ReplicatedFirst": {

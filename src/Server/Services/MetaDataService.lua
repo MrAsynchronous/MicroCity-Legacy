@@ -12,7 +12,7 @@
 local MetaDataService = {Client = {}}
 
 --//Services
-local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local PlayerService
 
@@ -71,7 +71,7 @@ function MetaDataService:Init()
     --//Classes
 
     --//Data
-    MetaDataContainer = ReplicatedFirst:WaitForChild("MetaData")
+    MetaDataContainer = ReplicatedStorage:WaitForChild("MetaData")
 
     --//Locals
     DataNodes = {}

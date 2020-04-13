@@ -27,6 +27,7 @@ local PlacementService
 local MetaDataService
 
 --//Controllers
+local NotificationDispatcher
 
 --//Classes
 
@@ -62,14 +63,18 @@ function PlacementController:Start()
         PlacementApi intereaction
     ]]
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local placementSuccess, model = PlacementService:PlaceObject(itemId, localPosition)
+        local placementSuccess, model, noticeIden = PlacementService:PlaceObject(itemId, localPosition)
+
+        NotificationDispatcher:Dispatch(noticeIden)
     end)
 
     --When player finishes moving an object, tell server
     PlacementApi.ObjectMoved:Connect(function(guid, localPosition, oldPosition)
-        local moveSuccess = PlacementService:MovePlacement(guid, localPosition)
+        local moveSuccess, noticeIden = PlacementService:MovePlacement(guid, localPosition)
         HideQueue()
         ResetSelection()
+
+        NotificationDispatcher:Dispatch(noticeIden)
 
         --If move success, stop placing
         if (moveSuccess) then
@@ -111,19 +116,23 @@ function PlacementController:Start()
 
     actionButtons.Sell.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local sellSuccess = PlacementService:SellPlacement(selectedPlacement.Name)
+            local sellSuccess, noticeIden = PlacementService:SellPlacement(selectedPlacement.Name)
+       
+            NotificationDispatcher:Dispatch(noticeIden)
         end
     end)
 
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local upgradeSuccess, upgradedModel = PlacementService:UpgradePlacement(selectedPlacement.Name)
+            local upgradeSuccess, upgradedModel, noticeIden = PlacementService:UpgradePlacement(selectedPlacement.Name)
 
             --Reset selection queue to new model
             if (upgradeSuccess and upgradedModel) then
                 PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, upgradedModel.PrimaryPart.Size.Y, 0)
                 PlacementSelectionQueue.Adornee = upgradedModel.PrimaryPart
             end
+
+            NotificationDispatcher:Dispatch(noticeIden)
         end
     end)
 
@@ -146,6 +155,7 @@ function PlacementController:Init()
     MetaDataService = self.Services.MetaDataService
 
     --//Controllers
+    NotificationDispatcher = self.Controllers.NotificationDispatcher
 
     --//Classes
 

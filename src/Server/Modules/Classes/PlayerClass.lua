@@ -33,7 +33,6 @@ local CFrameSerializer
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ReplicatedFirst = game:GetService("ReplicatedFirst")
 
 --//Controllers
 
@@ -70,7 +69,7 @@ function PlayerClass.new(player)
 	dataFolder.Parent = ReplicatedStorage.ReplicatedData
 
 	--Store DataStore2 DataKeys
-	for key, value in pairs(PlayerMetaData.MetaData) do
+	for key, value in pairs(PlayerMetaData) do
 		self.DataKeys[key] = DataStore2(key, player)
 
 		--Values beginning with '_' are not replicated to the Client
@@ -149,14 +148,16 @@ end
 
 --//Returns DataStore2 Data
 function PlayerClass:GetData(key)
-	return self.DataKeys[key]:Get(PlayerMetaData.MetaData[key])
+	return self.DataKeys[key]:Get(PlayerMetaData[key])
 end
 
 
 --//Sets DataStore2 Key Data
 function PlayerClass:SetData(key, value)
 	local leaderstatsValue = self.Player.leaderstats:FindFirstChild(key)
-	if (leaderstatsValue) then leaderstatsValue.Value = value end
+	if (leaderstatsValue) then 
+		leaderstatsValue.Value = value 
+	end
 
 	return self.DataKeys[key]:Set(value)
 end
@@ -165,7 +166,7 @@ end
 function PlayerClass:Start()
 
 	--Combine all keys to master PlayerData key
-	for key, value in pairs(PlayerMetaData.MetaData) do
+	for key, value in pairs(PlayerMetaData) do
 		DataStore2.Combine("PlayerData", key)
 	end
 end
@@ -185,7 +186,7 @@ function PlayerClass:Init()
 	PlacementClass = self.Modules.Classes.PlacementClass
 	
 	--//Locals
-	PlayerMetaData = require(ReplicatedFirst.MetaData:WaitForChild("Player"))
+	PlayerMetaData = require(ReplicatedStorage.MetaData:WaitForChild("Player"))
 
 end
 

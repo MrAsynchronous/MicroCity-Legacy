@@ -77,19 +77,6 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 end
 
 
---//Returns the next available level
-function PlacementClass:CanUpgrade()
-	local nextLevel = (math.clamp(self.Level + 1, 1, (#self.MetaData.Upgrades + 1) or 1))
-
-	--Return true if next upgrade is available, false otherwise
-	if (nextLevel > self.Level) then
-		return true
-	else
-		return false
-	end
-end
-
-
 --//Updates the level and model of the placed object
 --//Precondition: Object can be upgraded
 function PlacementClass:Upgrade()
@@ -109,6 +96,23 @@ function PlacementClass:Upgrade()
 		--Reconstruct CFrame to account for model size differences
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
 		self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
+	end
+end
+
+
+--//Returns the next available level
+function PlacementClass:CanUpgrade()
+	if (not self.MetaData.Upgrades) then
+		return false
+	end
+
+	local nextLevel = (math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades + 1))
+
+	--Return true if next upgrade is available, false otherwise
+	if (nextLevel > self.Level) then
+		return true
+	else
+		return false
 	end
 end
 

@@ -57,10 +57,10 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         --Edit player population
         playerObject:Set("Population", playerObject:Get("Population") + itemMetaData.Population)
 
-        return true, placementObject.PlacedObject
+        return true, placementObject.PlacedObject, "buildingPurchaseSuccess"
+    else
+        return false, nil, "noFundsError"
     end
-
-    return false
 end
 
 
@@ -83,7 +83,7 @@ function PlacementService:SellPlacement(player, guid)
     local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
     ShoppingService:SellItem(playerObject, discountedProfit)
 
-    return true
+    return true, "buildingSoldSuccess"
 end
 
 
@@ -102,12 +102,12 @@ function PlacementService:UpgradePlacement(player, guid)
         if (ShoppingService:CanAffordCost(playerObject, upgradeData.Cost)) then
             placementObject:Upgrade()
 
-            return true, placementObject.PlacedObject
+            return true, placementObject.PlacedObject, "buildingUpgradeSuccess"
         else
-            return false
+            return false, nil, "noFundsError"
         end
     else
-        return false
+        return false, nil, "maxLevelError"
     end
 end
 
@@ -121,7 +121,7 @@ function PlacementService:MovePlacement(player, guid, localPosition)
     placementObject:MoveTo(localPosition)
     playerObject:SetPlacementObject(placementObject)
 
-    return true
+    return true, "buildingMovedSuccess"
 end
 
 
