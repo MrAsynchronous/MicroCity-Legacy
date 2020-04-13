@@ -40,6 +40,7 @@ local PlacementApi = {}
 local self = PlacementApi
 
 --//Api
+local UserInput
 local Platform
 
 --//Services
@@ -72,19 +73,30 @@ local itemRotation
 local localPosition
 local worldPosition
 local selectedObject
+local preferredInput
+local inputController
 local initialWorldPosition
 local initialLocalPosition
 local placementSelectionBox
 
 local GRID_SIZE = 2
 local BUILD_HEIGHT = 1024
-local DAMPENING_SPEED = .2
+local DAMPENING_SPEED = 0.2
 local UP = Vector3.new(0, 1, 0)
 local BACK = Vector3.new(0, 0, 1)
-local SELECTION_BOX_THICKNESS = .05
+local SELECTION_BOX_THICKNESS = 0.05
 local MAX_INTERACTION_DISTANCE = 30
 local COLLISION_COLOR = Color3.fromRGB(231, 76, 60)
 local NO_COLLISION_COLOR = Color3.fromRGB(46, 204, 113)
+
+--Controls
+local PC_ROTATE_BIND = Enum.KeyCode.R
+local PC_STOP_BIND = Enum.KeyCode.X
+
+local CONSOLE_PLACE_BIND = Enum.KeyCode.ButtonR2
+local CONSOLE_ROTATE_BIND = Enum.KeyCode.ButtonR1
+local CONSOLE_ROTATE_ALT_BIND = Enum.KeyCode.ButtonL1
+local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 
 
 --[[
@@ -167,27 +179,23 @@ end
 
 
 --//Rotates the object according to input
-local function RotateObject(actionName, inputState, inputObject)
-    if (inputState == Enum.UserInputState.Begin) then
-        if (inputObject.KeyCode == Enum.KeyCode.R or inputObject.KeyCode == Enum.KeyCode.ButtonR1) then
-            itemRotation = itemRotation - (math.pi / 2)
-        else
-            itemRotation = itemRotation + (math.pi / 2)
-        end
+local function RotateObject(keyCode)
+    if (keyCode == PC_ROTATE_BIND or keyCode == CONSOLE_ROTATE_BIND) then
+        itemRotation = itemRotation - (math.pi / 2)
+    else
+        itemRotation = itemRotation + (math.pi / 2)
     end
 end
 
 
 --//Fires the ObjectPlaced signal
-local function PlaceObject(_, inputState)
-    if (inputState == Enum.UserInputState.Begin) then
-        if (not CheckCollision()) then
-            --Fire proper event according to operation
-            if (isMoving) then
-                self.Events.ObjectMoved:Fire(itemObject.Name, localPosition, initialLocalPosition)
-            else
-                self.Events.ObjectPlaced:Fire(itemId, localPosition)
-            end
+local function PlaceObject()
+    if (not CheckCollision()) then
+        --Fire proper event according to operation
+        if (isMoving) then
+            self.Events.ObjectMoved:Fire(itemObject.Name, localPosition, initialLocalPosition)
+        else
+            self.Events.ObjectPlaced:Fire(itemId, localPosition)
         end
     end
 end
@@ -215,22 +223,20 @@ end
 
 --//Bound to Click, Tap, Trigger
 --//Checks if player is hovering over a placed object
-local function CheckSelection(_, inputState)
-    if (itemObject == nil and inputState == Enum.UserInputState.Begin) then
-        local rayPart, hitPosition, normal = CastRay({character})
+local function CheckSelection()
+    local rayPart, hitPosition, normal = CastRay({character})
 
-        --Fire StartedSignal if rayPart is being selected for the first time,
-        --Fire EndedSignal if rayPart is not longer selected
-        if (rayPart and rayPart:IsDescendantOf(plotObject.Placements) and (rayPart.Position - character.PrimaryPart.Position).magnitude <= MAX_INTERACTION_DISTANCE) then
-            selectedObject = rayPart:FindFirstAncestorOfClass("Model")
-                
-            self.Events.PlacementSelectionStarted:Fire(selectedObject)
-        else
-            if (selectedObject) then
-                selectedObject = nil
+    --Fire StartedSignal if rayPart is being selected for the first time,
+    --Fire EndedSignal if rayPart is not longer selected
+    if (rayPart and rayPart:IsDescendantOf(plotObject.Placements) and (rayPart.Position - character.PrimaryPart.Position).magnitude <= MAX_INTERACTION_DISTANCE) then
+        selectedObject = rayPart:FindFirstAncestorOfClass("Model")
+            
+        self.Events.PlacementSelectionStarted:Fire(selectedObject)
+    else
+        if (selectedObject) then
+            selectedObject = nil
 
-                self.Events.PlacementSelectionEnded:Fire()
-            end
+            self.Events.PlacementSelectionEnded:Fire()
         end
     end
 end
@@ -346,15 +352,42 @@ function PlacementApi:StartPlacing(id)
     --Disable collisions
     deactivateCollisions()
 
-    --Bind Actions
-    ContextActionService:BindAction("PlaceObject", PlaceObject, true, Enum.KeyCode.ButtonR2, Enum.UserInputType.MouseButton1)
-        ContextActionService:SetImage("PlaceObject", "rbxassetid://4835092139")
+    --Keybind Setup (playform dependent)
+    preferredInput = UserInput:GetPreferred()
+    if (preferredInput == UserInput.Preferred.Gamepad) then
+        local gamePad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
 
-    ContextActionService:BindAction("RotateObject", RotateObject, true, Enum.KeyCode.ButtonR1, Enum.KeyCode.ButtonL1, Enum.KeyCode.R)
-        ContextActionService:SetImage("RotateObject", "rbxassetid://4834696114")
+        gamePad.ButtonDown:Connect(function(keyCode)
+            if (keyCode == CONSOLE_PLACE_BIND) then
+                PlaceObject()
+                
+            elseif (keyCode == CONSOLE_ROTATE_BIND or keyCode == CONSOLE_ROTATE_ALT_BIND) then
+                RotateObject(keyCode)
 
-    ContextActionService:BindAction("CancelPlacement", PlacementApi.StopPlacing, true, Enum.KeyCode.X, Enum.KeyCode.ButtonB)
-        ContextActionService:SetImage("CancelPlacement", "rbxassetid://4834678852")
+            elseif (keyCode == CONSOLE_STOP_BIND) then
+                self.StopPlacing()
+            end
+        end)
+    elseif (preferredInput == UserInput.Preferred.Mobile) then
+        local mobile  = UserInput:Get("Mobile")
+
+        --To be implemented later
+    else
+        local mouse = UserInput:Get("Mouse")
+        local keyboard = UserInput:Get("Keyboard")
+
+        mouse.LeftDown:Connect(function()
+            PlaceObject()
+        end)
+
+        keyboard.KeyDown:Connect(function(keyCode)
+            if (keyCode == PC_ROTATE_BIND) then
+                RotateObject(keyCode)
+            elseif (keyCode == PC_STOP_BIND) then
+                self.StopPlacing()
+            end
+        end)
+    end
     
     --Initially snap itemObject to proper position
     UpdatePlacement(true)
@@ -403,9 +436,7 @@ function PlacementApi:StopPlacing(moveToOriginalCFrame)
     plotObject.Main.GridDash.Transparency = 1
 
     --Unbind actions
-    ContextActionService:UnbindAction("PlaceObject")
-    ContextActionService:UnbindAction("CancelPlacement")
-    ContextActionService:UnbindAction("RotateObject")
+
 
     RunService:UnbindFromRenderStep("UpdatePlacement")
 end
@@ -422,7 +453,7 @@ function PlacementApi:Start()
     self.Player.CharacterAdded:Connect(function(newCharacter)
         character = newCharacter
     end)
-    
+      
     --When player clicks, check if they are selection a previously placed object
     RunService:BindToRenderStep("HoverSelectionQueue", 2, CheckHover)
     ContextActionService:BindAction("SelectionChecking", CheckSelection, false, Enum.UserInputType.MouseButton1, Enum.KeyCode.ButtonR2)
@@ -431,6 +462,7 @@ end
 
 function PlacementApi:Init()
     --//Api
+    UserInput = self.Controllers.UserInput
     Platform = self.Shared.Platform
     
     --//Services

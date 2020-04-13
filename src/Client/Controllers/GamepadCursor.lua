@@ -104,14 +104,16 @@ end
 function GamepadCursor:Start()
     local GamepadApi = UserInputApi:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
 
-    GamepadApi.ButtonDown:Connect(function(ACTIVATION_KEY)
-        isInCursorMode = not isInCursorMode
+    GamepadApi.ButtonDown:Connect(function(keyCode)
+        if (keyCode == ACTIVATION_KEY) then
+            isInCursorMode = not isInCursorMode
 
-        if (isInCursorMode) then
-            Setup()
-            
-        else
-            Cleanup()
+            if (isInCursorMode) then
+                Setup()
+                
+            else
+                Cleanup()
+            end
         end
     end)
 end

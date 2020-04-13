@@ -40,11 +40,13 @@ local PlacementSelectionQueue
 local selectedPlacement
 
 
+--Shows the selection queue
 local function ShowQueue()
     PlacementSelectionQueue.Container:TweenSize(UDim2.new(1, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.25, true)
 end
 
 
+--Hides the selection queue
 local function HideQueue()
     PlacementSelectionQueue.Container:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quint, 0.25, true, function()
         PlacementSelectionQueue.Enabled = false
@@ -52,6 +54,8 @@ local function HideQueue()
     end)
 end
 
+
+--Resets the selection queue adornee
 local function ResetSelection()
     PlacementSelectionQueue.Adornee = nil
     selectedPlacement = nil
