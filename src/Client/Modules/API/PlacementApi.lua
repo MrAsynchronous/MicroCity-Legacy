@@ -396,6 +396,7 @@ function PlacementApi:StartPlacing(id)
     if (preferredInput == UserInput.Preferred.Gamepad) then
         local gamePad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
 
+        --Handle keybinds
         currentMaid:GiveTask(gamePad.ButtonDown:Connect(function(keyCode)
             if (keyCode == CONSOLE_PLACE_BIND) then
                 PlaceObject()
@@ -415,10 +416,12 @@ function PlacementApi:StartPlacing(id)
         local mouse = UserInput:Get("Mouse")
         local keyboard = UserInput:Get("Keyboard")
 
+        --Detect placement key bind
         currentMaid:GiveTask(mouse.LeftDown:Connect(function()
             PlaceObject()
         end))
 
+        --Handle other keybinds
         currentMaid:GiveTask(keyboard.KeyDown:Connect(function(keyCode)
             if (keyCode == PC_ROTATE_BIND) then
                 RotateObject(keyCode)
