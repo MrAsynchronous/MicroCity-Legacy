@@ -108,8 +108,8 @@ local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 
 
 --//Cast a ray from the mouseOrigin to the mouseTarget
-local function CastRay(ignoreList, mobileTouchPositions)
-    local mousePos = ((mobileTouchPositions or {})[1] or UserInputService:GetMouseLocation())
+local function CastRay(ignoreList, mobileTouchPosition)
+    local mousePos = (mobileTouchPosition or UserInputService:GetMouseLocation())
     local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
     local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
 
@@ -226,10 +226,10 @@ end
 
 --//Bound to Click, Tap, Trigger
 --//Checks if player is hovering over a placed object
-local function CheckSelection(mobileTouchPositions)
+local function CheckSelection(mobileTouchPosition)
     if (itemObject) then return end
 
-    local rayPart, hitPosition, normal = CastRay({character}, mobileTouchPositions)
+    local rayPart, hitPosition, normal = CastRay({character}, mobileTouchPosition)
 
     --Fire StartedSignal if rayPart is being selected for the first time,
     --Fire EndedSignal if rayPart is not longer selected
@@ -268,6 +268,7 @@ end
 
 --//Changes core keybinds to accomadate new input type
 local function ChangeInputType(newPreferredType)
+    --Verify which input type user is preferring
     if (newPreferredType == UserInput.Preferred.Gamepad) then
         local gamePad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
 
@@ -277,12 +278,16 @@ local function ChangeInputType(newPreferredType)
                 CheckSelection()
             end
         end)
-    elseif (newPreferredType == UserInput.Preferred.Mobile) then
+    elseif (newPreferredType == UserInput.Preferred.Touch) then
         local mobile = UserInput:Get("Mobile")
 
         --When player taps screen, check selection
         mobile.TouchTapInWorld:Connect(function(touchPositions)
-            CheckSelection(touchPositions)
+            if (type(touchPositions) == "table") then
+                CheckSelection(touchPositions[1])
+            else
+                CheckSelection(touchPositions)
+            end
         end)
     else
         local mouse = UserInput:Get("Mouse")
@@ -494,7 +499,10 @@ function PlacementApi:Start()
     RunService:BindToRenderStep("HoverSelectionQueue", 2, CheckHover)
 
     --Handle selectionQueue
-    ChangeInputType(UserInput:GetPreferred())
+
+    preferredInput = UserInput:GetPreferred()
+
+    ChangeInputType(preferredInput)
     UserInput.PreferredChanged:Connect(function(newPreferred)
         ChangeInputType(newPreferred)
     end)
