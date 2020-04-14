@@ -94,21 +94,25 @@ end
 
 
 function GamepadCursor:Start()
-    Gamepad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
-    leftThumbstick = Gamepad:GetState(THUMBSTICK_KEY)
+    local preferredInput = UserInput:GetPreferred()
 
-    Gamepad.ButtonDown:Connect(function(keyCode)
-        if (keyCode == ACTIVATION_KEY) then
-            isInCursorMode = not isInCursorMode
+    if (preferredInput == UserInput.Preferred.Gamepad) then
+        Gamepad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
+        leftThumbstick = Gamepad:GetState(THUMBSTICK_KEY)
 
-            if (isInCursorMode) then
-                Setup()
-                
-            else
-                Cleanup()
+        Gamepad.ButtonDown:Connect(function(keyCode)
+            if (keyCode == ACTIVATION_KEY) then
+                isInCursorMode = not isInCursorMode
+    
+                if (isInCursorMode) then
+                    Setup()
+                    
+                else
+                    Cleanup()
+                end
             end
-        end
-    end)
+        end)
+    end
 end
 
 
