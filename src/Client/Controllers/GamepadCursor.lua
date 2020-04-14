@@ -7,8 +7,8 @@
 local GamepadCursor = {}
 
 --//Api
-local UserInputApi
-local GamepadApi
+local UserInput
+local Gamepad
 
 --//Services
 local UserInputService = game:GetService("UserInputService")
@@ -28,10 +28,10 @@ local PlayerControl
 local CursorGui
 local Cursor
 
+local leftThumbstick
 local isInCursorMode
 local currentPosition
 local currentMoveDirection
-local inputChangedConnection
 
 local SENSITIVIY = 10
 local THUMBSTICK_KEY = Enum.KeyCode.Thumbstick1
@@ -44,6 +44,13 @@ local THUMBSTICK_DEADZONE = 0.25
 
 --//Updates the position of the Cursor
 local function UpdateCursor()
+    --Update move direction by polling position
+    if (leftThumbstick.Position.Magnitude > THUMBSTICK_DEADZONE) then
+        currentMoveDirection = Vector2.new(leftThumbstick.Position.X, -leftThumbstick.Position.Y) * SENSITIVIY
+    else
+        currentMoveDirection = Vector2.new(0, 0)
+    end
+
     --Construct a new UDim2 position
     currentPosition = currentPosition + UDim2.new(0, currentMoveDirection.X, 0, currentMoveDirection.Y)
 
@@ -63,19 +70,9 @@ local function Setup()
     UserInputService.MouseIconEnabled = false
     GuiService.GuiNavigationEnabled = false
     GuiService.AutoSelectGuiEnabled = false
-    PlayerControl:Disable()
     Cursor.Visible = true
-    
-    --Create new connection to input changed to detect thumbstick movements
-    inputChangedConnection = GamepadApi.Changed:Connect(function(keyCode, input)
-        if (keyCode == THUMBSTICK_KEY) then
-            if (input.Position.Magnitude > THUMBSTICK_DEADZONE) then
-                currentMoveDirection = Vector2.new(input.Position.X, -input.Position.Y) * SENSITIVIY
-            else
-                currentMoveDirection = Vector2.new(0, 0)
-            end
-        end
-    end)
+
+    PlayerControl:Disable()
 
     currentPosition = UDim2.new(0, CursorGui.AbsoluteSize.X / 2, 0, CursorGui.AbsoluteSize.Y / 2)
     RunService:BindToRenderStep("CursorUpdate", 4, UpdateCursor)
@@ -92,19 +89,15 @@ local function Cleanup()
     GuiService.SelectedObject = nil
     PlayerControl:Enable()
 
-    --Disconnect InputChanged event
-    if (inputChangedConnection) then
-        inputChangedConnection:Disconnect()
-    end
-
     RunService:UnbindFromRenderStep("CursorUpdate")
 end
 
 
 function GamepadCursor:Start()
-    local GamepadApi = UserInputApi:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
+    Gamepad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
+    leftThumbstick = Gamepad:GetState(THUMBSTICK_KEY)
 
-    GamepadApi.ButtonDown:Connect(function(keyCode)
+    Gamepad.ButtonDown:Connect(function(keyCode)
         if (keyCode == ACTIVATION_KEY) then
             isInCursorMode = not isInCursorMode
 
@@ -121,7 +114,7 @@ end
 
 function GamepadCursor:Init()
     --//Api
-    UserInputApi = self.Controllers.UserInput
+    UserInput = self.Controllers.UserInput
 
     --//Services
     PlayerScripts = self.Player:WaitForChild("PlayerScripts")
