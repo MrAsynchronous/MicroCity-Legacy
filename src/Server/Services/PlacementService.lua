@@ -118,7 +118,7 @@ function PlacementService:MovePlacement(player, guid, localPosition)
     local placementObject = playerObject:GetPlacementObject(guid)
 
     --//Move object and update PlacementMap
-    placementObject:MoveTo(localPosition)
+    placementObject:Move(localPosition)
     playerObject:SetPlacementObject(placementObject)
 
     return true, "buildingMovedSuccess"

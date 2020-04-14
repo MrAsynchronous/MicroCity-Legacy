@@ -62,6 +62,26 @@ local function UpdateCursor()
 
     --Update position of Cursor
     Cursor.Position = currentPosition
+
+    --Detect UI at cursor position
+    local uiObjects = PlayerGui:GetGuiObjectsAtPosition(currentPosition.X.Offset, currentPosition.Y.Offset)
+    local highestZindex = uiObjects[1].ZIndex
+    local topUiObject = uiObjects[1]
+
+    --Iterate through UI objects, find the highest ZIndexed object
+    for _, object in pairs(uiObjects) do
+        if (object.ZIndex > highestZindex) then
+            highestZindex = object.ZIndex
+            topUiObject = object
+        end
+    end
+
+    --Update selected object
+    if (topUiObject) then
+        GuiService.SelectedObject = topUiObject
+    else
+        GuiService.SelectedObject = nil
+    end
 end
 
 
@@ -94,25 +114,25 @@ end
 
 
 function GamepadCursor:Start()
-    local preferredInput = UserInput:GetPreferred()
+    UserInputService.MouseIconEnabled = true
 
-    if (preferredInput == UserInput.Preferred.Gamepad) then
-        Gamepad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
-        leftThumbstick = Gamepad:GetState(THUMBSTICK_KEY)
+    --Localize gamePad module and leftThumstrick object
+    Gamepad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
+    leftThumbstick = Gamepad:GetState(THUMBSTICK_KEY)
 
-        Gamepad.ButtonDown:Connect(function(keyCode)
-            if (keyCode == ACTIVATION_KEY) then
-                isInCursorMode = not isInCursorMode
-    
-                if (isInCursorMode) then
-                    Setup()
-                    
-                else
-                    Cleanup()
-                end
+    --Detect changes in user input state
+    UserInputService.InputBegan:Connect(function(inputObject)
+        if (inputObject.KeyCode == ACTIVATION_KEY) then
+            isInCursorMode = not isInCursorMode
+
+            if (isInCursorMode) then
+                Setup()
+                
+            else
+                Cleanup()
             end
-        end)
-    end
+        end
+    end)
 end
 
 
