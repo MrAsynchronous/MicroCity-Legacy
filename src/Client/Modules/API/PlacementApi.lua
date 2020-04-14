@@ -331,9 +331,9 @@ local function UpdatePlacement(isInitialUpdate)
 
     --Immedietely snap itemObject to proper position
     if (isInitialUpdate == true) then
-        itemObject:SetPrimaryPartCFrame(worldPosition)
+        itemObject.PrimaryPart.CFrame = worldPosition
     else
-        itemObject:SetPrimaryPartCFrame(itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED))
+        itemObject.PrimaryPart.CFrame = itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED)
     end    
     
 

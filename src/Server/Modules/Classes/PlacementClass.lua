@@ -71,7 +71,7 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 	self.PlacedObject.Name = self.Guid
 
 	self.LocalPosition = self:ConstructPosition(itemPosition)
-	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
+	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
 
 	return self
 end
@@ -95,7 +95,7 @@ function PlacementClass:Upgrade()
 	
 		--Reconstruct CFrame to account for model size differences
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
-		self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition))
+		self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
 	end
 end
 
@@ -132,7 +132,7 @@ end
 
 --//Moves ItemObject to desired cframe
 function PlacementClass:Move(itemPosition)
-	self.PlacedObject:SetPrimaryPartCFrame(self.Plot.Main.CFrame:ToWorldSpace(itemPosition))
+	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
 	self.LocalPosition = itemPosition
 
 	return true

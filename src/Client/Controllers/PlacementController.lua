@@ -23,6 +23,8 @@ local PlacementApi
 local RoadApi
 
 --//Services
+local TweenService = game:GetService("TweenService")
+
 local PlacementService
 local MetaDataService
 
@@ -73,6 +75,14 @@ function PlacementController:Start()
     ]]
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
         local placementSuccess, model, noticeIden = PlacementService:PlaceObject(itemId, localPosition)
+
+        --Tween model
+        if (placementSuccess and model) then
+            local startingPosition = model.PrimaryPart.CFrame
+            model.PrimaryPart.CFrame = startingPosition - Vector3.new(0, model.PrimaryPart.Size, 0)
+
+            local effectTween = TweenService:Create()
+        end
 
         NotificationDispatcher:Dispatch(noticeIden)
     end)
