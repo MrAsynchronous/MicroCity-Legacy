@@ -38,6 +38,13 @@ local THUMBSTICK_KEY = Enum.KeyCode.Thumbstick1
 local ACTIVATION_KEY = Enum.KeyCode.ButtonSelect
 local THUMBSTICK_DEADZONE = 0.25
 
+local VALID_SELECTION_TYPES = {
+    ["TextButton"] = true,
+    ["ImageButton"] = true,
+    ["TextBox"] = true,
+    ["ScrollingFrame"] = true
+}
+
 --[[
     Private Methods
 ]]
@@ -65,12 +72,12 @@ local function UpdateCursor()
 
     --Detect UI at cursor position
     local uiObjects = PlayerGui:GetGuiObjectsAtPosition(currentPosition.X.Offset, currentPosition.Y.Offset)
-    local highestZindex = uiObjects[1].ZIndex
-    local topUiObject = uiObjects[1]
+    local highestZindex = 0
+    local topUiObject
 
     --Iterate through UI objects, find the highest ZIndexed object
     for _, object in pairs(uiObjects) do
-        if (object.ZIndex > highestZindex) then
+        if (VALID_SELECTION_TYPES[object.ClassName] and object.ZIndex > highestZindex and object.Selectable) then
             highestZindex = object.ZIndex
             topUiObject = object
         end
