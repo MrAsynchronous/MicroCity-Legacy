@@ -47,13 +47,13 @@ local SELL_EXCHANGE_RATE = 40 --percent
 ]]
 --//Places the requested object
 function PlacementService:PlaceObject(player, itemId, localPosition)
-    local playerObject = PlayerService:GetPlayerObject(player)
+    local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
 
-    if (ShoppingService:PurchaseItem(playerObject, itemId)) then
+    if (ShoppingService:PurchaseItem(pseudoPlayer, itemId)) then
         --Construct a new placementObject, hash into playerObject.Placements
-        local placementObject = PlacementClass.new(itemId, localPosition, playerObject)
-        playerObject:SetPlacementObject(placementObject)
+        local placementObject = PlacementClass.new(itemId, localPosition, pseudoPlayer)
+        pseudoPlayer:SetPlacementObject(placementObject)
 
         --Edit player population
     --    playerObject:Set("Population", playerObject:Get("Population") + itemMetaData.Population)
@@ -76,22 +76,22 @@ end
 
 --//Sells a PlacedObject
 function PlacementService:SellPlacement(player, guid)
-    local playerObject = PlayerService:GetPlayerObject(player)
-    local placementObject = playerObject:GetPlacementObject(guid)
+    local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
+    local placementObject = pseudoPlayer:GetPlacementObject(guid)
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
     --Update population to reflect change
     --Takes into account current level
-    playerObject:SetData("Population", playerObject:GetData("Population") - (itemMetaData.Population * placementObject.Level))
+    pseudoPlayer:SetData("Population", pseudoPlayer:GetData("Population") - (itemMetaData.Population * placementObject.Level))
 
     --Remove placementObject from PlacementMap
     --Remove MetaTable
-    playerObject:RemovePlacementObject(guid)
+    pseudoPlayer:RemovePlacementObject(guid)
     placementObject:Remove()
 
     --Calculate return 
     local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
-    ShoppingService:SellItem(playerObject, discountedProfit)
+    ShoppingService:SellItem(pseudoPlayer, discountedProfit)
 
     return {
         wasSuccess = true,
@@ -102,8 +102,8 @@ end
 
 --//Upgrades a placedObject
 function PlacementService:UpgradePlacement(player, guid)
-    local playerObject = PlayerService:GetPlayerObject(player)
-    local placementObject = playerObject:GetPlacementObject(guid)
+    local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
+    local placementObject = pseudoPlayer:GetPlacementObject(guid)
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
     --Verify if object can be upgraded
@@ -112,7 +112,7 @@ function PlacementService:UpgradePlacement(player, guid)
         local upgradeData = itemMetaData.Upgrades[placementObject.Level]
         
         --If player can afford upgrade
-        if (ShoppingService:CanAffordCost(playerObject, upgradeData.Cost)) then
+        if (ShoppingService:CanAffordCost(pseudoPlayer, upgradeData.Cost)) then
             placementObject:Upgrade()
 
             return {
@@ -139,12 +139,12 @@ end
 
 --//Moves a PlacementObject to the new localPosition
 function PlacementService:MovePlacement(player, guid, localPosition)
-    local playerObject = PlayerService:GetPlayerObject(player)
-    local placementObject = playerObject:GetPlacementObject(guid)
+    local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
+    local placementObject = pseudoPlayer:GetPlacementObject(guid)
 
     --//Move object and update PlacementMap
     placementObject:Move(localPosition)
-    playerObject:SetPlacementObject(placementObject)
+    pseudoPlayer:SetPlacementObject(placementObject)
 
     return {
         wasSuccess = true,
@@ -155,8 +155,8 @@ end
 
 
 --//Handle the loading of the players placements
-function PlacementService:LoadPlacements(playerObject)
-    local placementData = playerObject.PlacementStore:Get({})
+function PlacementService:LoadPlacements(pseudoPlayer)
+    local placementData = pseudoPlayer.PlacementStore:Get({})
     local objectsLoaded = 0
 
     --Iterate through all the placements
@@ -164,10 +164,10 @@ function PlacementService:LoadPlacements(playerObject)
 		local decodedData = TableUtil.DecodeJSON(encodedData)
 
 		--Create new placementObject and add it to index
-		playerObject:SetPlacementObject(PlacementClass.new(
+		pseudoPlayer:SetPlacementObject(PlacementClass.new(
 			decodedData.ItemId,
 			CFrameSerializer:DecodeCFrame(decodedData.CFrame),
-			playerObject,
+			pseudoPlayer,
 			decodedData
         ))
  
@@ -179,7 +179,7 @@ function PlacementService:LoadPlacements(playerObject)
     end
     
     --Tell client that their plot has been loaded
-    self:FireClientEvent("OnPlotLoadComplete", playerObject.Player)
+    self:FireClientEvent("OnPlotLoadComplete", pseudoPlayer.Player)
 end
 
 

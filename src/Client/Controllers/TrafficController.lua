@@ -26,6 +26,7 @@ local PlacementService
 --//Controllers
 
 --//Classes
+local QueueClass
 
 --//Locals
 local PlotObject
@@ -150,7 +151,7 @@ end
 function TrafficController:Start()
     --Start spawning vehicles once plot is fully loaded
     PlacementService.OnPlotLoadComplete:Connect(function()
-        RunService:BindToRenderStep("VehicleMovement", 3, UpdateVehicles)
+    --    RunService:BindToRenderStep("VehicleMovement", 3, UpdateVehicles)
     end)
 end
 
@@ -165,6 +166,7 @@ function TrafficController:Init()
     --//Controllers
 
     --//Classes
+    QueueClass = self.Shared.Queue
 
     --//Locals
     PlotObject = self.Player:WaitForChild("PlotObject").Value

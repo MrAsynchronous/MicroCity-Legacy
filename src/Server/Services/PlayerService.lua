@@ -26,10 +26,10 @@ local PlotService
 --//Controllers
 
 --//Classes
-local PlayerClass
+local PseudoPlayerClass
 
 --//Locals
-local playerObjects
+local pseudoPlayers
 
 
 function PlayerService:Start()
@@ -37,8 +37,8 @@ function PlayerService:Start()
     game.Players.PlayerAdded:Connect(function(newPlayer)
         --Create playerObject
         local plotObject = PlotService:GetPlot(newPlayer)
-        local playerObject = PlayerClass.new(newPlayer)
-        playerObject.PlotObject = plotObject
+        local pseudoPlayer = PseudoPlayerClass.new(newPlayer)
+        pseudoPlayer.PlotObject = plotObject
 
         --Create plotValue
         local plotValue = Instance.new("ObjectValue")
@@ -47,7 +47,7 @@ function PlayerService:Start()
         plotValue.Value = plotObject
 
         --Load placements
-        PlacementService:LoadPlacements(playerObject)
+        PlacementService:LoadPlacements(pseudoPlayer)
 
         --Create leaderstats
         local leaderstats = Instance.new("Folder")
@@ -56,41 +56,41 @@ function PlayerService:Start()
 
         local cashValue = Instance.new("NumberValue")
         cashValue.Name = "Cash"
-        cashValue.Value = playerObject:GetData("Cash")
+        cashValue.Value = pseudoPlayer:GetData("Cash")
         cashValue.Parent = leaderstats
 
         local populationValue = Instance.new("NumberValue")
         populationValue.Name = "Population"
-        populationValue.Value = playerObject:GetData("Population")
+        populationValue.Value = pseudoPlayer:GetData("Population")
         populationValue.Parent = leaderstats
 
         --Cache playerObject
-        playerObjects[newPlayer] = playerObject
+        pseudoPlayers[newPlayer] = pseudoPlayer
     end)
 
     game.Players.PlayerRemoving:Connect(function(oldPlayer)
-        local playerObject = self:GetPlayerObject(oldPlayer)
-        playerObject:CleanPlot()
+        local pseudoPlayer = self:GetPseudoPlayer(oldPlayer)
+        pseudoPlayer:CleanPlot()
 
         --Push plot into PlotStack, remove PlayerObject
-        PlotService:AddPlot(playerObject.PlotObject)
-        self:RemovePlayerObject(oldPlayer)
+        PlotService:AddPlot(pseudoPlayer.PlotObject)
+        self:RemovePseudoPlayer(oldPlayer)
     end)
 
 end
 
 
 --//Returns the PlayerObject associated with Player
-function PlayerService:GetPlayerObject(player)
-    return playerObjects[player]
+function PlayerService:GetPseudoPlayer(player)
+    return pseudoPlayers[player]
 end
 
 
 --//Removes PlayerObject from PlayerObjects array
 --//WILL DELETE PLAYER OBJECT
 --//ONLY CALL AFTER DATA HAS BEEN SAVED
-function PlayerService:RemovePlayerObject(player)
-    playerObjects[player] = nil
+function PlayerService:RemovePseudoPlayer(player)
+    pseudoPlayers[player] = nil
 end
 
 
@@ -104,10 +104,10 @@ function PlayerService:Init()
     --//Controllers
     
     --//Classes
-    PlayerClass = self.Modules.Classes.PlayerClass
+    PseudoPlayerClass = self.Modules.Classes.PseudoPlayerClass
     
     --//Locals
-    playerObjects = {}
+    pseudoPlayers = {}
 
 end
 

@@ -43,8 +43,8 @@ function MetaDataService:GetMetaData(itemId, player)
     if (type(itemId) == "number") then
         return DataNodes[itemId]
     else
-        local playerObject = PlayerService:GetPlayerObject(player)
-        local placementObject = playerObject:GetPlacementObject(itemId)
+        local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
+        local placementObject = pseudoPlayer:GetPlacementObject(itemId)
 
         return DataNodes[placementObject.ItemId]
     end
@@ -79,44 +79,3 @@ function MetaDataService:Init()
 end
 
 return MetaDataService
-
---[[
-
---//Retrives MetaData bound to passed itemId
---//Returns Array if find is successful
---//Returns 0 if Array is not found
-function MetaDataService:GetMetaData(itemId)
-    --Wait until DataNodes are loaded
-    while (#DataNodes <= 0 ) do wait() end
-
-    --Iterate through all dataNodes
-    for _, dataNode in pairs(DataNodes) do
-        local MetaData = dataNode.MetaData
-
-        --Don't throw exception because MetaData does not contain any MetaData
-        if (#MetaData == 0) then
-            continue
-        end
-
-        --Get the minimum metaDataId and maximum metaDataId
-        local minId = MetaData[1].Id
-        local maxId = MetaData[#MetaData].Id
-
-        --Compare id's
-        if (itemId == minId) then
-            return MetaData[1]
-        elseif (itemId == maxId) then
-            return MetaData[#MetaData]
-        elseif ((itemId > minId) or (itemId < maxId)) then
-            for index, metaData in pairs(MetaData) do
-                if (metaData.Id == itemId) then
-                    return metaData
-                end
-            end
-        end
-    end
-
-    return 0
-end
-
-]]

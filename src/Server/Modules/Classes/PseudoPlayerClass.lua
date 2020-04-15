@@ -8,7 +8,7 @@
 	Objects contain various getters and setters to make accessing and setting player information easier
 
 	Methods
-		public PlayerObject PlayerClass.new(Player player)
+		public PseudoPlayer PseudoPlayer.new(Player player)
 
 		public DataStore2Key GetData(String key)
 		public void SetData(String key, Any value)
@@ -21,8 +21,8 @@
 ]]
 
 
-local PlayerClass = {}
-PlayerClass.__index = PlayerClass
+local PseudoPlayer = {}
+PseudoPlayer.__index = PseudoPlayer
 
 
 --//Api
@@ -50,7 +50,7 @@ local VALUE_EXCHANGE = {
 }
 
 
-function PlayerClass.new(player)
+function PseudoPlayer.new(player)
 	local self = setmetatable({
 
 		Player = player,
@@ -59,7 +59,7 @@ function PlayerClass.new(player)
 
 		DataKeys = {},
 		DataFolder = ReplicatedStorage.ReplicatedData:FindFirstChild(tonumber(player.UserId))
-	}, PlayerClass)
+	}, PseudoPlayer)
 
 
 	--Construct a new DataFolder
@@ -104,7 +104,7 @@ end
 
 
 --//Called when player resets plot of leaves the game
-function PlayerClass:CleanPlot()
+function PseudoPlayer:CleanPlot()
 	for _, placementObject in pairs(self.Placements) do
 		placementObject:Remove()
 
@@ -115,7 +115,7 @@ end
 
 --//Sets the value at index placementGuid to key placementObject
 --//Called when player places a new object
-function PlayerClass:SetPlacementObject(placementObject)
+function PseudoPlayer:SetPlacementObject(placementObject)
 	self.Placements[placementObject.Guid] = placementObject
 
 	--Update placementStore
@@ -128,7 +128,7 @@ end
 
 
 --//Sets the value at index placementGuid to nil
-function PlayerClass:RemovePlacementObject(placementGuid)
+function PseudoPlayer:RemovePlacementObject(placementGuid)
 	self.Placements[placementGuid] = nil
 
 	--Update placementStore
@@ -141,19 +141,19 @@ end
 
 
 --//Returns the value at index placementGuid
-function PlayerClass:GetPlacementObject(placementGuid)
+function PseudoPlayer:GetPlacementObject(placementGuid)
 	return self.Placements[placementGuid]
 end
 
 
 --//Returns DataStore2 Data
-function PlayerClass:GetData(key)
+function PseudoPlayer:GetData(key)
 	return self.DataKeys[key]:Get(PlayerMetaData[key])
 end
 
 
 --//Sets DataStore2 Key Data
-function PlayerClass:SetData(key, value)
+function PseudoPlayer:SetData(key, value)
 	local leaderstatsValue = self.Player.leaderstats:FindFirstChild(key)
 	if (leaderstatsValue) then 
 		leaderstatsValue.Value = value 
@@ -163,7 +163,7 @@ function PlayerClass:SetData(key, value)
 end
 
 
-function PlayerClass:Start()
+function PseudoPlayer:Start()
 
 	--Combine all keys to master PlayerData key
 	for key, value in pairs(PlayerMetaData) do
@@ -172,7 +172,7 @@ function PlayerClass:Start()
 end
 
 
-function PlayerClass:Init()
+function PseudoPlayer:Init()
 	--//Api
 	DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
 	TableUtil = self.Shared.TableUtil
@@ -191,4 +191,4 @@ function PlayerClass:Init()
 end
 
 
-return PlayerClass
+return PseudoPlayer

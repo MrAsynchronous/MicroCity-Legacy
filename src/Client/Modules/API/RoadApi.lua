@@ -111,7 +111,7 @@ function RoadApi:GeneratePath(startingRoad)
     repeat
         currentRoad = GetNextRoad(currentRoad, roads[math.clamp(#roads - 1, 1, #roads)])
         table.insert(roads, currentRoad)
-    until (not currentRoad or (#roads > 20))
+    until (not currentRoad)
 
     return roads
 end
