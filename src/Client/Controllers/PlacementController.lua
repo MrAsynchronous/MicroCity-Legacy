@@ -137,19 +137,8 @@ function PlacementController:Start()
         PlacementApi intereaction
     ]]
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        print("Client: ", "placement API signaled that the client wants to place an object.")
-        print("Client: ", "invoking the server...")
-
         local actionData = PlacementService:RequestPlacement(itemId, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
-
-        print("Client: ", "server invoked, notification dispatched, checking if action was a success...")
-
-        if (actionData.wasSuccess) then
-            print("Client: ", "action was a success, stopping placement!")
-
-            PlacementApi:StopPlacing()
-        end
      end)
 
     --When player finishes moving an object, tell server

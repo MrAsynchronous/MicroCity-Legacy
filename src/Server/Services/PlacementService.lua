@@ -47,9 +47,6 @@ local SELL_EXCHANGE_RATE = 40 --percent
 ]]
 --//Places the requested object
 function PlacementService:PlaceObject(player, itemId, localPosition)
-    print("Server: ", "client has invoked a placement request")
-    print("Server: ", "handling request!")
-
     local playerObject = PlayerService:GetPlayerObject(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
 
