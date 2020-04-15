@@ -74,21 +74,20 @@ function PlacementController:Start()
         PlacementApi intereaction
     ]]
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local placementSuccess, model, noticeIden = PlacementService:PlaceObject(itemId, localPosition)
-
-        NotificationDispatcher:Dispatch(noticeIden)
-    end)
+        local actionData = PlacementService:PlaceObject(itemId, localPosition)
+        NotificationDispatcher:Dispatch(actionData.noticeObject)
+     end)
 
     --When player finishes moving an object, tell server
-    PlacementApi.ObjectMoved:Connect(function(guid, localPosition, oldPosition)
-        local moveSuccess, noticeIden = PlacementService:MovePlacement(guid, localPosition)
+    PlacementApi.ObjectMoved:Connect(function(guid, localPosition)
+        local actionData = PlacementService:MovePlacement(guid, localPosition)
+        NotificationDispatcher:Dispatch(actionData.noticeObject)
+        
         HideQueue()
         ResetSelection()
 
-        NotificationDispatcher:Dispatch(noticeIden)
-
         --If move success, stop placing
-        if (moveSuccess) then
+        if (actionData.wasSuccess) then
             PlacementApi:StopPlacing()
         else
             PlacementApi:StopPlacing(true)
@@ -127,30 +126,29 @@ function PlacementController:Start()
 
     actionButtons.Sell.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local sellSuccess, noticeIden = PlacementService:SellPlacement(selectedPlacement.Name)
-       
-            NotificationDispatcher:Dispatch(noticeIden)
+            local actionData = PlacementService:SellPlacement(selectedPlacement.Name)
+            NotificationDispatcher:Dispatch(actionData.noticeObject)
         end
     end)
 
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local upgradeSuccess, upgradedModel, noticeIden = PlacementService:UpgradePlacement(selectedPlacement.Name)
+            local actionData = PlacementService:UpgradePlacement(selectedPlacement.Name)
 
             --Reset selection queue to new model
-            if (upgradeSuccess and upgradedModel) then
-                PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, upgradedModel.PrimaryPart.Size.Y, 0)
-                PlacementSelectionQueue.Adornee = upgradedModel.PrimaryPart
+            if (actionData.wasSuccess) then
+                PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, actionData.newObject.PrimaryPart.Size.Y, 0)
+                PlacementSelectionQueue.Adornee = actionData.newObject.PrimaryPart
             end
 
-            NotificationDispatcher:Dispatch(noticeIden)
+            NotificationDispatcher:Dispatch(actionData.noticeObject)
         end
     end)
 
     actionButtons.Move.MouseButton1Click:Connect(function()
-        if (selectedPlacement) then     
-            HideQueue()      
+        if (selectedPlacement) then
             PlacementApi:StartPlacing(selectedPlacement)
+            HideQueue()
         end
     end)
 end

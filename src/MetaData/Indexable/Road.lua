@@ -2,7 +2,8 @@ return {
 	ItemId = 3,
 	Cost = 25,
 	CostType = "Cash",
-	
+	Population = 0,
+
 	Upgrades = {
 		{
 			Name = "L-Bend",
@@ -15,6 +16,6 @@ return {
 		},
 	},
 	
-	Name = script.Name,	
+	Name = script.Name,
 	Type = "Road"
 }

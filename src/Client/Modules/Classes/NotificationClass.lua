@@ -20,16 +20,17 @@ local PlayerGui
 local NotificationRegion
 local NotificationTemplate
 
-local ACTIVE_TIME = 3
-local ACTIVE_POSITION = UDim2.new(0.5, 0, 1, 0)
-local INACTIVE_POSITION = UDim2.new(0.5, 0, 0, 0)
+local SHOWING_TIME = 4
+local ACTIVE_POSITION = UDim2.new(0, 0, 1, 0)
+local PRE_ACTIVE_POSITION = UDim2.new(1, 0, 1, 0)
 
 
 --//Constructor for NotificationClass
 function NotificationClass.new(notificationInfo)
     local self = setmetatable({
         Text = notificationInfo.Text,
-        Color = notificationInfo.Color
+        Color = notificationInfo.Color,
+        Position = ACTIVE_POSITION
 
     }, NotificationClass)
 
@@ -37,7 +38,8 @@ function NotificationClass.new(notificationInfo)
     self.Notification = NotificationTemplate:Clone()
     self.Notification.Text = self.Text
     self.Notification.TextColor3 = self.Color
-    self.Notification.Parent = NotificationRegion
+    self.Notification.Position = PRE_ACTIVE_POSITION
+    self.Notification.Parent = NotificationRegion.Container
 
     --Call meta-method to show new notification
     self:Show()
@@ -48,18 +50,40 @@ end
 
 --//Shows the notification
 function NotificationClass:Show()
-    self.Notification.Visible = true
-    self.Notification:TweenPosition(ACTIVE_POSITION, "In", "Quint", 0.25, true, function()
-        wait(ACTIVE_TIME)
+    self.removalTime = os.time() + SHOWING_TIME
 
-        self:Hide()
+    --Make notification visible, tween, on callback, wait until time to delete, make call
+    self.Notification.Visible = true
+    self.Notification:TweenPosition(ACTIVE_POSITION, "Out", "Quint", 0.25, true, function()
+        while (os.time() < self.removalTime) do wait() end
+
+        if (self and self.Notification and self.Notification.Parent) then
+            self:Hide()
+        end
     end)
+end
+
+
+--//Physically pushes notification object vertically
+function NotificationClass:Push()
+    self.Position = self.Position - UDim2.new(0, 0, self.Notification.Size.Y.Scale, 0)
+
+    if (self and self.Notification and self.Notification.Parent) then
+        --Tween notification up, if notification is above the bounds, hide
+        self.Notification:TweenPosition(self.Position, "InOut", "Quint", 0.25, true, function()
+            if (self.Position.X.Scale < 0) then
+                self:Hide()
+            end
+        end)
+    end
 end
 
 
 --//Hides then removes notification object from existence
 function NotificationClass:Hide()
-    self.NotificationClass:TweenPosition(INACTIVE_POSITION, "Out", "Quint", 0.25, true, function()
+
+    --Tween notification out, on callback, destroy 
+    self.Notification:TweenPosition(self.Position + UDim2.new(1, 0, 0, 0), "In", "Quint", 0.25, true, function()
         self.Notification.Visible = false
         self.Notification:Destroy()
         self = nil
@@ -84,7 +108,7 @@ function NotificationClass:Init()
 
     --//Locals
     NotificationRegion = PlayerGui:WaitForChild("NotificationRegion")
-    NotificationTemplate = NotificationTemplate.Template
+    NotificationTemplate = NotificationRegion.Template
 
 end
 

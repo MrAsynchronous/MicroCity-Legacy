@@ -24,6 +24,7 @@ local PlacementService = {Client = {}}
 local RoadIntersection
 local CFrameSerializer
 local TableUtil
+local Notices
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -57,9 +58,16 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         --Edit player population
         playerObject:Set("Population", playerObject:Get("Population") + itemMetaData.Population)
 
-        return true, placementObject.PlacedObject, "buildingPurchaseSuccess"
+        return {
+            wasSuccess = true,
+            placedObject = placementObject.PlacedObject,
+            noticeObject = Notices.buildingPurchaseSuccess
+        }
     else
-        return false, nil, "noFundsError"
+        return {
+            wasSuccess = false,
+            noticeObject = Notices.noFundsError
+        }
     end
 end
 
@@ -83,7 +91,10 @@ function PlacementService:SellPlacement(player, guid)
     local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
     ShoppingService:SellItem(playerObject, discountedProfit)
 
-    return true, "buildingSoldSuccess"
+    return {
+        wasSuccess = true,
+        noticeObject = Notices.buildingSoldSuccess
+    }
 end
 
 
@@ -102,12 +113,22 @@ function PlacementService:UpgradePlacement(player, guid)
         if (ShoppingService:CanAffordCost(playerObject, upgradeData.Cost)) then
             placementObject:Upgrade()
 
-            return true, placementObject.PlacedObject, "buildingUpgradeSuccess"
+            return {
+                wasSuccess = true,
+                newObject = placementObject.PlacedObject,
+                noticeObject = Notices.buildingUpgradeSuccess
+            }
         else
-            return false, nil, "noFundsError"
+            return {
+                wasSuccess = false,
+                noticeObject = Notices.noFundsError
+            }
         end
     else
-        return false, nil, "maxLevelError"
+        return {
+            wasSuccess = false,
+            noticeObject = Notices.maxLevelError
+        }
     end
 end
 
@@ -121,7 +142,10 @@ function PlacementService:MovePlacement(player, guid, localPosition)
     placementObject:Move(localPosition)
     playerObject:SetPlacementObject(placementObject)
 
-    return true, "buildingMovedSuccess"
+    return {
+        wasSuccess = true,
+        noticeObject = Notices.buildingMoveSuccess
+    }
 end
 
 
@@ -179,6 +203,7 @@ function PlacementService:Init()
     RoadIntersection = self.Modules.RoadIntersections
     CFrameSerializer = self.Shared.CFrameSerializer
     TableUtil = self.Shared.TableUtil
+    Notices = require(ReplicatedStorage.MetaData.Notices)
 
     --//Services
     MetaDataService = self.Services.MetaDataService

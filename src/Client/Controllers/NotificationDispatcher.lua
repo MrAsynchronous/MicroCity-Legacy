@@ -23,11 +23,12 @@ local activeNotifications
 
 --//Creates a new notification object
 function NotificationDispatcher:Dispatch(notificationInfo)
+    if (not notificationInfo) then return end
     local notificationObject = NotificationClass.new(notificationInfo)
 
     --Iterate through and hide all old notifications
-    for _, oldNotificationObject in pairs(activeNotifications) do
-        oldNotificationObject:Hide()
+    for i, oldNotificationObject in pairs(activeNotifications) do
+        oldNotificationObject:Push()
     end
 
     --Cache new notification object to be removed later
@@ -43,6 +44,7 @@ function NotificationDispatcher:Init()
     --//Controllers
 
     --//Classes
+    NotificationClass = self.Modules.Classes.NotificationClass
 
     --//Locals
     activeNotifications = {}
