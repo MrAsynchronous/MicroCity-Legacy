@@ -76,6 +76,13 @@ function PlacementController:Start()
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
         local actionData = PlacementService:PlaceObject(itemId, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
+
+        HideQueue()
+        ResetSelection()
+
+        if (actionData.wasSuccess) then
+            PlacementApi:StopPlacing()
+        end
      end)
 
     --When player finishes moving an object, tell server

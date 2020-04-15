@@ -69,6 +69,8 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
             noticeObject = Notices.noFundsError
         }
     end
+
+    return {}
 end
 
 
@@ -130,6 +132,8 @@ function PlacementService:UpgradePlacement(player, guid)
             noticeObject = Notices.maxLevelError
         }
     end
+
+    return {}
 end
 
 
