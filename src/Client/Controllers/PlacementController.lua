@@ -84,35 +84,6 @@ end
 
 function PlacementController:Start()
     --[[
-        PlacementApi intereaction
-    ]]
-    PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local actionData = PlacementService:PlaceObject(itemId, localPosition)
-        NotificationDispatcher:Dispatch(actionData.noticeObject)
-
-        if (actionData.wasSuccess) then
-        --    PlacementApi:StopPlacing()
-        end
-     end)
-
-    --When player finishes moving an object, tell server
-    PlacementApi.ObjectMoved:Connect(function(guid, localPosition)
-        local actionData = PlacementService:MovePlacement(guid, localPosition)
-        NotificationDispatcher:Dispatch(actionData.noticeObject)
-
-        --Show selectonQueue
-        ShowQueue()
-
-        --If move success, stop placing object
-        if (actionData.wasSuccess) then
-            PlacementApi:StopPlacing()
-        else
-            PlacementApi:StopPlacing(true)
-        end
-    end)
-    
-
-    --[[
         Selection Queue
     ]]
     --When player selects placed object, setup PlacementSelectionQueue, tween
@@ -131,6 +102,7 @@ function PlacementController:Start()
     ]]
     local actionButtons = PlacementSelectionQueue.Container.Buttons
 
+    --Invoke server to sell object
     actionButtons.Sell.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
             local actionData = PlacementService:SellPlacement(selectedPlacement.Name)
@@ -138,6 +110,7 @@ function PlacementController:Start()
         end
     end)
 
+    --Invoke server to upgrade object 
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
             local actionData = PlacementService:UpgradePlacement(selectedPlacement.Name)
@@ -150,6 +123,7 @@ function PlacementController:Start()
         end
     end)
 
+    --Tell placementApi to start moving object
     actionButtons.Move.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
             HideQueue()
@@ -157,6 +131,35 @@ function PlacementController:Start()
             PlacementApi:StartPlacing(selectedPlacement)
         end
     end)
+
+
+    --[[
+        PlacementApi intereaction
+    ]]
+    PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
+        local actionData = PlacementService:PlaceObject(itemId, localPosition)
+        NotificationDispatcher:Dispatch(actionData.noticeObject)
+
+        if (actionData.wasSuccess) then
+            PlacementApi:StopPlacing()
+        end
+     end)
+
+    --When player finishes moving an object, tell server
+    PlacementApi.ObjectMoved:Connect(function(guid, localPosition)
+        local actionData = PlacementService:MovePlacement(guid, localPosition)
+        NotificationDispatcher:Dispatch(actionData.noticeObject)
+
+        --Show selectonQueue
+        ShowQueue()
+
+        --If move success, stop placing object
+        if (actionData.wasSuccess) then
+            PlacementApi:StopPlacing()
+        else
+            PlacementApi:StopPlacing(true)
+        end
+    end)    
 end
 
 
