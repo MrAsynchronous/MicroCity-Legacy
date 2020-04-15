@@ -10,7 +10,8 @@
     Methods
         private void ShowQueue()
         private void HideQueue()
-        
+        private void SetSelection(placementObject)
+
 ]]
 
 
@@ -42,30 +43,42 @@ local PlacementSelectionQueue
 local selectedPlacement
 
 
+
 --Shows the selection queue
 local function ShowQueue()
     PlacementSelectionQueue.Container.Size = UDim2.new(0, 0, 0, 0)
 
-    PlacementSelectionQueue.Container.Visible = true
+    PlacementSelectionQueue.Enabled = true
     PlacementSelectionQueue.Container:TweenSize(UDim2.new(1, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quint, 0.25, true)
 end
 
 
 --Hides the selection queue
-local function HideQueue()
+--Does not change adornee
+local function HideQueue(isReset)
     PlacementSelectionQueue.Container:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quint, 0.25, true, function()
         PlacementSelectionQueue.Enabled = false
-        PlacementSelectionQueue.Adornee = nil
 
-        PlacementSelectionQueue.Container.Visible = false
+        if (isReset) then
+            PlacementSelectionQueue.Adornee = nil
+            selectedPlacement = nil
+        end
     end)
 end
 
 
---Resets the selection queue adornee
-local function ResetSelection()
-    PlacementSelectionQueue.Adornee = nil
-    selectedPlacement = nil
+--Adornee's selectionQueue to placementObject
+local function SetSelection(placementObject)
+    PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, placementObject.PrimaryPart.Size.Y, 0)
+    PlacementSelectionQueue.Adornee = placementObject.PrimaryPart
+    PlacementSelectionQueue.Enabled = true
+
+    --Only tween UI if selectedPlacement fresh, or hot-selecting a different placementObject
+    if (not selectedPlacement or (selectedPlacement and (placementObject ~= selectedPlacement))) then
+        ShowQueue()
+    end
+    
+    selectedPlacement = placementObject
 end
 
 
@@ -77,11 +90,8 @@ function PlacementController:Start()
         local actionData = PlacementService:PlaceObject(itemId, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
 
-        HideQueue()
-        ResetSelection()
-
         if (actionData.wasSuccess) then
-            PlacementApi:StopPlacing()
+        --    PlacementApi:StopPlacing()
         end
      end)
 
@@ -89,11 +99,11 @@ function PlacementController:Start()
     PlacementApi.ObjectMoved:Connect(function(guid, localPosition)
         local actionData = PlacementService:MovePlacement(guid, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
-        
-        HideQueue()
-        ResetSelection()
 
-        --If move success, stop placing
+        --Show selectonQueue
+        ShowQueue()
+
+        --If move success, stop placing object
         if (actionData.wasSuccess) then
             PlacementApi:StopPlacing()
         else
@@ -107,22 +117,12 @@ function PlacementController:Start()
     ]]
     --When player selects placed object, setup PlacementSelectionQueue, tween
     PlacementApi.PlacementSelectionStarted:Connect(function(placementObject)
-        PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, placementObject.PrimaryPart.Size.Y, 0)
-        PlacementSelectionQueue.Adornee = placementObject.PrimaryPart
-        PlacementSelectionQueue.Enabled = true
-
-        --Only tween UI if selectedPlacement fresh, or hot-selecting a different placementObject
-        if (not selectedPlacement or (selectedPlacement and (placementObject ~= selectedPlacement))) then
-            ShowQueue()
-        end
-        
-        selectedPlacement = placementObject
+        SetSelection(placementObject)
     end)
 
     --When player stops selecting a placedObject, tween, cleanup PlacementSelectionQueue
     PlacementApi.PlacementSelectionEnded:Connect(function(placementObject)
-        selectedPlacement = nil
-        HideQueue()
+        HideQueue(true)
     end)
 
 
@@ -141,21 +141,20 @@ function PlacementController:Start()
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
             local actionData = PlacementService:UpgradePlacement(selectedPlacement.Name)
+            NotificationDispatcher:Dispatch(actionData.noticeObject)
 
             --Reset selection queue to new model
             if (actionData.wasSuccess) then
-                PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, actionData.newObject.PrimaryPart.Size.Y, 0)
-                PlacementSelectionQueue.Adornee = actionData.newObject.PrimaryPart
+                SetSelection(actionData.newObject)
             end
-
-            NotificationDispatcher:Dispatch(actionData.noticeObject)
         end
     end)
 
     actionButtons.Move.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            PlacementApi:StartPlacing(selectedPlacement)
             HideQueue()
+
+            PlacementApi:StartPlacing(selectedPlacement)
         end
     end)
 end

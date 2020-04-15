@@ -148,6 +148,7 @@ function PlacementService:MovePlacement(player, guid, localPosition)
 
     return {
         wasSuccess = true,
+        object = placementObject.PlacedObject,
         noticeObject = Notices.buildingMoveSuccess
     }
 end
