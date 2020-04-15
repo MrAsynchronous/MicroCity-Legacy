@@ -105,7 +105,7 @@ function PlacementController:Start()
     --Invoke server to sell object
     actionButtons.Sell.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local actionData = PlacementService:SellPlacement(selectedPlacement.Name)
+            local actionData = PlacementService:RequestSell(selectedPlacement.Name)
             NotificationDispatcher:Dispatch(actionData.noticeObject)
         end
     end)
@@ -113,7 +113,7 @@ function PlacementController:Start()
     --Invoke server to upgrade object 
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local actionData = PlacementService:UpgradePlacement(selectedPlacement.Name)
+            local actionData = PlacementService:RequestUpgrade(selectedPlacement.Name)
             NotificationDispatcher:Dispatch(actionData.noticeObject)
 
             --Reset selection queue to new model
@@ -137,17 +137,24 @@ function PlacementController:Start()
         PlacementApi intereaction
     ]]
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local actionData = PlacementService:PlaceObject(itemId, localPosition)
+        print("Client: ", "placement API signaled that the client wants to place an object.")
+        print("Client: ", "invoking the server...")
+
+        local actionData = PlacementService:RequestPlacement(itemId, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
 
+        print("Client: ", "server invoked, notification dispatched, checking if action was a success...")
+
         if (actionData.wasSuccess) then
+            print("Client: ", "action was a success, stopping placement!")
+
             PlacementApi:StopPlacing()
         end
      end)
 
     --When player finishes moving an object, tell server
     PlacementApi.ObjectMoved:Connect(function(guid, localPosition)
-        local actionData = PlacementService:MovePlacement(guid, localPosition)
+        local actionData = PlacementService:RequestMove(guid, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
 
         --Show selectonQueue

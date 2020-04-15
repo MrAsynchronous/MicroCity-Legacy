@@ -8,10 +8,10 @@
     Handles the Server-wise placement operations
 
     Methods
-        public boolean SellPlacement(Player player, String guid)
-        public boolean MovePlacement(Player player, String guid, CFrame localPosition)
-        public boolean, object UpgradePlacement(Player player, String guid)
-        public boolean PlaceObject(Player player, int itemId, CFrame localPosition)
+        public boolean RequestSell(Player player, String guid)
+        public boolean RequestMove(Player player, String guid, CFrame localPosition)
+        public boolean, object RequestUpgrade(Player player, String guid)
+        public boolean RequestPlacement(Player player, int itemId, CFrame localPosition)
         public void LoadPlacements(PlayerObject playerObject)
 
 ]]
@@ -47,6 +47,9 @@ local SELL_EXCHANGE_RATE = 40 --percent
 ]]
 --//Places the requested object
 function PlacementService:PlaceObject(player, itemId, localPosition)
+    print("Server: ", "client has invoked a placement request")
+    print("Server: ", "handling request!")
+
     local playerObject = PlayerService:GetPlayerObject(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
 
@@ -56,7 +59,7 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         playerObject:SetPlacementObject(placementObject)
 
         --Edit player population
-        playerObject:Set("Population", playerObject:Get("Population") + itemMetaData.Population)
+    --    playerObject:Set("Population", playerObject:Get("Population") + itemMetaData.Population)
 
         return {
             wasSuccess = true,
@@ -186,19 +189,19 @@ end
 --[[
     Client-exposed methods
 ]]
-function PlacementService.Client:PlaceObject(...)
+function PlacementService.Client:RequestPlacement(...)
     return self.Server:PlaceObject(...)
 end
 
-function PlacementService.Client:MovePlacement(...)
+function PlacementService.Client:RequestMove(...)
     return self.Server:MovePlacement(...)
 end
 
-function PlacementService.Client:SellPlacement(...)
+function PlacementService.Client:RequestSell(...)
     return self.Server:SellPlacement(...)
 end
 
-function PlacementService.Client:UpgradePlacement(...)
+function PlacementService.Client:RequestUpgrade(...)
     return self.Server:UpgradePlacement(...)
 end
 
