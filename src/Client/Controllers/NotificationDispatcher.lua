@@ -3,6 +3,14 @@
 -- April 10, 2020
 
 
+--[[
+
+    Methods:
+        public void Dispatch(Table notificationTable)
+        public void ClearNotifications()
+
+]]
+
 
 local NotificationDispatcher = {}
 
@@ -27,12 +35,20 @@ function NotificationDispatcher:Dispatch(notificationInfo)
     local notificationObject = NotificationClass.new(notificationInfo)
 
     --Iterate through and hide all old notifications
-    for i, oldNotificationObject in pairs(activeNotifications) do
+    for _, oldNotificationObject in pairs(activeNotifications) do
         oldNotificationObject:Push()
     end
 
     --Cache new notification object to be removed later
     table.insert(activeNotifications, notificationObject)
+end
+
+
+--//Clears all active notifications
+function NotificationDispatcher:ClearNotifications()
+    for _, oldNotificationObject in pairs(activeNotifications) do
+        oldNotificationObject:Hide()
+    end
 end
 
 

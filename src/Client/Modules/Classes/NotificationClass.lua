@@ -1,7 +1,17 @@
 -- Notification Class
--- Username
+-- MrAsync
 -- April 14, 2020
 
+
+--[[
+
+    Methods:
+        public NotificationObject .new(Table notificationInfo)
+        public void Show()
+        public void Hide()
+        publuc void Push()
+
+]]
 
 
 local NotificationClass = {}
