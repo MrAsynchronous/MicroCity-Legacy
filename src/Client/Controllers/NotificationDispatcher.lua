@@ -8,7 +8,6 @@ local NotificationDispatcher = {}
 
 
 --//Api
-local NoticeLibrary
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,30 +15,28 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --//Controllers
 
 --//Classes
+local NotificationClass
 
 --//Locals
-local PlayerGui
-local NotificationRegion
-local NotificationTemplate
-
-local isActive
 local activeNotifications
 
-local ACTIVE_POSITION = UDim2.new(0.5, 0, 1, 0)
-local INACTIVE_POSITION = UDim2.new(0.5, 0, 0, 0)
 
-function NotificationDispatcher:Dispatch(identifier)
-end
+--//Creates a new notification object
+function NotificationDispatcher:Dispatch(notificationInfo)
+    local notificationObject = NotificationClass.new(notificationInfo)
 
+    --Iterate through and hide all old notifications
+    for _, oldNotificationObject in pairs(activeNotifications) do
+        oldNotificationObject:Hide()
+    end
 
-function NotificationDispatcher:Start()
-	
+    --Cache new notification object to be removed later
+    table.insert(activeNotifications, notificationObject)
 end
 
 
 function NotificationDispatcher:Init()
     --//Api
-    NoticeLibrary = require(ReplicatedStorage.MetaData.Notices)
 
     --//Services
 
@@ -48,11 +45,6 @@ function NotificationDispatcher:Init()
     --//Classes
 
     --//Locals
-    PlayerGui = self.Player:WaitForChild("PlayerGui")
-    NotificationRegion = PlayerGui:WaitForChild("NotificationRegion")
-    NotificationTemplate = NotificationRegion.Template
-        
-    isActive = false
     activeNotifications = {}
 end
 
