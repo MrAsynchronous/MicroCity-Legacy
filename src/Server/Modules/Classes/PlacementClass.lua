@@ -13,6 +13,7 @@
 			Array saveData
 		)
 
+		public void Upgrade()
 		public void MoveTo(CFrame itemPosition)
 		public void Remove()
 		public String Encode()
@@ -40,6 +41,7 @@ local MetaDataService
 --//Classes
 
 --//Locals
+local Particles
 
 
 --//Constructor for PlacementClass
@@ -71,11 +73,27 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 	self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
 	self.PlacedObject.Name = self.Guid
 
+	--Construct proper position
 	self.LocalPosition = self:ConstructPosition(itemPosition)
 	
-	self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
-	local effectTween = TweenService:Create(self.PlacedObject.PrimaryPart, TweenInfo.new(1), {CFrame = self.WorldPosition})
-	effectTween:Play()
+	if (saveData) then
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
+	else
+		--Clone particle effect
+		local newParticle = Particles.PlacementEffect:Clone()
+		newParticle.Parent = self.PlacedObject.PrimaryPart
+
+		--Give the tween effect
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
+		local effectTween = TweenService:Create(self.PlacedObject.PrimaryPart, TweenInfo.new(1), {CFrame = self.WorldPosition})
+		effectTween:Play()
+
+		--When tween completes, destroy tween and particle 
+		effectTween.Completed:Connect(function(tweenStatus)
+			effectTween:Destroy()
+			newParticle:Destroy()
+		end)
+	end
 
 	return self
 end
@@ -139,7 +157,7 @@ end
 
 --//Moves ItemObject to desired cframe
 function PlacementClass:Move(itemPosition)
-	self.LocalPosition = itemPosition
+	self.LocalPosition = self:ConstructPosition(itemPosition)
 	self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
 
 	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
@@ -165,6 +183,11 @@ function PlacementClass:Encode()
 		Level = self.Level,
 		Age = self.Age
 	})
+end
+
+
+function PlacementClass:Start()
+	Particles = ReplicatedStorage:WaitForChild("Items").Particles
 end
 
 

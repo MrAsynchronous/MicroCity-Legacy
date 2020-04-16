@@ -80,10 +80,6 @@ function PlacementService:SellPlacement(player, guid)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
-    --Update population to reflect change
-    --Takes into account current level
-    pseudoPlayer:SetData("Population", pseudoPlayer:GetData("Population") - (itemMetaData.Population * placementObject.Level))
-
     --Remove placementObject from PlacementMap
     --Remove MetaTable
     pseudoPlayer:RemovePlacementObject(guid)
