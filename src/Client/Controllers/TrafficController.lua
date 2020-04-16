@@ -24,6 +24,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local PlacementService
+local MetaDataService
 
 --//Controllers
 
@@ -32,19 +33,17 @@ local QueueClass
 
 --//Locals
 local PlotObject
-local SoundLibrary
-local RoadContainer
 local TrafficVehicles
-local EmergencyVehicles
-local BuildingContainer
 
 local spawnedVehicles
-local roadIndex
 local frameCount
 local randomObject
 
-local SPEED = 0.06
+local TOLERANCE = 1.5
+
+local BUS_SPEED = 0.04
 local POLICE_SPEED = 0.1
+local DEFAULT_SPEED = 0.06
 
 
 --//Returns a road model randomly picked from all adjacent roads
@@ -80,27 +79,28 @@ end
 local function SpawnVehicle(roads, buildings)
     local homeBuilding, baseRoad = GetAdjacentRoads(roads, buildings)
 
-    --1/25 chance of a police car
-    local sound
-    local vehicleModel
-    if (randomObject:NextInteger(1, 25) == 13) then
-        sound = SoundLibrary.Siren:Clone()
-        vehicleModel = EmergencyVehicles.Police:Clone()
-    else
-        sound = SoundLibrary.Car:Clone()
-        vehicleModel = TrafficVehicles[randomObject:NextInteger(1, #TrafficVehicles)]:Clone()
-    end
+    --Clone random vehicle, get vehicle MetaData
+    local vehicleModel = TrafficVehicles[randomObject:NextInteger(1, #TrafficVehicles)]:Clone()
+    local vehicleMetaData = MetaDataService:GetMetaData(tonumber(vehicleModel.Name))
+
+    --Create sound
+    local sound = Instance.new("Sound")
+    sound.SoundId = vehicleMetaData.SoundId
 
     --Parent vehicle, sound, play sound
     vehicleModel.PrimaryPart.CFrame = (CFrame.new(homeBuilding.PrimaryPart.Position, baseRoad.PrimaryPart.Position))
     vehicleModel.Parent = PlotObject.Vehicles
     sound.Parent = vehicleModel.PrimaryPart
-    sound:Play()
+
+    --Only sometimes activate police siren
+    if ((vehicleMetaData.Id == 1002 and (randomObject:NextInteger(1, 10) == 7)) or (vehicleMetaData.Id ~= 1002)) then
+        sound:Play()
+    end
 
     --Return previousRoad, currentRoad
     return {
+        MetaData = vehicleMetaData,
         Model = vehicleModel,
-        PreviousRoad = baseRoad,
         CurrentRoad = baseRoad,
         NextRoad = RoadApi:GetNextRoad(baseRoad, baseRoad)
     }
@@ -110,6 +110,7 @@ end
 local function UpdateVehicles()
     frameCount = frameCount + 1
 
+    --Update road and building index, calculate maximum vehicles
     local roads = PlotObject.Placements.Roads:GetChildren()
     local buildings = PlotObject.Placements.Buildings:GetChildren()
     local maxVehicles = #buildings * 2
@@ -119,52 +120,48 @@ local function UpdateVehicles()
         frameCount = 0
 
         local vehicleTable = SpawnVehicle(roads, buildings)
-        
         table.insert(spawnedVehicles, vehicleTable)
     end
 
-
     --Update all vehicles
     for i, vehicleTable in pairs(spawnedVehicles) do
+        local metaData = vehicleTable.MetaData
         local vehicle = vehicleTable.Model
-        local previousRoad = vehicleTable.PreviousRoad
         local currentRoad = vehicleTable.CurrentRoad
         local nextRoad = vehicleTable.NextRoad
 
         --If vehicle is close to currentRoad, get next road, continue to 
-        if ((vehicle.PrimaryPart.Position - nextRoad.PrimaryPart.Position).magnitude <= 1) then
-            --If nextRoad does not exist, destroy vehicle            
-            if (not nextRoad) then
-                vehicle:Destroy()
-
-                table.remove(spawnedVehicles, i)
-            end
-
+        if ((vehicle.PrimaryPart.Position - currentRoad.PrimaryPart.Position).magnitude <= TOLERANCE) then
             --Find new road, update current and next roads
-            local newNext = RoadApi:GetNextRoad(currentRoad, nextRoad)
-            previousRoad = currentRoad
+            local newNext = RoadApi:GetNextRoad(nextRoad, currentRoad)
             currentRoad = nextRoad
             nextRoad = newNext
         end
 
         --Lazy police lights
-        if (vehicle.Name == "Police" and (frameCount % 10) == 0) then
+        if (metaData.ItemId == 1002 and (frameCount % 10) == 0) then
             vehicle.Lights.Red.SurfaceLight.Enabled = not vehicle.Lights.Red.SurfaceLight.Enabled
             vehicle.Lights.Blue.SurfaceLight.Enabled = not vehicle.Lights.Blue.SurfaceLight.Enabled
         end
 
-        --Construct and set CFrame
-        vehicle.PrimaryPart.CFrame = vehicle.PrimaryPart.CFrame:Lerp(
-            CFrame.new(currentRoad.PrimaryPart.Position, nextRoad.PrimaryPart.Position),
-            SPEED
-        )
-
-        vehicleTable[i] = {
-            Model = vehicle,
-            PreviousRoad = previousRoad,
-            CurrentRoad = currentRoad,
-            NextRoad = nextRoad
-        }
+        if (currentRoad and nextRoad) then
+            --Construct and set CFrame
+            vehicle.PrimaryPart.CFrame = vehicle.PrimaryPart.CFrame:Lerp(
+                CFrame.new(currentRoad.PrimaryPart.Position, nextRoad.PrimaryPart.Position),
+                metaData.Speed
+            )
+            
+            --Re-construct table
+            spawnedVehicles[i] = {
+                MetaData = metaData,
+                Model = vehicle,
+                CurrentRoad = currentRoad,
+                NextRoad = nextRoad
+            }
+        else
+            vehicle:Destroy()
+            table.remove(spawnedVehicles, i)
+        end
     end
 end
 
@@ -183,6 +180,7 @@ function TrafficController:Init()
 
     --//Services
     PlacementService = self.Services.PlacementService
+    MetaDataService = self.Services.MetaDataService
 
     --//Controllers
 
@@ -191,16 +189,10 @@ function TrafficController:Init()
 
     --//Locals
     PlotObject = self.Player:WaitForChild("PlotObject").Value
-    SoundLibrary = self.Player.PlayerScripts:WaitForChild("SoundLibrary")
-    RoadContainer = PlotObject.Placements.Roads
-    BuildingContainer = PlotObject.Placements.Buildings
-
     TrafficVehicles = ReplicatedStorage.Items.Vehicles.Traffic:GetChildren()
-    EmergencyVehicles = ReplicatedStorage.Items.Vehicles.Emergency
     
     frameCount = 0
     spawnedVehicles = {}
-    roadIndex = RoadContainer:GetChildren()
     randomObject = Random.new(os.time())
 
 end

@@ -102,21 +102,6 @@ function RoadApi:GetNextRoad(currentRoad, lastRoad)
 end
 
 
---//Generates a path for a vehicle to follow
---//Traces roads until roads end
-function RoadApi:GeneratePath(startingRoad)
-    local currentRoad = GetNextRoad(startingRoad)
-    local roads = {startingRoad, currentRoad}
-
-    repeat
-        currentRoad = GetNextRoad(currentRoad, roads[math.clamp(#roads - 1, 1, #roads)])
-        table.insert(roads, currentRoad)
-    until (not currentRoad)
-
-    return roads
-end
-
-
 --//Creates interval to spawn vehicles
 function RoadApi:Start()
     PlotObject = self.Player:WaitForChild("PlotObject").Value
