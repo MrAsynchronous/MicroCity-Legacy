@@ -8,10 +8,10 @@
     Used to convert localPositions of roads to cellPositions in roadIndex
 
     Methods
-        public Array GeneratePath(Model startingRoad)
-
+        public Model GetNextRoad(Model currentRoad, Model lastRoad)
+        public Array GeneratePath(Model startingRoad) DEPRECATED
+        
         private Array GetAdjacentRoads(Model currentRoad, Model lastRoad)
-        private Model GetNextRoad(Model currentRoad, Model lastRoad)
 ]]
 
 
@@ -96,7 +96,7 @@ end
 ]]
 --//Returns a random road from the returned array of adjacent roads
 --//Returns nil of no roads are found
-local function GetNextRoad(currentRoad, lastRoad)
+function RoadApi:GetNextRoad(currentRoad, lastRoad)
     local adjacentRoads = self:GetAdjacentRoads(currentRoad, lastRoad)
     return adjacentRoads[RandomObject:NextInteger(1, #adjacentRoads)]
 end

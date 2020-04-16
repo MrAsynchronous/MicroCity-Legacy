@@ -8,7 +8,9 @@
     Handles the mapping of placed roads and the creation of AI vehicles
 
     Methods
-        private void SpawnVehicle()
+        private void UpdateVehicles()
+        private Table SpawnVehicle(Object homeBuilding, Object baseRoad)
+        private Object, Object GetAdjacentRoads(Table roadIndex, Table buildingIndex)
 ]]
 
 
@@ -36,9 +38,9 @@ local TrafficVehicles
 local EmergencyVehicles
 local BuildingContainer
 
-local vehicles
+local spawnedVehicles
 local roadIndex
-local spawnCount
+local frameCount
 local randomObject
 
 local SPEED = 0.06
@@ -46,12 +48,9 @@ local POLICE_SPEED = 0.1
 
 
 --//Returns a road model randomly picked from all adjacent roads
-local function GetAdjacentRoads()
-    --Update building index, pick random building, localize position and base
-    roadIndex = RoadContainer:GetChildren()
-    local buildingIndex = BuildingContainer:GetChildren()
+local function GetAdjacentRoads(roadIndex, buildingIndex)
+    --ick random building
     local baseBuilding = buildingIndex[randomObject:NextInteger(1, #buildingIndex)]
-
     if (not baseBuilding) then return end
 
     local basePosition = baseBuilding.PrimaryPart.Position
@@ -77,73 +76,95 @@ local function GetAdjacentRoads()
 end
 
 
-local function UpdateVehicles()
-    spawnCount = spawnCount + 1
-        
-    --If spawnCount is above threshold, spawn vehicle
-    if (spawnCount >= 50) then
-        spawnCount = 1
+--//Spawns a vehicle at the homeBuilding position moving towards baseRoad
+local function SpawnVehicle(roads, buildings)
+    local homeBuilding, baseRoad = GetAdjacentRoads(roads, buildings)
 
-        --Grab adjacentRoad
-        local baseBuilding, startingRoad = GetAdjacentRoads()
-        if (not baseBuilding or not startingRoad) then return end
-
-        --Create vehicle path with more than 5 nodes
-        local vehiclePath = RoadApi:GeneratePath(startingRoad)
-
-        --1/25 chance of a police car
-        local sound
-        local vehicleModel
-        if (randomObject:NextInteger(1, 25) == 13) then
-            sound = SoundLibrary.Siren:Clone()
-            vehicleModel = EmergencyVehicles.Police:Clone()
-        else
-            sound = SoundLibrary.Car:Clone()
-            vehicleModel = TrafficVehicles[randomObject:NextInteger(1, #TrafficVehicles)]:Clone()
-        end
-
-        --Parent vehicle, sound, play sound
-        vehicleModel:SetPrimaryPartCFrame(CFrame.new(baseBuilding.PrimaryPart.Position, vehiclePath[1].PrimaryPart.Position))
-        vehicleModel.Parent = PlotObject.Vehicles
-        sound.Parent = vehicleModel.PrimaryPart
-        sound:Play()
-
-        --Add vehicle to index
-        vehicles[vehicleModel] = {
-            CurrentRoad = 1,
-            Path = vehiclePath
-        }
+    --1/25 chance of a police car
+    local sound
+    local vehicleModel
+    if (randomObject:NextInteger(1, 25) == 13) then
+        sound = SoundLibrary.Siren:Clone()
+        vehicleModel = EmergencyVehicles.Police:Clone()
+    else
+        sound = SoundLibrary.Car:Clone()
+        vehicleModel = TrafficVehicles[randomObject:NextInteger(1, #TrafficVehicles)]:Clone()
     end
 
-    --Move all vehicles
-    for vehicleModel, info in pairs(vehicles) do
-        local vehiclePath = info.Path
-        local road = vehiclePath[info.CurrentRoad]
+    --Parent vehicle, sound, play sound
+    vehicleModel.PrimaryPart.CFrame = (CFrame.new(homeBuilding.PrimaryPart.Position, baseRoad.PrimaryPart.Position))
+    vehicleModel.Parent = PlotObject.Vehicles
+    sound.Parent = vehicleModel.PrimaryPart
+    sound:Play()
 
-        --If reached the end of path, destroy vehicle
-        if (not road) then 
-            vehicles[vehicleModel] = nil
-            vehicleModel:Destroy()
-        else
-            --If vehicle is close to next road, update counter
-            if ((vehicleModel.PrimaryPart.Position - road.PrimaryPart.Position).magnitude <= 2) then
-                vehicles[vehicleModel].CurrentRoad = vehicles[vehicleModel].CurrentRoad + 1
+    --Return previousRoad, currentRoad
+    return {
+        Model = vehicleModel,
+        PreviousRoad = baseRoad,
+        CurrentRoad = baseRoad,
+        NextRoad = RoadApi:GetNextRoad(baseRoad, baseRoad)
+    }
+end
+
+
+local function UpdateVehicles()
+    frameCount = frameCount + 1
+
+    local roads = PlotObject.Placements.Roads:GetChildren()
+    local buildings = PlotObject.Placements.Buildings:GetChildren()
+    local maxVehicles = #buildings * 2
+
+    --If spawnFrame reached, and cars are able to be spawned, spawn a vehicle
+    if ((frameCount >= 50) and (#spawnedVehicles < maxVehicles)) then
+        frameCount = 0
+
+        local vehicleTable = SpawnVehicle(roads, buildings)
+        
+        table.insert(spawnedVehicles, vehicleTable)
+    end
+
+
+    --Update all vehicles
+    for i, vehicleTable in pairs(spawnedVehicles) do
+        local vehicle = vehicleTable.Model
+        local previousRoad = vehicleTable.PreviousRoad
+        local currentRoad = vehicleTable.CurrentRoad
+        local nextRoad = vehicleTable.NextRoad
+
+        --If vehicle is close to currentRoad, get next road, continue to 
+        if ((vehicle.PrimaryPart.Position - nextRoad.PrimaryPart.Position).magnitude <= 1) then
+            --If nextRoad does not exist, destroy vehicle            
+            if (not nextRoad) then
+                vehicle:Destroy()
+
+                table.remove(spawnedVehicles, i)
             end
 
-            --If vehicle is a police car, update every 10 frames
-            --Woot woot it's the sound of da police
-            if (vehicleModel.Name == "Police" and (spawnCount % 10) == 0) then
-                vehicleModel.Lights.Red.SurfaceLight.Enabled = not vehicleModel.Lights.Red.SurfaceLight.Enabled
-                vehicleModel.Lights.Blue.SurfaceLight.Enabled = not vehicleModel.Lights.Blue.SurfaceLight.Enabled
-            end
-
-            --Lerp from current position to CurrentRoadPosition facing the nextRoadPosition
-            local nextRoadPosition = vehiclePath[math.clamp(info.CurrentRoad + 1, 1, #vehiclePath)].PrimaryPart.Position
-            vehicleModel:SetPrimaryPartCFrame(vehicleModel.PrimaryPart.CFrame:Lerp(
-                CFrame.new(road.PrimaryPart.Position, nextRoadPosition),
-                SPEED
-            ))
+            --Find new road, update current and next roads
+            local newNext = RoadApi:GetNextRoad(currentRoad, nextRoad)
+            previousRoad = currentRoad
+            currentRoad = nextRoad
+            nextRoad = newNext
         end
+
+        --Lazy police lights
+        if (vehicle.Name == "Police" and (frameCount % 10) == 0) then
+            vehicle.Lights.Red.SurfaceLight.Enabled = not vehicle.Lights.Red.SurfaceLight.Enabled
+            vehicle.Lights.Blue.SurfaceLight.Enabled = not vehicle.Lights.Blue.SurfaceLight.Enabled
+        end
+
+        --Construct and set CFrame
+        vehicle.PrimaryPart.CFrame = vehicle.PrimaryPart.CFrame:Lerp(
+            CFrame.new(currentRoad.PrimaryPart.Position, nextRoad.PrimaryPart.Position),
+            SPEED
+        )
+
+        vehicleTable[i] = {
+            Model = vehicle,
+            PreviousRoad = previousRoad,
+            CurrentRoad = currentRoad,
+            NextRoad = nextRoad
+        }
     end
 end
 
@@ -151,7 +172,7 @@ end
 function TrafficController:Start()
     --Start spawning vehicles once plot is fully loaded
     PlacementService.OnPlotLoadComplete:Connect(function()
-    --    RunService:BindToRenderStep("VehicleMovement", 3, UpdateVehicles)
+        RunService:BindToRenderStep("VehicleMovement", 3, UpdateVehicles)
     end)
 end
 
@@ -176,9 +197,9 @@ function TrafficController:Init()
 
     TrafficVehicles = ReplicatedStorage.Items.Vehicles.Traffic:GetChildren()
     EmergencyVehicles = ReplicatedStorage.Items.Vehicles.Emergency
-
-    vehicles = {}
-    spawnCount = 1;
+    
+    frameCount = 0
+    spawnedVehicles = {}
     roadIndex = RoadContainer:GetChildren()
     randomObject = Random.new(os.time())
 
