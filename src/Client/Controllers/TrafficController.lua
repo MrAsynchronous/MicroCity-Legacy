@@ -46,38 +46,9 @@ local POLICE_SPEED = 0.1
 local DEFAULT_SPEED = 0.06
 
 
---//Returns a road model randomly picked from all adjacent roads
-local function GetAdjacentRoads(roadIndex, buildingIndex)
-    --ick random building
-    local baseBuilding = buildingIndex[randomObject:NextInteger(1, #buildingIndex)]
-    if (not baseBuilding) then return end
-
-    local basePosition = baseBuilding.PrimaryPart.Position
-    local baseSize = baseBuilding.PrimaryPart.Size
-
-    --Construct region3 and get adjacentParts
-    local adjacentRegion = Region3.new(basePosition - (baseSize / 2) - Vector3.new(2, 2, 2), basePosition + (baseSize / 2) + Vector3.new(2, 2, 2))
-    local adjacentParts = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, roadIndex, math.huge)
-    local adjacentRoads = {}
-
-    --Iterate through all adjacent parts
-    for _, roadPart in pairs(adjacentParts) do
-        --Localize model and model's posiiton
-        local parentModel = roadPart:FindFirstAncestorOfClass("Model")
-
-        --If road is not already in array, add it
-        if (not table.find(adjacentRoads, parentModel)) then
-            table.insert(adjacentRoads, parentModel)
-        end
-    end
-
-    return baseBuilding, adjacentRoads[randomObject:NextInteger(1, #adjacentRoads)]
-end
-
-
 --//Spawns a vehicle at the homeBuilding position moving towards baseRoad
-local function SpawnVehicle(roads, buildings)
-    local homeBuilding, baseRoad = GetAdjacentRoads(roads, buildings)
+local function SpawnVehicle(buildings)
+    local homeBuilding, baseRoad = RoadApi:GetStartingRoad(buildings)
 
     --Clone random vehicle, get vehicle MetaData
     local vehicleModel = TrafficVehicles[randomObject:NextInteger(1, #TrafficVehicles)]:Clone()
@@ -119,7 +90,7 @@ local function UpdateVehicles()
     if ((frameCount >= 50) and (#spawnedVehicles < maxVehicles)) then
         frameCount = 0
 
-        local vehicleTable = SpawnVehicle(roads, buildings)
+        local vehicleTable = SpawnVehicle(buildings)
         table.insert(spawnedVehicles, vehicleTable)
     end
 
