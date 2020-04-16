@@ -18,6 +18,7 @@ local PlayerService = {Client = {}}
 
 
 --//Api
+local PromiseApi
 
 --//Services
 local PlacementService
@@ -96,6 +97,7 @@ end
 
 function PlayerService:Init()
     --//Api
+    PromiseApi = self.Shared.Promise
     
     --//Services
     PlacementService = self.Services.PlacementService
