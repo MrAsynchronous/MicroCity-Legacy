@@ -48,6 +48,7 @@ local DEFAULT_SPEED = 0.06
 --//Spawns a vehicle at the homeBuilding position moving towards baseRoad
 local function SpawnVehicle(buildings)
     local homeBuilding, baseRoad = RoadApi:GetStartingRoad(buildings)
+    if (not homeBuilding or not baseRoad) then return end
 
     --Clone random vehicle, get vehicle MetaData
     local vehicleModel = TrafficVehicles[randomObject:NextInteger(1, #TrafficVehicles)]:Clone()

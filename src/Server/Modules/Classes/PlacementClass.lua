@@ -30,6 +30,7 @@ local TableUtil
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 
 local MetaDataService
@@ -71,7 +72,10 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 	self.PlacedObject.Name = self.Guid
 
 	self.LocalPosition = self:ConstructPosition(itemPosition)
-	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
+	
+	self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
+	local effectTween = TweenService:Create(self.PlacedObject.PrimaryPart, TweenInfo.new(1), {CFrame = self.WorldPosition})
+	effectTween:Play()
 
 	return self
 end
@@ -95,7 +99,10 @@ function PlacementClass:Upgrade()
 	
 		--Reconstruct CFrame to account for model size differences
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
-		self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
+
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
+		local effectTween = TweenService:Create(self.PlacedObject.PrimaryPart, TweenInfo.new(1), {CFrame = self.WorldPosition})
+		effectTween:Play()
 	end
 end
 
@@ -132,8 +139,10 @@ end
 
 --//Moves ItemObject to desired cframe
 function PlacementClass:Move(itemPosition)
-	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
 	self.LocalPosition = itemPosition
+	self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
+
+	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
 
 	return true
 end
