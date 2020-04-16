@@ -9,9 +9,8 @@
 
     Methods
         public Model GetNextRoad(Model currentRoad, Model lastRoad)
-        public Array GeneratePath(Model startingRoad) DEPRECATED
-        
         private Array GetAdjacentRoads(Model currentRoad, Model lastRoad)
+        private Model, Model GetStartingRoad(Array buildings)
 ]]
 
 

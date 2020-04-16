@@ -10,7 +10,6 @@
     Methods
         private void UpdateVehicles()
         private Table SpawnVehicle(Object homeBuilding, Object baseRoad)
-        private Object, Object GetAdjacentRoads(Table roadIndex, Table buildingIndex)
 ]]
 
 
@@ -84,7 +83,7 @@ local function UpdateVehicles()
     --Update road and building index, calculate maximum vehicles
     local roads = PlotObject.Placements.Roads:GetChildren()
     local buildings = PlotObject.Placements.Buildings:GetChildren()
-    local maxVehicles = #buildings * 2
+    local maxVehicles = math.floor(#buildings * 1.5)
 
     --If spawnFrame reached, and cars are able to be spawned, spawn a vehicle
     if ((frameCount >= 50) and (#spawnedVehicles < maxVehicles)) then
