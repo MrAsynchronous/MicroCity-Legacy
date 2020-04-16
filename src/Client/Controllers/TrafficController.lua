@@ -115,9 +115,11 @@ local function UpdateVehicles()
         end
 
         if (currentRoad and nextRoad) then
+            local vehicleRightVector = vehicle.PrimaryPart.CFrame.RightVector
+
             --Construct and set CFrame
             vehicle.PrimaryPart.CFrame = vehicle.PrimaryPart.CFrame:Lerp(
-                CFrame.new(currentRoad.PrimaryPart.Position, nextRoad.PrimaryPart.Position),
+                CFrame.new(currentRoad.PrimaryPart.Position + (vehicleRightVector / 2), nextRoad.PrimaryPart.Position + (vehicleRightVector / 2)),
                 metaData.Speed
             )
             
