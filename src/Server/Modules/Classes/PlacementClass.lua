@@ -82,6 +82,7 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 		--Clone particle effect
 		local newParticle = Particles.PlacementEffect:Clone()
 		newParticle.Parent = self.PlacedObject.PrimaryPart
+		newParticle.Enabled = true
 
 		--Give the tween effect
 		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)

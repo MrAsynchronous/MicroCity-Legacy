@@ -22,11 +22,7 @@ function BuildingController:Start()
             elseif (inputObject.KeyCode == Enum.KeyCode.Three) then
                 PlacementApi:StartPlacing(3)
             elseif (inputObject.KeyCode == Enum.KeyCode.Four) then
-                PlacementApi:StartPlacing(4)
-            elseif (inputObject.KeyCode == Enum.KeyCode.Five) then
-                PlacementApi:StartPlacing(5)
-            elseif (inputObject.KeyCode == Enum.KeyCode.Six) then
-                PlacementApi:StartPlacing(6)
+                PlacementApi:StartPlacing(100)
             end
         end
     end)
