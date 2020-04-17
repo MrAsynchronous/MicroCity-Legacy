@@ -100,7 +100,7 @@ function PlacementController:Start()
     --[[
         SelectionQueue buttons
     ]]
-    local actionButtons = PlacementSelectionQueue.Container.Buttons
+    local actionButtons = PlacementSelectionQueue.Container
 
     --Invoke server to sell object
     actionButtons.Sell.MouseButton1Click:Connect(function()
