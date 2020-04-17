@@ -71,6 +71,7 @@ local isMoving
 local dummyPart
 local plotCFrame
 local itemObject
+local isDragging
 local isColliding
 local currentMaid
 local itemRotation
@@ -78,12 +79,16 @@ local localPosition
 local worldPosition
 local selectedObject
 local preferredInput
-local inputController
+local mobileDragInput
+local preDragPosition
+local draggingStartPosition
 local initialWorldPosition
 local initialLocalPosition
 local placementSelectionBox
 
 --Ui
+local PlacementInterface
+
 local pcInterface
     local PC_INTERFACE_SIZE
 local mobileInterface
@@ -117,12 +122,16 @@ local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 
 
 --//Cast a ray from the mouseOrigin to the mouseTarget
-local function CastRay(ignoreList, mobileTouchPosition)
-    local mousePos = (mobileTouchPosition or UserInputService:GetMouseLocation())
-    local mouseUnitRay = camera:ScreenPointToRay(mousePos.X, mousePos.Y - 30)
-    local mouseRay = Ray.new(mouseUnitRay.Origin, (mouseUnitRay.Direction * 100))
+local function CastRay(ignoreList)
+    local screenPosition = UserInputService:GetMouseLocation()
+    if (mobileInterface.Visible) then
+        screenPosition = mobileInterface.Drag.AbsolutePosition
+    end
 
-    return workspace:FindPartOnRayWithIgnoreList(mouseRay, ignoreList)
+    local screenUnitRay = camera:ScreenPointToRay(screenPosition.X, screenPosition.Y - 30)
+    local screenRay = Ray.new(screenUnitRay.Origin, (screenUnitRay.Direction * 100))
+
+    return workspace:FindPartOnRayWithIgnoreList(screenRay, ignoreList)
 end
 
 
@@ -421,14 +430,45 @@ function PlacementApi:StartPlacing(id)
                 self.StopPlacing()
             end
         end))
-    elseif (preferredInput == UserInput.Preferred.Mobile) then
-        local mobile  = UserInput:Get("Mobile")
-
+    elseif (preferredInput == UserInput.Preferred.Touch) then
         --Ui
         mobileInterface.Visible = true
         mobileInterface:TweenSize(MOBILE_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
 
-        --To be implemented later
+        --When player wants to drag, setup drag
+        currentMaid:GiveTask(mobileInterface.Drag.InputBegan:Connect(function(input)
+            if (input.UserInputType == Enum.UserInputType.Touch) then
+                isDragging = true
+
+                mobileDragInput = input
+                preDragPosition = mobileInterface.Position
+                draggingStartPosition = input.Position
+
+                input.Changed:Connect(function()
+                    if (input.UserInputState == Enum.UserInputState.End) then
+                        isDragging = false
+                    end
+                end)
+            end
+        end))
+
+        --When touch input changes and user is dragging, update position of UI
+        currentMaid:GiveTask(UserInputService.InputChanged:Connect(function(input)
+            if (input == mobileDragInput and isDragging) then
+                local delta = input.Position - draggingStartPosition
+                mobileInterface.Position = UDim2.new(preDragPosition.X.Scale, preDragPosition.X.Offset + delta.X, preDragPosition.Y.Scale, preDragPosition.Y.Offset + delta.Y)
+            end
+        end))
+
+        --Cancel button
+        currentMaid:GiveTask(mobileInterface.Cancel.MouseButton1Click:Connect(function()
+            self.StartPlacing()
+        end))
+
+        --Rotate button
+        currentMaid:GiveTask(mobileInterface.Rotate.MouseButton1Click:Connect(function()
+            RotateObject()
+        end))
     else
         local mouse = UserInput:Get("Mouse")
         local keyboard = UserInput:Get("Keyboard")
@@ -524,15 +564,20 @@ end
 function PlacementApi:Start()
     currentMaid = Maid.new()
 
+    --Load asynchronous instances
     plotObject = self.Player:WaitForChild("PlotObject").Value
     PlayerGui = self.Player:WaitForChild("PlayerGui")
+    PlacementInterface = PlayerGui:WaitForChild("PlacementInterface")
 
-    pcInterface = PlayerGui.PlacementInterface.PC
+    pcInterface = PlacementInterface.PC
         PC_INTERFACE_SIZE = pcInterface.Size
-    mobileInterface = PlayerGui.PlacementInterface.Mobile
+    mobileInterface = PlacementInterface.Mobile
         MOBILE_INTERFACE_SIZE = mobileInterface.Size
-    consoleInterface = PlayerGui.PlacementInterface.Console
+        mobileInterface.Position = UDim2.new(0, PlacementInterface.AbsoluteSize.X / 2, 0, PlacementInterface.AbsoluteSize.Y / 2)
+    consoleInterface = PlacementInterface.Console
         CONSOLE_INTERFACE_SIZE = consoleInterface.Size
+
+
 
     --Setup plot locals
     plotCFrame, plotSize = CalcCanvas()
