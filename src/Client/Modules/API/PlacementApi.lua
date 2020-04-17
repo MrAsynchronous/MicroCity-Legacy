@@ -51,6 +51,7 @@ local UserInputService = game:GetService("UserInputService")
 local HapticService = game:GetService("HapticService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local PlayerGui
 
 local PlayerService
 
@@ -81,6 +82,14 @@ local inputController
 local initialWorldPosition
 local initialLocalPosition
 local placementSelectionBox
+
+--Ui
+local pcInterface
+    local PC_INTERFACE_SIZE
+local mobileInterface
+    local MOBILE_INTERFACE_SIZE
+local consoleInterface
+    local CONSOLE_INTERFACE_SIZE
 
 local GRID_SIZE = 2
 local BUILD_HEIGHT = 1024
@@ -396,6 +405,10 @@ function PlacementApi:StartPlacing(id)
     if (preferredInput == UserInput.Preferred.Gamepad) then
         local gamePad = UserInput:Get("Gamepad").new(Enum.UserInputType.Gamepad1)
 
+        --Ui
+        consoleInterface.Visible = true
+        consoleInterface:TweenSize(CONSOLE_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
+
         --Handle keybinds
         currentMaid:GiveTask(gamePad.ButtonDown:Connect(function(keyCode)
             if (keyCode == CONSOLE_PLACE_BIND) then
@@ -411,10 +424,18 @@ function PlacementApi:StartPlacing(id)
     elseif (preferredInput == UserInput.Preferred.Mobile) then
         local mobile  = UserInput:Get("Mobile")
 
+        --Ui
+        mobileInterface.Visible = true
+        mobileInterface:TweenSize(MOBILE_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
+
         --To be implemented later
     else
         local mouse = UserInput:Get("Mouse")
         local keyboard = UserInput:Get("Keyboard")
+
+        --Ui
+        pcInterface.Visible = true
+        pcInterface:TweenSize(PC_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
 
         --Detect placement key bind
         currentMaid:GiveTask(mouse.LeftDown:Connect(function()
@@ -442,6 +463,22 @@ end
 function PlacementApi:StopPlacing(moveToOriginalCFrame)
     --Hide grid
     HideGrid()
+
+    --Ui cleanup
+    if (pcInterface.Visible) then
+        pcInterface:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quint", 0.25, true, function()
+            pcInterface.Visible = false
+        end)
+    elseif (mobileInterface.Visible) then
+        mobileInterface:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quint", 0.25, true, function()
+            mobileInterface.Visible = false
+            mobileInterface.Position = UDim2.new(0.5, 0, 0.5, 0)
+        end)
+    elseif (consoleInterface.Visible) then
+        consoleInterface:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quint", 0.25, true, function()
+            consoleInterface.Visible = false
+        end)
+    end
 
     --Special cleanup for moving objects
     if (isMoving) then
@@ -488,6 +525,14 @@ function PlacementApi:Start()
     currentMaid = Maid.new()
 
     plotObject = self.Player:WaitForChild("PlotObject").Value
+    PlayerGui = self.Player:WaitForChild("PlayerGui")
+
+    pcInterface = PlayerGui.PlacementInterface.PC
+        PC_INTERFACE_SIZE = pcInterface.Size
+    mobileInterface = PlayerGui.PlacementInterface.Mobile
+        MOBILE_INTERFACE_SIZE = mobileInterface.Size
+    consoleInterface = PlayerGui.PlacementInterface.Console
+        CONSOLE_INTERFACE_SIZE = consoleInterface.Size
 
     --Setup plot locals
     plotCFrame, plotSize = CalcCanvas()
