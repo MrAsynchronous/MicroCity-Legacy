@@ -13,6 +13,10 @@ local UserInputService = game:GetService("UserInputService")
 local PlacementApi
 
 function BuildingController:Start()
+    wait(20)
+
+    PlacementApi:StartPlacing(3)
+
     UserInputService.InputBegan:Connect(function(inputObject, gameProccessed)
         if (not gameProccessed) then
             if (inputObject.KeyCode == Enum.KeyCode.One) then

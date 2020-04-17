@@ -123,12 +123,14 @@ local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 
 --//Cast a ray from the mouseOrigin to the mouseTarget
 local function CastRay(ignoreList)
+    local yOffset = -30
     local screenPosition = UserInputService:GetMouseLocation()
     if (mobileInterface.Visible) then
+        yOffset = 0
         screenPosition = mobileInterface.Drag.AbsolutePosition
     end
 
-    local screenUnitRay = camera:ScreenPointToRay(screenPosition.X, screenPosition.Y - 30)
+    local screenUnitRay = camera:ScreenPointToRay(screenPosition.X, screenPosition.Y + yOffset)
     local screenRay = Ray.new(screenUnitRay.Origin, (screenUnitRay.Direction * 100))
 
     return workspace:FindPartOnRayWithIgnoreList(screenRay, ignoreList)
