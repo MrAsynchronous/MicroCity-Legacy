@@ -79,8 +79,7 @@ local localPosition
 local worldPosition
 local selectedObject
 local preferredInput
-local mobileDragInput
-local preDragPosition
+local mobileDragPosition
 local draggingStartPosition
 local initialWorldPosition
 local initialLocalPosition
@@ -125,9 +124,9 @@ local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 local function CastRay(ignoreList)
     local yOffset = -30
     local screenPosition = UserInputService:GetMouseLocation()
-    if (mobileInterface.Visible) then
+    if (mobileInterface.Enabled) then
         yOffset = 0
-        screenPosition = mobileInterface.Drag.AbsolutePosition
+        screenPosition = mobileDragPosition
     end
 
     local screenUnitRay = camera:ScreenPointToRay(screenPosition.X, screenPosition.Y + yOffset)
@@ -353,7 +352,9 @@ local function UpdatePlacement(isInitialUpdate)
     if (isInitialUpdate == true) then
         itemObject.PrimaryPart.CFrame = worldPosition
     else
-        itemObject.PrimaryPart.CFrame = itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED)
+        if ((not mobileInterface.Enabled) or (mobileInterface.Enabled and isDragging)) then
+            itemObject.PrimaryPart.CFrame = itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED)
+        end
     end    
     
 
@@ -434,21 +435,28 @@ function PlacementApi:StartPlacing(id)
         end))
     elseif (preferredInput == UserInput.Preferred.Touch) then
         --Ui
-        mobileInterface.Visible = true
-        mobileInterface:TweenSize(MOBILE_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
+        mobileInterface.Adornee = itemObject.PrimaryPart
+
+        mobileInterface.Enabled = true
+        mobileInterface.Container:TweenSize(MOBILE_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
+
+        --Center billboard
+        local absolutePosition = mobileInterface.AbsolutePosition
+        mobileDragPosition = Vector2.new(mobileInterface.AbsolutePosition.X, mobileInterface.AbsolutePosition.Y)
 
         --When player wants to drag, setup drag
-        currentMaid:GiveTask(mobileInterface.Drag.InputBegan:Connect(function(input)
+        currentMaid:GiveTask(mobileInterface.Container.Drag.InputBegan:Connect(function(input)
             if (input.UserInputType == Enum.UserInputType.Touch) then
                 isDragging = true
 
-                mobileDragInput = input
-                preDragPosition = mobileInterface.Position
-                draggingStartPosition = input.Position
+                --Disable mouse, cache position
+                UserInputService.MouseIconEnabled = false
+                draggingStartPosition = mobileInterface.AbsolutePosition
 
                 input.Changed:Connect(function()
                     if (input.UserInputState == Enum.UserInputState.End) then
                         isDragging = false
+                        UserInputService.MouseIconEnabled = true
                     end
                 end)
             end
@@ -456,19 +464,20 @@ function PlacementApi:StartPlacing(id)
 
         --When touch input changes and user is dragging, update position of UI
         currentMaid:GiveTask(UserInputService.InputChanged:Connect(function(input)
-            if (input == mobileDragInput and isDragging) then
-                local delta = input.Position - draggingStartPosition
-                mobileInterface.Position = UDim2.new(preDragPosition.X.Scale, preDragPosition.X.Offset + delta.X, preDragPosition.Y.Scale, preDragPosition.Y.Offset + delta.Y)
+            if (input.UserInputType == Enum.UserInputType.Touch and isDragging) then
+                local absolutePosition = mobileInterface.AbsolutePosition
+                local moveDelta = Vector2.new(input.Position.X - draggingStartPosition.X, input.Position.Y - draggingStartPosition.Y)
+                mobileDragPosition = Vector2.new(absolutePosition.X + moveDelta.X, absolutePosition.Y + moveDelta.Y)
             end
         end))
 
         --Cancel button
-        currentMaid:GiveTask(mobileInterface.Cancel.MouseButton1Click:Connect(function()
+        currentMaid:GiveTask(mobileInterface.Container.Cancel.MouseButton1Click:Connect(function()
             self.StartPlacing()
         end))
 
         --Rotate button
-        currentMaid:GiveTask(mobileInterface.Rotate.MouseButton1Click:Connect(function()
+        currentMaid:GiveTask(mobileInterface.Container.Rotate.MouseButton1Click:Connect(function()
             RotateObject()
         end))
     else
@@ -511,10 +520,10 @@ function PlacementApi:StopPlacing(moveToOriginalCFrame)
         pcInterface:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quint", 0.25, true, function()
             pcInterface.Visible = false
         end)
-    elseif (mobileInterface.Visible) then
-        mobileInterface:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quint", 0.25, true, function()
-            mobileInterface.Visible = false
-            mobileInterface.Position = UDim2.new(0.5, 0, 0.5, 0)
+    elseif (mobileInterface.Enabled) then
+        mobileInterface.Container:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quint", 0.25, true, function()
+            mobileInterface.Enabled = false
+            mobileInterface.Adornee = nil
         end)
     elseif (consoleInterface.Visible) then
         consoleInterface:TweenSize(UDim2.new(0, 0, 0, 0), "In", "Quint", 0.25, true, function()
@@ -574,8 +583,7 @@ function PlacementApi:Start()
     pcInterface = PlacementInterface.PC
         PC_INTERFACE_SIZE = pcInterface.Size
     mobileInterface = PlacementInterface.Mobile
-        MOBILE_INTERFACE_SIZE = mobileInterface.Size
-        mobileInterface.Position = UDim2.new(0, PlacementInterface.AbsoluteSize.X / 2, 0, PlacementInterface.AbsoluteSize.Y / 2)
+        MOBILE_INTERFACE_SIZE = mobileInterface.Container.Size
     consoleInterface = PlacementInterface.Console
         CONSOLE_INTERFACE_SIZE = consoleInterface.Size
 

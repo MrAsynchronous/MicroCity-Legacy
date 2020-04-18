@@ -50,7 +50,8 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
 
-    if (ShoppingService:PurchaseItem(pseudoPlayer, itemId)) then
+    --Implement shopping mechanic
+    if (true) then
         --Construct a new placementObject, hash into playerObject.Placements
         local placementObject = PlacementClass.new(itemId, localPosition, pseudoPlayer)
         pseudoPlayer:SetPlacementObject(placementObject)
@@ -108,7 +109,7 @@ function PlacementService:UpgradePlacement(player, guid)
         local upgradeData = itemMetaData.Upgrades[placementObject.Level]
         
         --If player can afford upgrade
-        if (ShoppingService:CanAffordCost(pseudoPlayer, upgradeData.Cost)) then
+        if (true) then
             placementObject:Upgrade()
 
             return {

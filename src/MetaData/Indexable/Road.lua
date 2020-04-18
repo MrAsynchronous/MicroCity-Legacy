@@ -1,5 +1,5 @@
 return {
-	ItemId = 3,
+	ItemId = 100,
 	Cost = 25,
 	CostType = "Cash",
 	Population = 0,
