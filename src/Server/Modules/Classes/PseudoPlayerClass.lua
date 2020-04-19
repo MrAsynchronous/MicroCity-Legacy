@@ -167,7 +167,7 @@ function PseudoPlayer:Start()
 
 	--Combine all keys to master PlayerData key
 	for key, value in pairs(PlayerMetaData) do
-		DataStore2.Combine("PlayerData", key)
+		DataStore2.Combine("PlayerData_MicroCity", key)
 	end
 end
 

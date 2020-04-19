@@ -82,8 +82,8 @@ local function UpdateVehicles()
     frameCount = frameCount + 1
 
     --Update road and building index, calculate maximum vehicles
-    local roads = PlotObject.Placements.Roads:GetChildren()
-    local buildings = PlotObject.Placements.Buildings:GetChildren()
+    local roads = PlotObject.Placements.Road:GetChildren()
+    local buildings = PlotObject.Placements.Building:GetChildren()
     local maxVehicles = math.floor(#buildings * 1.5)
 
     --If spawnFrame reached, and cars are able to be spawned, spawn a vehicle

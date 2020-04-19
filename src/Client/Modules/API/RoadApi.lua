@@ -46,7 +46,7 @@ local RandomObject
 local function GetAdjacentRoads(currentRoad, lastRoad)
     local roadPosition = currentRoad.PrimaryPart.Position
     local adjacentRegion = Region3.new(roadPosition - Vector3.new(1, 1, 1), roadPosition + Vector3.new(1, 1, 1))
-    local roadsInRegion = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Roads:GetChildren(), math.huge)
+    local roadsInRegion = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Road:GetChildren(), math.huge)
     local modelsInRegion = {}
 
     --Iterate through all parts in Region3
@@ -89,7 +89,7 @@ function RoadApi:GetStartingRoad(buildingIndex)
 
     --Generate a new region3 and get the surrounding road parts
     local adjacentRegion = Region3.new(basePosition - baseSize, basePosition + baseSize)
-    local adjacentParts = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Roads:GetChildren(), math.huge)
+    local adjacentParts = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Road:GetChildren(), math.huge)
     local adjacentRoads = {}
 
     --Iterate through all road parts, if road is not already in index, add it

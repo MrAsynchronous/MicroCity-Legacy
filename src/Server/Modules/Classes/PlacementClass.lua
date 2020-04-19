@@ -62,7 +62,6 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 	if (saveData) then
 		self.Level = saveData.Level
 		self.Age = saveData.Age
-		self.Guid = saveData.Guid
 	end
 
 	--Grab MetaData
@@ -70,7 +69,7 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 
 	--Navigate to proper repo, clone item of passed level, or default level
 	self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":" .. self.Level):Clone()
-	self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
+	self.PlacedObject.Parent = self.Plot.Placements:FindFirstChild(self.MetaData.Type)
 	self.PlacedObject.Name = self.Guid
 
 	--Construct proper position
@@ -113,11 +112,12 @@ function PlacementClass:Upgrade()
 
 		--Replace with new model
 		self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(self.ItemId .. ":" .. self.Level):Clone()
-		self.PlacedObject.Parent = (self.Plot.Placements:FindFirstChild(self.MetaData.Type .. "s") or self.Plot.Placements)
+		self.PlacedObject.Parent = self.Plot.Placements:FindFirstChild(self.MetaData.Type)
 		self.PlacedObject.Name = self.Guid
 	
 		--Reconstruct CFrame to account for model size differences
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
+		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
 
 		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
 		local effectTween = TweenService:Create(self.PlacedObject.PrimaryPart, TweenInfo.new(1), {CFrame = self.WorldPosition})
@@ -178,11 +178,10 @@ end
 --//Returns a JSON table containing information to be saved
 function PlacementClass:Encode()
 	return TableUtil.EncodeJSON({
-		Guid = self.Guid,
 		ItemId = self.ItemId,
 		CFrame = CFrameSerializer:EncodeCFrame(self.LocalPosition),
 		Level = self.Level,
-		Age = self.Age
+		Age = self.Age 
 	})
 end
 
