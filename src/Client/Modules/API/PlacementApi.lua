@@ -82,7 +82,6 @@ local preferredInput
 local mobileDragPosition
 local draggingStartPosition
 local initialWorldPosition
-local initialLocalPosition
 local placementSelectionBox
 
 --Ui
@@ -215,7 +214,7 @@ local function PlaceObject()
     if (not CheckCollision()) then
         --Fire proper event according to operation
         if (isMoving) then
-            self.Events.ObjectMoved:Fire(itemObject.Name, localPosition, initialLocalPosition)
+            self.Events.ObjectMoved:Fire(itemObject.Name, localPosition)
         else
             self.Events.ObjectPlaced:Fire(itemId, localPosition)
         end
@@ -389,7 +388,6 @@ function PlacementApi:StartPlacing(id)
         itemObject = id
         itemObject.Parent = camera
         initialWorldPosition = itemObject.PrimaryPart.CFrame
-        initialLocalPosition = plotObject.Main.CFrame:ToObjectSpace(initialWorldPosition)
     else
         --Clone model into current camera
         --IMPLEMENT LEVEL SELECTION
@@ -430,7 +428,7 @@ function PlacementApi:StartPlacing(id)
                 RotateObject(keyCode)
 
             elseif (keyCode == CONSOLE_STOP_BIND) then
-                self:StopPlacing()
+                self:StopPlacing(true)
             end
         end))
     elseif (preferredInput == UserInput.Preferred.Touch) then
@@ -473,7 +471,7 @@ function PlacementApi:StartPlacing(id)
 
         --Cancel button
         currentMaid:GiveTask(mobileInterface.Container.Cancel.MouseButton1Click:Connect(function()
-            self:StopPlacing()
+            self:StopPlacing(true)
         end))
 
         --Rotate button
@@ -498,7 +496,7 @@ function PlacementApi:StartPlacing(id)
             if (keyCode == PC_ROTATE_BIND) then
                 RotateObject(keyCode)
             elseif (keyCode == PC_STOP_BIND) then
-                self.StopPlacing()
+                self:StopPlacing(true)
             end
         end))
     end
@@ -511,7 +509,7 @@ end
 
 --//Stops placing object
 --//Cleans up client
-function PlacementApi:StopPlacing()
+function PlacementApi:StopPlacing(moveFailed)
     --Hide grid
     HideGrid()
 
@@ -539,7 +537,7 @@ function PlacementApi:StopPlacing()
             ActivateCollisions()
 
             --If player cancelled or server errored, return placement to original position
-            if (initialWorldPosition) then
+            if (moveFailed) then
                 itemObject:SetPrimaryPartCFrame(initialWorldPosition)
             end
         end
@@ -552,7 +550,6 @@ function PlacementApi:StopPlacing()
 
     --Reset locals
     initialWorldPosition = nil
-    initialLocalPosition = nil
     localPosition = nil
     worldPosition = nil
     isColliding = false
