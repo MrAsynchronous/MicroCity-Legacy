@@ -175,7 +175,7 @@ end
 
 
 --//Disables Collisions for all parts in itemObject
-local function deactivateCollisions()
+local function DeactivateCollisions()
     for _, part in pairs(itemObject.Decor:GetChildren()) do
         part.CanCollide = false
     end
@@ -189,7 +189,7 @@ end
 
 
 --//Enables Collisions for all parts in itemObject
-local function activateCollisions()
+local function ActivateCollisions()
     for _, part in pairs(itemObject.Decor:GetChildren()) do
         part.CanCollide = true
     end
@@ -410,7 +410,7 @@ function PlacementApi:StartPlacing(id)
     itemRotation = math.pi / 2
 
     --Disable collisions
-    deactivateCollisions()
+    DeactivateCollisions()
 
     --Keybind Setup (playform dependent)
     preferredInput = UserInput:GetPreferred()
@@ -430,7 +430,7 @@ function PlacementApi:StartPlacing(id)
                 RotateObject(keyCode)
 
             elseif (keyCode == CONSOLE_STOP_BIND) then
-                self.StopPlacing()
+                self:StopPlacing()
             end
         end))
     elseif (preferredInput == UserInput.Preferred.Touch) then
@@ -473,7 +473,7 @@ function PlacementApi:StartPlacing(id)
 
         --Cancel button
         currentMaid:GiveTask(mobileInterface.Container.Cancel.MouseButton1Click:Connect(function()
-            self.StartPlacing()
+            self:StopPlacing()
         end))
 
         --Rotate button
@@ -511,7 +511,7 @@ end
 
 --//Stops placing object
 --//Cleans up client
-function PlacementApi:StopPlacing(moveToOriginalCFrame)
+function PlacementApi:StopPlacing()
     --Hide grid
     HideGrid()
 
@@ -536,10 +536,10 @@ function PlacementApi:StopPlacing(moveToOriginalCFrame)
         if (itemObject) then
             itemObject.Parent = plotObject.Placements
             itemObject.PrimaryPart.Transparency = 1
-            activateCollisions()
+            ActivateCollisions()
 
             --If player cancelled or server errored, return placement to original position
-            if (moveToOriginalCFrame) then
+            if (initialWorldPosition) then
                 itemObject:SetPrimaryPartCFrame(initialWorldPosition)
             end
         end
