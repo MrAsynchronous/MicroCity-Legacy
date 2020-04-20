@@ -348,12 +348,10 @@ local function UpdatePlacement(isInitialUpdate)
     dummyPart.CFrame = worldPosition
 
     --Immedietely snap itemObject to proper position
-    if (isInitialUpdate == true) then
+    if (isInitialUpdate == true or (mobileInterface.Enabled)) then
         itemObject.PrimaryPart.CFrame = worldPosition
     else
-        if ((not mobileInterface.Enabled) or (mobileInterface.Enabled and isDragging)) then
-            itemObject.PrimaryPart.CFrame = itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED)
-        end
+        itemObject.PrimaryPart.CFrame = itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED)
     end    
     
 
@@ -438,18 +436,18 @@ function PlacementApi:StartPlacing(id)
         mobileInterface.Enabled = true
         mobileInterface.Container:TweenSize(MOBILE_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
 
-        --Center billboard
-        local absolutePosition = mobileInterface.AbsolutePosition
-        mobileDragPosition = Vector2.new(mobileInterface.AbsolutePosition.X, mobileInterface.AbsolutePosition.Y)
+        --Calculate CFrame to spawn model in front of player
+        local initialPosition = character.PrimaryPart.CFrame
+        initialPosition = initialPosition.Position + (initialPosition.LookVector  * 4)
+        mobileDragPosition = camera:WorldToScreenPoint(initialPosition)
 
         --When player wants to drag, setup drag
         currentMaid:GiveTask(mobileInterface.Container.Drag.InputBegan:Connect(function(input)
-            if (input.UserInputType == Enum.UserInputType.Touch) then
+            if ((input.UserInputType == Enum.UserInputType.Touch) and (input.UserInputState == Enum.UserInputState.Begin)) then
                 isDragging = true
 
-                --Disable mouse, cache position
+                --Disable mouse
                 UserInputService.MouseIconEnabled = false
-                draggingStartPosition = mobileInterface.AbsolutePosition
 
                 input.Changed:Connect(function()
                     if (input.UserInputState == Enum.UserInputState.End) then
@@ -460,12 +458,10 @@ function PlacementApi:StartPlacing(id)
             end
         end))
 
-        --When touch input changes and user is dragging, update position of UI
+        --When touch input changes and user is dragging, update mobileDragPosition
         currentMaid:GiveTask(UserInputService.InputChanged:Connect(function(input)
             if (input.UserInputType == Enum.UserInputType.Touch and isDragging) then
-                local absolutePosition = mobileInterface.AbsolutePosition
-                local moveDelta = Vector2.new(input.Position.X - draggingStartPosition.X, input.Position.Y - draggingStartPosition.Y)
-                mobileDragPosition = Vector2.new(absolutePosition.X + moveDelta.X, absolutePosition.Y + moveDelta.Y)
+                mobileDragPosition = Vector2.new(input.Position.X, input.Position.Y)
             end
         end))
 
