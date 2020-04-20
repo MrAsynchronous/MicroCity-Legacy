@@ -14,6 +14,7 @@
 		public void SetData(String key, Any value)
 
 		public void AddPlacementObject(String guid, PlacementObject placementObject)
+		public void UpdatePlacementObject(PlacementObject placementObject, String oldObjectSpace)
 		public PlacementObject GetPlacementObject(String guid)
 		public void RemovePlacementObject(String guid)
 		public void CleanPlot()
@@ -110,6 +111,22 @@ function PseudoPlayer:CleanPlot()
 
 		wait()
 	end
+end
+
+
+--//Updates a stored placement object on both the server
+--//and on the DataStore
+function PseudoPlayer:UpdatePlacementObject(placementObject, oldObjectSpace)
+	self.Placements[placementObject.Guid] = placementObject
+
+	--Remove old key and insert new key
+	self.PlacementStore:Update(function(oldTable)
+		local objectSpace, objectData = placementObject:Encode()
+		oldTable[oldObjectSpace] = nil
+		oldTable[objectSpace] = objectData
+
+		return oldTable
+	end)
 end
 
 

@@ -89,7 +89,7 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 		effectTween:Play()
 
 		--When tween completes, destroy tween and particle 
-		effectTween.Completed:Connect(function(tweenStatus)
+		effectTween.Completed:Connect(function()
 			effectTween:Destroy()
 			newParticle:Destroy()
 		end)

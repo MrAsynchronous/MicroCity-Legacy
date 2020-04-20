@@ -110,8 +110,10 @@ function PlacementService:UpgradePlacement(player, guid)
         
         --If player can afford upgrade
         if (true) then
+            local currentObjectSpace = placementObject:Encode()
+
             placementObject:Upgrade()
-            pseudoPlayer:SetPlacementObject(placementObject)
+            pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
 
             return {
                 wasSuccess = true,

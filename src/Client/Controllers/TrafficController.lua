@@ -59,7 +59,7 @@ local function SpawnVehicle(buildings)
     sound.SoundId = vehicleMetaData.SoundId
 
     --Parent vehicle, sound, play sound
-    vehicleModel.PrimaryPart.CFrame = (CFrame.new(homeBuilding.PrimaryPart.Position, baseRoad.PrimaryPart.Position))
+    vehicleModel.PrimaryPart.CFrame = (CFrame.new(homeBuilding.PrimaryPart.Position - Vector3.new(0, (homeBuilding.PrimaryPart.Size.Y / 2) - 1 ,0), baseRoad.PrimaryPart.Position))
     vehicleModel.Parent = PlotObject.Vehicles
     sound.Parent = vehicleModel.PrimaryPart
 

@@ -4,6 +4,8 @@ return {
     Age = 0,
     Worth = 0,
 
+    PlotLevel = 1,
+
     Level = 0,
     Exp = 0,
 
