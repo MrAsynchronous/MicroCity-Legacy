@@ -104,6 +104,8 @@ function PlacementController:Start()
     --Invoke server to sell object
     actionButtons.Sell.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
+            HideQueue(true)
+
             local actionData = PlacementService:RequestSell(selectedPlacement.Name)
             NotificationDispatcher:Dispatch(actionData.noticeObject)
         end
@@ -125,7 +127,7 @@ function PlacementController:Start()
     --Tell placementApi to start moving object
     actionButtons.Move.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            HideQueue()
+            HideQueue(true)
 
             PlacementApi:StartPlacing(selectedPlacement)
         end
