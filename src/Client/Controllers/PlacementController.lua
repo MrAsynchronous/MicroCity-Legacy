@@ -69,7 +69,6 @@ end
 
 --Adornee's selectionQueue to placementObject
 local function SetSelection(placementObject)
-    PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, placementObject.PrimaryPart.Size.Y, 0)
     PlacementSelectionQueue.Adornee = placementObject.PrimaryPart
     PlacementSelectionQueue.Enabled = true
 

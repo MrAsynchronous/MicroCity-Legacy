@@ -120,7 +120,8 @@ function PseudoPlayer:SetPlacementObject(placementObject)
 
 	--Update placementStore
 	self.PlacementStore:Update(function(oldTable)
-		oldTable[placementObject.Guid] = placementObject:Encode()
+		local objectSpace, objectData = placementObject:Encode()
+		oldTable[objectSpace] = objectData
 
 		return oldTable
 	end)
@@ -129,11 +130,13 @@ end
 
 --//Sets the value at index placementGuid to nil
 function PseudoPlayer:RemovePlacementObject(placementGuid)
+	local placementObject = self:GetPlacementObject(placementGuid)
+	local objectSpace = placementObject:Encode()
 	self.Placements[placementGuid] = nil
 
 	--Update placementStore
 	self.PlacementStore:Update(function(oldTable)
-		oldTable[placementGuid] = nil
+		oldTable[objectSpace] = nil
 
 		return oldTable
 	end)

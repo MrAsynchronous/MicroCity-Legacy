@@ -111,6 +111,7 @@ function PlacementService:UpgradePlacement(player, guid)
         --If player can afford upgrade
         if (true) then
             placementObject:Upgrade()
+            pseudoPlayer:SetPlacementObject(placementObject)
 
             return {
                 wasSuccess = true,
@@ -157,13 +158,13 @@ function PlacementService:LoadPlacements(pseudoPlayer)
     local objectsLoaded = 0
 
     --Iterate through all the placements
-	for guid, encodedData in pairs(placementData) do
+	for objectSpace, encodedData in pairs(placementData) do
 		local decodedData = TableUtil.DecodeJSON(encodedData)
 
 		--Create new placementObject and add it to index
 		pseudoPlayer:SetPlacementObject(PlacementClass.new(
 			decodedData.ItemId,
-			CFrameSerializer:DecodeCFrame(decodedData.CFrame),
+			CFrameSerializer:DecodeCFrame(objectSpace),
 			pseudoPlayer,
 			decodedData
         ))

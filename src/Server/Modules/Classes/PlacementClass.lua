@@ -177,11 +177,10 @@ end
 
 --//Returns a JSON table containing information to be saved
 function PlacementClass:Encode()
-	return TableUtil.EncodeJSON({
+	return CFrameSerializer:EncodeCFrame(self.LocalPosition), TableUtil.EncodeJSON({
 		ItemId = self.ItemId,
-		CFrame = CFrameSerializer:EncodeCFrame(self.LocalPosition),
 		Level = self.Level,
-		Age = self.Age 
+		Age = self.Age
 	})
 end
 
