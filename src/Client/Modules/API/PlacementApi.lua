@@ -120,10 +120,10 @@ local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 
 
 --//Cast a ray from the mouseOrigin to the mouseTarget
-local function CastRay(ignoreList, screenPosition, yOffset, ignoreRayCast)
+local function CastRay(ignoreList, screenPosition, yOffset, skipRayCast)
     --Handle renderStepped updating when user isn't dragging
-    if (mobileInterface.Enabled and ignoreRayCast) then
-        return nil, mobileDragPosition 
+    if (mobileInterface.Enabled and skipRayCast) then
+        return nil, mobileDragPosition
     end
 
     --Favor screenPosition arg, default to mouse location
@@ -203,7 +203,7 @@ end
 
 --//Rotates the object according to input
 local function RotateObject(keyCode)
-    if (keyCode == PC_ROTATE_BIND or keyCode == CONSOLE_ROTATE_BIND) then
+    if (keyCode == PC_ROTATE_BIND or keyCode == CONSOLE_ROTATE_BIND or mobileInterface.Enabled) then
         itemRotation = itemRotation - (math.pi / 2)
     else
         itemRotation = itemRotation + (math.pi / 2)
@@ -324,7 +324,7 @@ end
 --//Moves model to position of mouse
 --//Big maths
 local function UpdatePlacement(isInitialUpdate)
-    local part, hitPosition = CastRay({character, itemObject, dummyPart}, nil, -30)
+    local part, hitPosition = CastRay({character, itemObject, dummyPart}, nil, -36, true)
 
     --Calculate model size according to current itemRotation
 	local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
@@ -442,7 +442,7 @@ function PlacementApi:StartPlacing(id)
         local characterPosition = character.PrimaryPart.CFrame
         local screenPoint = camera:WorldToScreenPoint(characterPosition.Position + (characterPosition.LookVector  * 5))
 
-        local _, worldPosition = CastRay({character, itemObject, dummyPart}, screenPoint, 0, true)
+        local _, worldPosition = CastRay({character, itemObject, dummyPart}, screenPoint, 0, false)
         mobileDragPosition = worldPosition
 
         --When player wants to drag, set dragging boolean and disable mouse icon
@@ -454,21 +454,26 @@ function PlacementApi:StartPlacing(id)
         end))
 
         --When player stops dragging, set dragging boolean and enable mouse icon
-        currentMaid:GiveTask(mobileInterface.Container.Drag.InputEnded:Connect(function(input)
-            if ((input.UserInputType == Enum.UserInputType.Touch) and (input.UserInputState == Enum.UserInputState.End)) then
+        currentMaid:GiveTask(UserInputService.InputEnded:Connect(function(input)
+            if ((input.UserInputType == Enum.UserInputType.Touch) and (input.UserInputState == Enum.UserInputState.End) and isDragging) then
                 isDragging = false
                 UserInputService.MouseIconEnabled = true
             end
-        end))
+        end))        
 
         --When touch input changes and user is dragging, update mobileDragPosition
         currentMaid:GiveTask(UserInputService.InputChanged:Connect(function(input)
             if ((input.UserInputType == Enum.UserInputType.Touch) and isDragging) then
                 local targetScreenPosition = Vector2.new(input.Position.X, input.Position.Y)
-                local _, position = CastRay({character, dummyPart, itemObject}, targetScreenPosition, 0, false)
+                local _, position = CastRay({character, dummyPart, itemObject}, targetScreenPosition, 30, false)
                 
                 mobileDragPosition = position
             end
+        end))
+
+        --Place button
+        currentMaid:GiveTask(mobileInterface.Container.Place.MouseButton1Click:Connect(function()
+            PlaceObject()
         end))
 
         --Cancel button
