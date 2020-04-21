@@ -53,26 +53,30 @@ local VALID_SELECTION_TYPES = {
 local function UpdateCursor()
     --Update move direction by polling position
     if (leftThumbstick.Position.Magnitude > THUMBSTICK_DEADZONE) then
-        currentMoveDirection = Vector2.new(leftThumbstick.Position.X, -leftThumbstick.Position.Y) * SENSITIVIY
+        currentMoveDirection = (Vector2.new(leftThumbstick.Position.X, -leftThumbstick.Position.Y) * SENSITIVIY) / CursorGui.AbsoluteSize
     else
         currentMoveDirection = Vector2.new(0, 0)
     end
 
     --Construct a new UDim2 position
-    currentPosition = currentPosition + UDim2.new(0, currentMoveDirection.X, 0, currentMoveDirection.Y)
+    currentPosition = currentPosition + UDim2.new(currentMoveDirection.X, 0, currentMoveDirection.Y, 0)
 
     --Constrain with screen bounds
-    currentPosition = UDim2.new(0,
-        math.clamp(currentPosition.X.Offset, 0, CursorGui.AbsoluteSize.X), 0,
-        math.clamp(currentPosition.Y.Offset, 0, CursorGui.AbsoluteSize.Y)
-    )
+    currentPosition = UDim2.new(math.clamp(currentPosition.X.Scale, 0, 1), 0, math.clamp(currentPosition.Y.Scale, 0, 1), 0)
 
     --Update position of Cursor
     Cursor.Position = currentPosition
 
-    --Detect UI at cursor position
-    local uiObjects = (PlayerGui:GetGuiObjectsAtPosition(currentPosition.X.Offset, currentPosition.Y.Offset) or {})
-    local topUiObject = uiObjects[1]
+    --Select the uppermost UI object of valid type
+    local uiObjects = (PlayerGui:GetGuiObjectsAtPosition(Cursor.AbsolutePosition.X, Cursor.AbsolutePosition.Y) or {})
+    local topUiObject
+    for _, uiObject in ipairs(uiObjects) do
+        if (uiObject and VALID_SELECTION_TYPES[uiObject.ClassName] and uiObject.Selectable) then
+            topUiObject = uiObject
+
+            break
+        end
+    end
 
     --Update selected object
     if (topUiObject) then
@@ -90,9 +94,10 @@ local function Setup()
     GuiService.AutoSelectGuiEnabled = false
     Cursor.Visible = true
 
+    GuiService.SelectedObject = nil
     PlayerControl:Disable()
 
-    currentPosition = UDim2.new(0, CursorGui.AbsoluteSize.X / 2, 0, CursorGui.AbsoluteSize.Y / 2)
+    currentPosition = UDim2.new(0.5, 0, 0.5, 0)
     RunService:BindToRenderStep("CursorUpdate", 4, UpdateCursor)
 end
 
