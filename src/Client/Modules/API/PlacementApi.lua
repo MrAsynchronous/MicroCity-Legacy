@@ -120,15 +120,17 @@ local CONSOLE_STOP_BIND = Enum.KeyCode.ButtonB
 
 
 --//Cast a ray from the mouseOrigin to the mouseTarget
-local function CastRay(ignoreList)
-    local yOffset = -30
-    local screenPosition = UserInputService:GetMouseLocation()
-    if (mobileInterface.Enabled) then
-        yOffset = 0
-        screenPosition = mobileDragPosition
+local function CastRay(ignoreList, screenPosition, yOffset, ignoreRayCast)
+    --Handle renderStepped updating when user isn't dragging
+    if (mobileInterface.Enabled and ignoreRayCast) then
+        return nil, mobileDragPosition 
     end
 
-    local screenUnitRay = camera:ScreenPointToRay(screenPosition.X, screenPosition.Y + yOffset)
+    --Favor screenPosition arg, default to mouse location
+    local overridePosition = (screenPosition or UserInputService:GetMouseLocation())
+
+    --Raycast
+    local screenUnitRay = camera:ScreenPointToRay(overridePosition.X, overridePosition.Y + (yOffset or 0))
     local screenRay = Ray.new(screenUnitRay.Origin, (screenUnitRay.Direction * 100))
 
     return workspace:FindPartOnRayWithIgnoreList(screenRay, ignoreList)
@@ -244,10 +246,10 @@ end
 
 --//Bound to Click, Tap, Trigger
 --//Checks if player is hovering over a placed object
-local function CheckSelection(mobileTouchPosition)
+local function CheckSelection()
     if (itemObject) then return end
 
-    local rayPart, hitPosition, normal = CastRay({character}, mobileTouchPosition)
+    local rayPart = CastRay({character}, nil, -30, true)
 
     --Fire StartedSignal if rayPart is being selected for the first time,
     --Fire EndedSignal if rayPart is not longer selected
@@ -268,7 +270,7 @@ end
 --//Bound to RenderStepped
 --//Adornee a selection box to placementObjects currently being hovered
 local function CheckHover()
-    local rayPart = CastRay({character})
+    local rayPart = CastRay({character}, nil, -30, true)
 
     if (rayPart) then
         local parentModel = rayPart:FindFirstAncestorOfClass("Model")
@@ -322,7 +324,7 @@ end
 --//Moves model to position of mouse
 --//Big maths
 local function UpdatePlacement(isInitialUpdate)
-    local _, hitPosition = CastRay({character, itemObject, dummyPart})
+    local part, hitPosition = CastRay({character, itemObject, dummyPart}, nil, -30)
 
     --Calculate model size according to current itemRotation
 	local modelSize = CFrame.fromEulerAnglesYXZ(0, itemRotation, 0) * itemObject.PrimaryPart.Size
@@ -348,7 +350,7 @@ local function UpdatePlacement(isInitialUpdate)
     dummyPart.CFrame = worldPosition
 
     --Immedietely snap itemObject to proper position
-    if (isInitialUpdate == true or (mobileInterface.Enabled)) then
+    if (isInitialUpdate == true) then
         itemObject.PrimaryPart.CFrame = worldPosition
     else
         itemObject.PrimaryPart.CFrame = itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED)
@@ -437,31 +439,35 @@ function PlacementApi:StartPlacing(id)
         mobileInterface.Container:TweenSize(MOBILE_INTERFACE_SIZE, "Out", "Quint", 0.25, true)
 
         --Calculate CFrame to spawn model in front of player
-        local initialPosition = character.PrimaryPart.CFrame
-        initialPosition = initialPosition.Position + (initialPosition.LookVector  * 4)
-        mobileDragPosition = camera:WorldToScreenPoint(initialPosition)
+        local characterPosition = character.PrimaryPart.CFrame
+        local screenPoint = camera:WorldToScreenPoint(characterPosition.Position + (characterPosition.LookVector  * 5))
 
-        --When player wants to drag, setup drag
+        local _, worldPosition = CastRay({character, itemObject, dummyPart}, screenPoint, 0, true)
+        mobileDragPosition = worldPosition
+
+        --When player wants to drag, set dragging boolean and disable mouse icon
         currentMaid:GiveTask(mobileInterface.Container.Drag.InputBegan:Connect(function(input)
             if ((input.UserInputType == Enum.UserInputType.Touch) and (input.UserInputState == Enum.UserInputState.Begin)) then
                 isDragging = true
-
-                --Disable mouse
                 UserInputService.MouseIconEnabled = false
+            end
+        end))
 
-                input.Changed:Connect(function()
-                    if (input.UserInputState == Enum.UserInputState.End) then
-                        isDragging = false
-                        UserInputService.MouseIconEnabled = true
-                    end
-                end)
+        --When player stops dragging, set dragging boolean and enable mouse icon
+        currentMaid:GiveTask(mobileInterface.Container.Drag.InputEnded:Connect(function(input)
+            if ((input.UserInputType == Enum.UserInputType.Touch) and (input.UserInputState == Enum.UserInputState.End)) then
+                isDragging = false
+                UserInputService.MouseIconEnabled = true
             end
         end))
 
         --When touch input changes and user is dragging, update mobileDragPosition
         currentMaid:GiveTask(UserInputService.InputChanged:Connect(function(input)
-            if (input.UserInputType == Enum.UserInputType.Touch and isDragging) then
-                mobileDragPosition = Vector2.new(input.Position.X, input.Position.Y)
+            if ((input.UserInputType == Enum.UserInputType.Touch) and isDragging) then
+                local targetScreenPosition = Vector2.new(input.Position.X, input.Position.Y)
+                local _, position = CastRay({character, dummyPart, itemObject}, targetScreenPosition, 0, false)
+                
+                mobileDragPosition = position
             end
         end))
 

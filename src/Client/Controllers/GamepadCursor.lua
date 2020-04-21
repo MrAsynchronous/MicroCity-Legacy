@@ -71,17 +71,8 @@ local function UpdateCursor()
     Cursor.Position = currentPosition
 
     --Detect UI at cursor position
-    local uiObjects = PlayerGui:GetGuiObjectsAtPosition(currentPosition.X.Offset, currentPosition.Y.Offset)
-    local highestZindex = 0
-    local topUiObject
-
-    --Iterate through UI objects, find the highest ZIndexed object
-    for _, object in pairs(uiObjects) do
-        if (VALID_SELECTION_TYPES[object.ClassName] and object.ZIndex > highestZindex and object.Selectable) then
-            highestZindex = object.ZIndex
-            topUiObject = object
-        end
-    end
+    local uiObjects = (PlayerGui:GetGuiObjectsAtPosition(currentPosition.X.Offset, currentPosition.Y.Offset) or {})
+    local topUiObject = uiObjects[1]
 
     --Update selected object
     if (topUiObject) then
