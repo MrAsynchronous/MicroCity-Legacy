@@ -185,6 +185,8 @@ local function DeactivateCollisions()
         itemObject.Base.CanCollide = false
     end
 
+    itemObject.PrimaryPart.CanCollide = false
+
     dummyPart.CanCollide = false
 end
 
@@ -194,6 +196,8 @@ local function ActivateCollisions()
     for _, part in pairs(itemObject.Decor:GetChildren()) do
         part.CanCollide = true
     end
+
+    itemObject.PrimaryPart.CanCollide = true
 
     if (itemObject:FindFirstChild("Base")) then
         itemObject.Base.CanCollide = true
