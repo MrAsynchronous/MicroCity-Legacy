@@ -45,6 +45,7 @@ local RandomObject
 --//Region3 based
 local function GetAdjacentRoads(currentRoad, lastRoad)
     local roadPosition = currentRoad.PrimaryPart.Position
+    local roadOrientation = math.abs(currentRoad.PrimaryPart.Orientation.Y)
     local adjacentRegion = Region3.new(roadPosition - Vector3.new(1, 1, 1), roadPosition + Vector3.new(1, 1, 1))
     local roadsInRegion = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Road:GetChildren(), math.huge)
     local modelsInRegion = {}
@@ -54,11 +55,14 @@ local function GetAdjacentRoads(currentRoad, lastRoad)
         --Find model and localize positions
         local model = part:FindFirstAncestorOfClass("Model")
         local position = model.PrimaryPart.Position
+        local orientation = math.abs(model.PrimaryPart.Orientation.Y)
         local positionDifference = roadPosition - position
 
-        --Only add model if model is not currentRoad model is not already in index, and if it is directly adjacent with a tolerance of .25 studs
-        if ((model ~= currentRoad) and (model ~= lastRoad) and (not table.find(modelsInRegion, model)) and (math.abs(positionDifference.X) <= 0.25 or math.abs(positionDifference.Z) <= 0.25)) then
-            table.insert(modelsInRegion, model)
+        if (roadOrientation == orientation) then
+            --Only add model if model is not currentRoad model is not already in index, and if it is directly adjacent with a tolerance of .25 studs
+            if ((model ~= currentRoad) and (model ~= lastRoad) and (not table.find(modelsInRegion, model)) and (math.abs(positionDifference.X) <= 0.25 or math.abs(positionDifference.Z) <= 0.25)) then
+                table.insert(modelsInRegion, model)
+            end
         end
     end
 

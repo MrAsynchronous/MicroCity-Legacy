@@ -19,7 +19,7 @@
         public void StartPlacing(int ItemId OR Model PlacementModel)
         public void StopPlacing(Boolean MoveToOriginalCFrame)
 
-        private Object hitPart, CFrame hitPosition, NormalId hitSurface CastRay()
+        private Object hitPart, CFrame hitPosition, NormalId hitSurface CastRay(Table ignoreList, Vector2 screenPosition, Number yOffset, Boolean skipRayCast)
         private void ShowGrid()
         private void HideGrid()
         private int Round(int num)
