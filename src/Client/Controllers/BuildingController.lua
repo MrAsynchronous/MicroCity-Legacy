@@ -19,7 +19,7 @@ function BuildingController:Start()
     CoreInterface = PlayerGui:WaitForChild("CoreInterface")
 
     CoreInterface.PC.PersonButton.MouseButton1Click:Connect(function()
-        PlacementApi:StartPlacing(100)
+        PlacementApi:StartPlacing(4)
     end)
 end
 

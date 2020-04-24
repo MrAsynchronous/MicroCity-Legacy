@@ -17,13 +17,14 @@
 
 
 local PlacementController = {}
-
+local self = PlacementController
 
 --//Api
 local PlacementApi
 local RoadApi
 
 --//Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local PlacementService
@@ -36,6 +37,7 @@ local NotificationDispatcher
 
 --//Locals
 local PlotObject
+local Particles
 
 local PlayerGui
 local PlacementSelectionQueue
@@ -71,6 +73,12 @@ end
 local function SetSelection(placementObject)
     PlacementSelectionQueue.Adornee = placementObject.PrimaryPart
     PlacementSelectionQueue.Enabled = true
+
+    local modelSize = placementObject.PrimaryPart.Size
+    local hipHeight = self.Player.Character.Humanoid.HipHeight
+    local yOffset = -((modelSize.Y / 2) - hipHeight)
+
+    PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, yOffset, 0)
 
     --Only tween UI if selectedPlacement fresh, or hot-selecting a different placementObject
     if (not selectedPlacement or (selectedPlacement and (placementObject ~= selectedPlacement))) then
@@ -120,6 +128,21 @@ function PlacementController:Start()
             --Reset selection queue to new model
             if (actionData.wasSuccess) then
                 SetSelection(actionData.newObject)
+
+                --Tween and particle effect
+                --Clone particle effect
+                local newParticle = Particles.PlacementEffect:Clone()
+                newParticle.Parent = actionData.newObject.PrimaryPart
+                newParticle.Enabled = true
+
+                actionData.newObject.PrimaryPart.CFrame = actionData.worldPosition - Vector3.new(0, actionData.newObject.PrimaryPart.Size.Y, 0)
+                local effectTween = TweenService:Create(actionData.newObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
+                effectTween:Play()
+        
+                effectTween.Completed:Connect(function()
+                    effectTween:Destroy()
+                    newParticle:Destroy()
+                end)                
             end
         end
     end)
@@ -140,6 +163,25 @@ function PlacementController:Start()
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
         local actionData = PlacementService:RequestPlacement(itemId, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
+
+        --Tween and particle effect
+        if (actionData.wasSuccess and actionData.placedObject) then
+            --Clone particle effect
+            local newParticle = Particles.PlacementEffect:Clone()
+            newParticle.Parent = actionData.placedObject.PrimaryPart
+            newParticle.Enabled = true
+
+            --Give the tween effect
+            actionData.placedObject.PrimaryPart.CFrame = actionData.worldPosition - Vector3.new(0, actionData.placedObject.PrimaryPart.Size.Y, 0)
+            local effectTween = TweenService:Create(actionData.placedObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
+            effectTween:Play()
+
+            --When tween completes, destroy tween and particle 
+            effectTween.Completed:Connect(function()
+                effectTween:Destroy()
+                newParticle:Destroy()
+            end)
+        end
      end)
 
     --When player finishes moving an object, tell server
@@ -176,6 +218,7 @@ function PlacementController:Init()
 
     --//Locals
     PlayerGui = self.Player:WaitForChild("PlayerGui")
+    Particles = ReplicatedStorage:WaitForChild("Items").Particles
     PlacementSelectionQueue = PlayerGui:WaitForChild("PlacementSelectionQueue")
 
     PlotObject = self.Player:WaitForChild("PlotObject").Value

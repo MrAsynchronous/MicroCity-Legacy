@@ -57,13 +57,21 @@ function PlayerService:Start()
 
         local cashValue = Instance.new("NumberValue")
         cashValue.Name = "Cash"
-        cashValue.Value = pseudoPlayer:GetData("Cash")
+        cashValue.Value = pseudoPlayer.Cash:Get(0)
         cashValue.Parent = leaderstats
+
+        pseudoPlayer._Maid.CashUpdate = pseudoPlayer.Cash:OnUpdate(function(newValue)
+            cashValue.Value = newValue
+        end)
 
         local populationValue = Instance.new("NumberValue")
         populationValue.Name = "Population"
-        populationValue.Value = pseudoPlayer:GetData("Population")
+        populationValue.Value = pseudoPlayer.Population:Get(0)
         populationValue.Parent = leaderstats
+
+        pseudoPlayer._Maid.PopulationUpdate = pseudoPlayer.Population:OnUpdate(function(newValue)
+            populationValue.Value = newValue
+        end)
 
         --Cache playerObject
         pseudoPlayers[newPlayer] = pseudoPlayer
@@ -71,11 +79,10 @@ function PlayerService:Start()
 
     game.Players.PlayerRemoving:Connect(function(oldPlayer)
         local pseudoPlayer = self:GetPseudoPlayer(oldPlayer)
-        pseudoPlayer:CleanPlot()
-
-        --Push plot into PlotStack, remove PlayerObject
-        PlotService:AddPlot(pseudoPlayer.PlotObject)
         self:RemovePseudoPlayer(oldPlayer)
+
+        PlotService:AddPlot(pseudoPlayer.PlotObject)
+        pseudoPlayer:Destroy()
     end)
 
 end

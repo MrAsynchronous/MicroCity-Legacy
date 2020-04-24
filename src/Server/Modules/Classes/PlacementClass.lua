@@ -39,9 +39,9 @@ local MetaDataService
 --//Controllers
 
 --//Classes
+local MaidClass
 
 --//Locals
-local Particles
 
 
 --//Constructor for PlacementClass
@@ -55,7 +55,8 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 		Level = 1,
 		Age = 0,
 
-		Guid = HttpService:GenerateGUID(false)
+		Guid = HttpService:GenerateGUID(false),
+		_Maid = MaidClass.new()
 	}, PlacementClass)
 
 	--If placement is being loaded, overwrite Level and Age attributes
@@ -72,28 +73,11 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 	self.PlacedObject.Parent = self.Plot.Placements:FindFirstChild(self.MetaData.Type)
 	self.PlacedObject.Name = self.Guid
 
+	self._Maid:GiveTask(self.PlacedObject)
+
 	--Construct proper position
 	self.LocalPosition = self:ConstructPosition(itemPosition)
-	
-	if (saveData) then
-		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
-	else
-		--Clone particle effect
-		local newParticle = Particles.PlacementEffect:Clone()
-		newParticle.Parent = self.PlacedObject.PrimaryPart
-		newParticle.Enabled = true
-
-		--Give the tween effect
-		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
-		local effectTween = TweenService:Create(self.PlacedObject.PrimaryPart, TweenInfo.new(1), {CFrame = self.WorldPosition})
-		effectTween:Play()
-
-		--When tween completes, destroy tween and particle 
-		effectTween.Completed:Connect(function()
-			effectTween:Destroy()
-			newParticle:Destroy()
-		end)
-	end
+	self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
 
 	return self
 end
@@ -114,14 +98,14 @@ function PlacementClass:Upgrade()
 		self.PlacedObject = ReplicatedStorage.Items.Buildings:FindFirstChild(self.ItemId .. ":" .. self.Level):Clone()
 		self.PlacedObject.Parent = self.Plot.Placements:FindFirstChild(self.MetaData.Type)
 		self.PlacedObject.Name = self.Guid
+
+		self._Maid:GiveTask(self.PlacedObject)
 	
 		--Reconstruct CFrame to account for model size differences
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
 		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
 
-		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
-		local effectTween = TweenService:Create(self.PlacedObject.PrimaryPart, TweenInfo.new(1), {CFrame = self.WorldPosition})
-		effectTween:Play()
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
 	end
 end
 
@@ -169,8 +153,8 @@ end
 
 --//Removes model from map
 --//Cleans up MetaTable
-function PlacementClass:Remove()
-	self.PlacedObject:Destroy()
+function PlacementClass:Destroy()
+	self._Maid:Destroy()
 	self = nil
 end
 
@@ -185,11 +169,6 @@ function PlacementClass:Encode()
 end
 
 
-function PlacementClass:Start()
-	Particles = ReplicatedStorage:WaitForChild("Items").Particles
-end
-
-
 function PlacementClass:Init()
 	--//Api
 	CFrameSerializer = self.Shared.CFrameSerializer
@@ -201,6 +180,7 @@ function PlacementClass:Init()
 	--//Controllers
 
 	--//Classes
+	MaidClass = self.Shared.Maid
 
 	--//Locals
 

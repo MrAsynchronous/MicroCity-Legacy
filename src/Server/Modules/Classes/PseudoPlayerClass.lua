@@ -29,7 +29,6 @@ PseudoPlayer.__index = PseudoPlayer
 --//Api
 local DataStore2
 local TableUtil
-local CFrameSerializer
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -38,10 +37,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --//Controllers
 
 --//Classes
-local PlacementClass
+local MaidClass
 
 --//Locals
 local PlayerMetaData
+
+local PLACEMENT_DATA_KEY = "MicroCity_Placements_Pre-Alpha_1"
+local PLAYERDATA_DATA_KEY = "MicroCity_PlayerData_Pre-Alpha_1"
 
 local VALUE_EXCHANGE = {
 	["number"] = "NumberValue",
@@ -53,43 +55,42 @@ local VALUE_EXCHANGE = {
 
 function PseudoPlayer.new(player)
 	local self = setmetatable({
-
 		Player = player,
 		Placements = {},
-		PlacementStore = DataStore2("Placements", player),
+		
+		PlacementStore = DataStore2(PLACEMENT_DATA_KEY, player),
 
-		DataKeys = {},
-		DataFolder = ReplicatedStorage.ReplicatedData:FindFirstChild(tonumber(player.UserId))
+		_Maid = MaidClass.new(),
 	}, PseudoPlayer)
 
 
 	--Construct a new DataFolder
 	--Allows client to easily access parts of PlayersData
-	local dataFolder = Instance.new("Folder")
-	dataFolder.Name = player.UserId
-	dataFolder.Parent = ReplicatedStorage.ReplicatedData
+	self.DataFolder = Instance.new("Folder")
+	self.DataFolder.Name = player.UserId
+	self.DataFolder.Parent = ReplicatedStorage.ReplicatedData
 
 	--Store DataStore2 DataKeys
 	for key, value in pairs(PlayerMetaData) do
-		self.DataKeys[key] = DataStore2(key, player)
+		self[key] = DataStore2(key, player)
 
 		--Values beginning with '_' are not replicated to the Client
 		if (string.sub(key, 1, 1) ~= '_') then
 			--Construct a new serializedNode so client can detect changes efficiently
 			local serializedNode = Instance.new(VALUE_EXCHANGE[type(value)])
 			serializedNode.Name = key
-			serializedNode.Parent = dataFolder
+			serializedNode.Parent = self.DataFolder
 
 			--Tables are stored as encoded JSON, encode if needed
 			--Else, set value like normal
 			if (type(value) == "table") then
-				serializedNode.Value = TableUtil.EncodeJSON( self:GetData(key) )
+				serializedNode.Value = TableUtil.EncodeJSON( self[key]:Get(PlayerMetaData[key]) )
 			else
-				serializedNode.Value = self:GetData(key)
+				serializedNode.Value = self[key]:Get(PlayerMetaData[key])
 			end
 
 			--Automatically update replicated values
-			self.DataKeys[key]:OnUpdate(function(newValue)
+			self._Maid[key] = self[key]:OnUpdate(function(newValue)
 				if (type(newValue) == "table") then
 					serializedNode.Value = TableUtil.Encode(newValue)
 				else
@@ -98,19 +99,32 @@ function PseudoPlayer.new(player)
 			end)
 		end
 	end 
-	self.DataFolder = dataFolder
 
 	return self
 end
 
 
 --//Called when player resets plot of leaves the game
+--//Destroys all player objects, doesn't remove placements from data
 function PseudoPlayer:CleanPlot()
 	for _, placementObject in pairs(self.Placements) do
-		placementObject:Remove()
-
-		wait()
+		placementObject:Destroy()
 	end
+end
+
+
+--//Sets the value at index placementGuid to key placementObject
+--//Called when player places a new object
+function PseudoPlayer:SetPlacementObject(placementObject)
+	self.Placements[placementObject.Guid] = placementObject
+
+	--Update placementStore
+	self.PlacementStore:Update(function(oldTable)
+		local objectSpace, objectData = placementObject:Encode()
+		oldTable[objectSpace] = objectData
+
+		return oldTable
+	end)
 end
 
 
@@ -130,27 +144,13 @@ function PseudoPlayer:UpdatePlacementObject(placementObject, oldObjectSpace)
 end
 
 
---//Sets the value at index placementGuid to key placementObject
---//Called when player places a new object
-function PseudoPlayer:SetPlacementObject(placementObject)
-	self.Placements[placementObject.Guid] = placementObject
-
-	--Update placementStore
-	self.PlacementStore:Update(function(oldTable)
-		local objectSpace, objectData = placementObject:Encode()
-		oldTable[objectSpace] = objectData
-
-		return oldTable
-	end)
-end
-
-
 --//Sets the value at index placementGuid to nil
 function PseudoPlayer:RemovePlacementObject(placementGuid)
 	local placementObject = self:GetPlacementObject(placementGuid)
 	local objectSpace = placementObject:Encode()
-	self.Placements[placementGuid] = nil
 
+	placementObject:Destroy()
+	
 	--Update placementStore
 	self.PlacementStore:Update(function(oldTable)
 		oldTable[objectSpace] = nil
@@ -166,28 +166,19 @@ function PseudoPlayer:GetPlacementObject(placementGuid)
 end
 
 
---//Returns DataStore2 Data
-function PseudoPlayer:GetData(key)
-	return self.DataKeys[key]:Get(PlayerMetaData[key])
-end
+--//Fully removes PseudoPlayer, placementObjects and event listeners from existence
+--*thanos snap*
+function PseudoPlayer:Destroy()
+	self:CleanPlot()
 
-
---//Sets DataStore2 Key Data
-function PseudoPlayer:SetData(key, value)
-	local leaderstatsValue = self.Player.leaderstats:FindFirstChild(key)
-	if (leaderstatsValue) then 
-		leaderstatsValue.Value = value 
-	end
-
-	return self.DataKeys[key]:Set(value)
+	self._Maid:Destroy()
 end
 
 
 function PseudoPlayer:Start()
-
 	--Combine all keys to master PlayerData key
 	for key, value in pairs(PlayerMetaData) do
-		DataStore2.Combine("PlayerData_MicroCity", key)
+		DataStore2.Combine(PLAYERDATA_DATA_KEY, key)
 	end
 end
 
@@ -196,14 +187,13 @@ function PseudoPlayer:Init()
 	--//Api
 	DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
 	TableUtil = self.Shared.TableUtil
-	CFrameSerializer = self.Shared.CFrameSerializer
 
 	--//Services
 	
 	--//Controllers
 	
 	--//Classes
-	PlacementClass = self.Modules.Classes.PlacementClass
+	MaidClass = self.Shared.Maid
 	
 	--//Locals
 	PlayerMetaData = require(ReplicatedStorage.MetaData:WaitForChild("Player"))

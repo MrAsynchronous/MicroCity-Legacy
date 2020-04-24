@@ -62,6 +62,7 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         return {
             wasSuccess = true,
             placedObject = placementObject.PlacedObject,
+            worldPosition = placementObject.WorldPosition,
             noticeObject = Notices.buildingPurchaseSuccess
         }
     else
@@ -82,13 +83,11 @@ function PlacementService:SellPlacement(player, guid)
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
     --Remove placementObject from PlacementMap
-    --Remove MetaTable
     pseudoPlayer:RemovePlacementObject(guid)
-    placementObject:Remove()
 
     --Calculate return 
     local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
-    ShoppingService:SellItem(pseudoPlayer, discountedProfit)
+    --ShoppingService:SellItem(pseudoPlayer, discountedProfit)
 
     return {
         wasSuccess = true,
@@ -118,6 +117,7 @@ function PlacementService:UpgradePlacement(player, guid)
             return {
                 wasSuccess = true,
                 newObject = placementObject.PlacedObject,
+                worldPosition = placementObject.WorldPosition,
                 noticeObject = Notices.buildingUpgradeSuccess
             }
         else
@@ -141,10 +141,11 @@ end
 function PlacementService:MovePlacement(player, guid, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
+    local currentObjectSpace = placementObject:Encode()
 
     --//Move object and update PlacementMap
     placementObject:Move(localPosition)
-    pseudoPlayer:SetPlacementObject(placementObject)
+    pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
 
     return {
         wasSuccess = true,

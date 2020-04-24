@@ -58,11 +58,9 @@ local function GetAdjacentRoads(currentRoad, lastRoad)
         local orientation = math.abs(model.PrimaryPart.Orientation.Y)
         local positionDifference = roadPosition - position
 
-        if (roadOrientation == orientation) then
-            --Only add model if model is not currentRoad model is not already in index, and if it is directly adjacent with a tolerance of .25 studs
-            if ((model ~= currentRoad) and (model ~= lastRoad) and (not table.find(modelsInRegion, model)) and (math.abs(positionDifference.X) <= 0.25 or math.abs(positionDifference.Z) <= 0.25)) then
-                table.insert(modelsInRegion, model)
-            end
+        --Only add model if model is not currentRoad model is not already in index, and if it is directly adjacent with a tolerance of .25 studs
+        if ((model ~= currentRoad) and (model ~= lastRoad) and (not table.find(modelsInRegion, model)) and (math.abs(positionDifference.X) <= 0.25 or math.abs(positionDifference.Z) <= 0.25)) then
+            table.insert(modelsInRegion, model)
         end
     end
 
