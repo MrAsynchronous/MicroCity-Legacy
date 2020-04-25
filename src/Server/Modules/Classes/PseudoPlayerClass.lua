@@ -57,6 +57,7 @@ function PseudoPlayer.new(player)
 	local self = setmetatable({
 		Player = player,
 		Placements = {},
+		IsLoaded = false,
 		
 		PlacementStore = DataStore2(PLACEMENT_DATA_KEY, player),
 
@@ -101,6 +102,25 @@ function PseudoPlayer.new(player)
 	end 
 
 	return self
+end
+
+
+--//Deposits the passed amount into the players account
+function PseudoPlayer:DepositCash(amount)
+	return self.Cash:Increment(amount)
+end
+
+
+--//Withdraws the given amount
+--//Returns true if successful, returns false if player does not have enough
+function PseudoPlayer:WithdrawCash(amount)
+	local amountAfterWithdrawel = self.Cash:Get(0) - amount
+
+	if (amountAfterWithdrawel < 0) then
+		return false
+	else
+		return self.Cash:Set(amountAfterWithdrawel)
+	end
 end
 
 

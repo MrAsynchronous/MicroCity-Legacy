@@ -180,6 +180,7 @@ function PlacementService:LoadPlacements(pseudoPlayer)
     end
     
     --Tell client that their plot has been loaded
+    pseudoPlayer.IsLoaded = true
     self:FireClientEvent("OnPlotLoadComplete", pseudoPlayer.Player)
 end
 

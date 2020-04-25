@@ -28,14 +28,19 @@ local timeUntilNextPaycheck
 local lastPayment = os.time()
 
 local PAYMENT_INTERVAL = 30 --seconds
+local TAX_PER_CITIZEN = 10
 
 
 --TODO
 --Verification of loaded data, unloading data etc
 local function PayPlayer(player)
-    local totalPaycheck = 0
+    local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
+    local paycheck = 0
 
-    print(player.Name)
+    --Validate pseudoPlayer and the state of pseudoPlayer
+    if (pseudoPlayer and pseudoPlayer.IsLoaded) then
+        
+    end
 
     return
 end
