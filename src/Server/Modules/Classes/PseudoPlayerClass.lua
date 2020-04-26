@@ -13,6 +13,9 @@
 		public DataStore2Key GetData(String key)
 		public void SetData(String key, Any value)
 
+		public void DepositCash(Number amount)
+		public boolean WithdrawCash(Number amount)
+
 		public void AddPlacementObject(String guid, PlacementObject placementObject)
 		public void UpdatePlacementObject(PlacementObject placementObject, String oldObjectSpace)
 		public PlacementObject GetPlacementObject(String guid)
