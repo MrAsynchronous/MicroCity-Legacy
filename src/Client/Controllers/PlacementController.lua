@@ -103,6 +103,9 @@ function PlacementController:Start()
         HideQueue(true)
     end)
 
+    PlacementApi.PlacementBegan:Connect(function()
+        HideQueue()
+    end)
 
     --[[
         SelectionQueue buttons

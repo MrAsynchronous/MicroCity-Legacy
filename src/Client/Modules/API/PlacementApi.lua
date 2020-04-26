@@ -11,7 +11,7 @@
         ObjectPlaced => itemId, LocalSpace position
         ObjectMoved => itemId, LocalSpace newPosition, LocalSpace oldPosition
         PlacementBegan => itemId
-        PlacementCancelled => itemId
+        PlacementEnded => itemId
 
         PlacementSelectionStarted => Object
         PlacementSelectionEnded => Object
@@ -578,7 +578,7 @@ function PlacementApi:StopPlacing(moveFailed)
     plotObject.Main.GridDash.Transparency = 1
 
     --Fire placementCancelled event
-    self.Events.PlacementCancelled:Fire(itemId)
+    self.Events.PlacementEnded:Fire(itemId)
 
     --Unbind actions
     currentMaid:DoCleaning()
@@ -649,7 +649,7 @@ function PlacementApi:Init()
     self.Events = {}
     self.Events.PlacementSelectionStarted = Instance.new("BindableEvent")
     self.Events.PlacementSelectionEnded = Instance.new("BindableEvent")
-    self.Events.PlacementCancelled = Instance.new("BindableEvent")
+    self.Events.PlacementEnded = Instance.new("BindableEvent")
     self.Events.PlacementBegan = Instance.new("BindableEvent")
     self.Events.ObjectPlaced = Instance.new("BindableEvent")
     self.Events.ObjectMoved = Instance.new("BindableEvent")
@@ -657,7 +657,7 @@ function PlacementApi:Init()
     self.ObjectMoved = self.Events.ObjectMoved.Event
     self.ObjectPlaced = self.Events.ObjectPlaced.Event
     self.PlacementBegan = self.Events.PlacementBegan.Event
-    self.PlacementCancelled = self.Events.PlacementCancelled.Event
+    self.PlacementEnded = self.Events.PlacementEnded.Event
     self.PlacementSelectionEnded = self.Events.PlacementSelectionEnded.Event
     self.PlacementSelectionStarted = self.Events.PlacementSelectionStarted.Event
 end
