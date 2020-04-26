@@ -512,6 +512,9 @@ function PlacementApi:StartPlacing(id)
             end
         end))
     end
+
+    --Fire placementBegan event
+    self.Events.PlacementBegan:Fire(itemId)
     
     --Initially snap itemObject to proper position
     UpdatePlacement(true)
@@ -574,9 +577,11 @@ function PlacementApi:StopPlacing(moveFailed)
     plotObject.Main.Grid.Transparency = 1
     plotObject.Main.GridDash.Transparency = 1
 
+    --Fire placementCancelled event
+    self.Events.PlacementCancelled:Fire(itemId)
+
     --Unbind actions
     currentMaid:DoCleaning()
-
     RunService:UnbindFromRenderStep("UpdatePlacement")
 end
 
