@@ -1,18 +1,30 @@
 return {
 	ItemId = 4,
-	Cost = 25,
-	CostType = "Cash",
-	Population = 0,
+	Name = script.Name,
 
 	Upgrades = {
 		{
-			Name = "Medium ",
+			Name = script.Name,
+			Cost = 25,
+			CostType = "Cash",
+			
+			Population = 100,
 		},
 		{
-			Name = "Large"
+			Name = "Medium ",
+			Cost = 0,
+			CostType = "Cash",
+
+			Population = 200,
+		},
+		{
+			Name = "Large",
+			Cost = 0,
+			CostType = "Cash",
+
+			Population = 400,
 		},
 	},
 	
-	Name = script.Name,
 	Type = "Building"
 }

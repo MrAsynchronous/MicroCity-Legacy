@@ -57,7 +57,8 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         pseudoPlayer:SetPlacementObject(placementObject)
 
         --Edit player population
-    --    playerObject:Set("Population", playerObject:Get("Population") + itemMetaData.Population)
+        local levelMetaData = placementObject:GetLevelMetaData()
+        pseudoPlayer.Population:Increment(levelMetaData.Population)
 
         return {
             wasSuccess = true,
@@ -81,6 +82,15 @@ function PlacementService:SellPlacement(player, guid)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
     local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
+
+    --Iterate through each upgraded level, increment populationToRemove to reflect level
+    local populationToRemove = 0
+    for level = 1, placementObject.Level - 1 do
+        local levelMetaData = placementObject:GetLevelMetaData(i)
+        populationToRemove = populationToRemove + (levelMetaData.Population or 0)
+    end
+
+    print(populationToRemove)
 
     --Remove placementObject from PlacementMap
     pseudoPlayer:RemovePlacementObject(guid)

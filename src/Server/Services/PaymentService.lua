@@ -66,6 +66,7 @@ function PaymentService:Init()
     --//Api
 
     --//Services
+    PlayerService = self.Services.PlayerService
 
     --//Controllers
 

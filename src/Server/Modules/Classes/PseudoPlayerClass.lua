@@ -29,6 +29,7 @@ PseudoPlayer.__index = PseudoPlayer
 --//Api
 local DataStore2
 local TableUtil
+local GameSettings
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -41,9 +42,6 @@ local MaidClass
 
 --//Locals
 local PlayerMetaData
-
-local PLACEMENT_DATA_KEY = "MicroCity_Placements_Pre-Alpha_1"
-local PLAYERDATA_DATA_KEY = "MicroCity_PlayerData_Pre-Alpha_1"
 
 local VALUE_EXCHANGE = {
 	["number"] = "NumberValue",
@@ -59,7 +57,7 @@ function PseudoPlayer.new(player)
 		Placements = {},
 		IsLoaded = false,
 		
-		PlacementStore = DataStore2(PLACEMENT_DATA_KEY, player),
+		PlacementStore = DataStore2(GameSettings.PlayerPlacementsToken, player),
 
 		_Maid = MaidClass.new(),
 	}, PseudoPlayer)
@@ -198,7 +196,7 @@ end
 function PseudoPlayer:Start()
 	--Combine all keys to master PlayerData key
 	for key, value in pairs(PlayerMetaData) do
-		DataStore2.Combine(PLAYERDATA_DATA_KEY, key)
+		DataStore2.Combine(GameSettings.PlayerDataToken, key)
 	end
 end
 
@@ -207,6 +205,7 @@ function PseudoPlayer:Init()
 	--//Api
 	DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
 	TableUtil = self.Shared.TableUtil
+	GameSettings = require(ReplicatedStorage.MetaData.Settings)
 
 	--//Services
 	

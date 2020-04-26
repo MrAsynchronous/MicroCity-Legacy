@@ -83,13 +83,20 @@ function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
 end
 
 
+--//Returns MetaData for the current level
+--//If level argument, MetaData is returned for that level
+function PlacementClass:GetLevelMetaData(level)
+	return self.MetaData.Upgrades[level or self.Level]
+end
+
+
 --//Updates the level and model of the placed object
---//Precondition: Object can be upgraded
+--//Precondition: Player can afford upgrades
 function PlacementClass:Upgrade()
 	local currentLevel = self.Level
 	
 	--Increase level but clamp between minimum and maximum levels
-	self.Level = math.clamp(self.Level + 1, 1, ((#self.MetaData.Upgrades + 1) or 1))
+	self.Level = math.max(currentLevel + 1, #self.MetaData.Upgrades)
 	
 	if (self.Level > currentLevel) then
 		self.PlacedObject:Destroy()
@@ -116,7 +123,7 @@ function PlacementClass:CanUpgrade()
 		return false
 	end
 
-	local nextLevel = (math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades + 1))
+	local nextLevel = math.max(self.Level + 1, #self.MetaData.Upgrades)
 
 	--Return true if next upgrade is available, false otherwise
 	if (nextLevel > self.Level) then

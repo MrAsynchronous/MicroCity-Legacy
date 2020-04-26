@@ -10,6 +10,7 @@
     Events:
         ObjectPlaced => itemId, LocalSpace position
         ObjectMoved => itemId, LocalSpace newPosition, LocalSpace oldPosition
+        PlacementBegan => itemId
         PlacementCancelled => itemId
 
         PlacementSelectionStarted => Object
@@ -644,11 +645,13 @@ function PlacementApi:Init()
     self.Events.PlacementSelectionStarted = Instance.new("BindableEvent")
     self.Events.PlacementSelectionEnded = Instance.new("BindableEvent")
     self.Events.PlacementCancelled = Instance.new("BindableEvent")
+    self.Events.PlacementBegan = Instance.new("BindableEvent")
     self.Events.ObjectPlaced = Instance.new("BindableEvent")
     self.Events.ObjectMoved = Instance.new("BindableEvent")
 
     self.ObjectMoved = self.Events.ObjectMoved.Event
     self.ObjectPlaced = self.Events.ObjectPlaced.Event
+    self.PlacementBegan = self.Events.PlacementBegan.Event
     self.PlacementCancelled = self.Events.PlacementCancelled.Event
     self.PlacementSelectionEnded = self.Events.PlacementSelectionEnded.Event
     self.PlacementSelectionStarted = self.Events.PlacementSelectionStarted.Event
