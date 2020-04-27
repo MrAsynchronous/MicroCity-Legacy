@@ -15,6 +15,7 @@
         "Instance",
         "workspace",
         "UDim2",
-        "TweenInfo"
+        "TweenInfo",
+        "script"
     ]
 }

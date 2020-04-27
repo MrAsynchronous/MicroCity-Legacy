@@ -31,6 +31,7 @@ local PseudoPlayerClass
 
 --//Locals
 local pseudoPlayers
+local cmdrCommand
 
 
 function PlayerService:Start()

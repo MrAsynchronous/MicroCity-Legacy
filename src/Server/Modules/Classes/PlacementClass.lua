@@ -86,7 +86,7 @@ end
 --//Returns MetaData for the current level
 --//If level argument, MetaData is returned for that level
 function PlacementClass:GetLevelMetaData(level)
-	return self.MetaData.Upgrades[level]
+	return self.MetaData.Upgrades[level or self.Level]
 end
 
 

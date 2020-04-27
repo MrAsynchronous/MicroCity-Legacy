@@ -50,8 +50,12 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
 
-    --Implement shopping mechanic
-    if (true) then
+    --If player can afford placement, subtract cost
+    if (pseudoPlayer[(itemMetaData.CostType or "Cash")]:Get(0) >= itemMetaData.Cost) then
+        pseudoPlayer[(itemMetaData.CostType or "Cash")]:Update(function(currentValue)
+            return currentValue - itemMetaData.Cost
+        end)
+
         --Construct a new placementObject, hash into playerObject.Placements
         local placementObject = PlacementClass.new(itemId, localPosition, pseudoPlayer)
         pseudoPlayer:SetPlacementObject(placementObject)
@@ -81,16 +85,33 @@ end
 function PlacementService:SellPlacement(player, guid)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
+    
+    local populationToRemove = 0
+    local refundTypes = {}
+    
+    --Iterate to current level, increment populationToRemove
+    for i = 1, placementObject.Level do
+        local levelMetaData = placementObject:GetLevelMetaData(i)
+        populationToRemove = populationToRemove + (levelMetaData.Population or 0)
+        
+        --Genius
+        refundTypes[levelMetaData.CostType] = (refundTypes[levelMetaData.CostType] or 0) + levelMetaData.Cost
+    end
 
-    --Iterate through each upgraded level, increment populationToRemove to reflect level
+    --Update Population
+    pseudoPlayer.Population:Update(function(currentValue)
+        return currentValue - populationToRemove
+    end)
 
+    --Update currencies to reflect change
+    for costType, cost in pairs(refundTypes) do
+        pseudoPlayer[costType]:Update(function(currentValue)
+            return currentValue + (cost * SELL_EXCHANGE_RATE)
+        end)
+    end
 
     --Remove placementObject from PlacementMap
     pseudoPlayer:RemovePlacementObject(guid)
-
-    --Calculate return 
-    local discountedProfit = placementObject.MetaData.Cost * SELL_EXCHANGE_RATE
-    pseudoPlayer:Deposit(discountedProfit)
 
     return {
         wasSuccess = true,
@@ -109,9 +130,9 @@ function PlacementService:UpgradePlacement(player, guid)
     if (placementObject:CanUpgrade()) then
         local levelMetaData = placementObject:GetLevelMetaData(placementObject.Level + 1)
         
-        --If player can afford upgrade, remove cost form coins
+        --If player can afford upgrade, subtract cost
         if (pseudoPlayer[(levelMetaData.CostType or "Cash")]:Get(0) >= levelMetaData.Cost) then
-            pseudoPlayer[levelMetaData.CostType or "Cash"]:Update(function(currentValue)
+            pseudoPlayer[(levelMetaData.CostType or "Cash")]:Update(function(currentValue)
                 return currentValue - levelMetaData.Cost
             end)
 
