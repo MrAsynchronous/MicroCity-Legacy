@@ -17,6 +17,10 @@ return {
         Text = "Building moved!",
         Color = Color3.fromRGB(46, 204, 113)
     },
+    codeSuccess = {
+        Text = "Code redeemed!",
+        Color = Color3.fromRGB(46, 204, 113)
+    },
 
     --Un-success / Errror / Negative feedback
     noFundsError = {
@@ -30,6 +34,17 @@ return {
     buildingCollisionError = {
         Text = "Building is colliding with another!",
         Color = Color3.fromRGB(231, 76, 60)
+    },
+    codeInvalid = {
+        Text = "Code entered is invalid!",
+        Color = Color3.fromRGB(231, 76, 60)
+    },
+    codeExpired = {
+        Text = "Code entered has expired!",
+        Color = Color3.fromRGB(231, 76, 60)
+    },
+    codeUsed = {
+        Text = "You already used this code!",
+        Color = Color3.fromRGB(231, 76, 60)
     }
-
 }

@@ -12,6 +12,9 @@
 
 local PaymentService = {Client = {}}
 
+--//Api
+local GameSettings
+
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -25,7 +28,7 @@ local PlayerService
 
 --//Locals
 local timeUntilNextPaycheck
-local lastPayment = os.time()
+local lastPayment
 
 local PAYMENT_INTERVAL = 30 --seconds
 local TAX_PER_CITIZEN = 10
@@ -48,7 +51,7 @@ end
 
 function PaymentService:Start()   
     RunService.Stepped:Connect(function()
-        timeUntilNextPaycheck.Value = PAYMENT_INTERVAL - (os.time() - lastPayment)
+        timeUntilNextPaycheck.Value = GameSettings.GlobalPaymentInterval - (os.time() - lastPayment)
 
         if (timeUntilNextPaycheck.Value <= 0) then
             lastPayment = os.time()
@@ -64,6 +67,7 @@ end
 
 function PaymentService:Init()
     --//Api
+    GameSettings = require(ReplicatedStorage:WaitForChild("MetaData").Settings)
 
     --//Services
     PlayerService = self.Services.PlayerService
@@ -73,6 +77,7 @@ function PaymentService:Init()
     --//Classes
 
     --//Locals
+    lastPayment = os.time()
     timeUntilNextPaycheck = ReplicatedStorage:WaitForChild("TimeUntilNextPaycheck")
         
 end

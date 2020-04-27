@@ -9,6 +9,8 @@ return {
     Level = 0,
     Exp = 0,
 
+    CodesUsed = {},
+
     TotalVisits = 0,
     TotalTimePlayed = 0,
     HasPlayed = false

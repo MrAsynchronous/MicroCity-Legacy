@@ -2,12 +2,11 @@ return {
 	ItemId = 4,
 	Name = script.Name,
 
-	Cost = 25,
-	CostType = "Cash",
-
 	Upgrades = {
 		{
 			Name = script.Name,
+			Cost = 25,
+			CostType = "Cash",
 
 			Population = 100,
 		},

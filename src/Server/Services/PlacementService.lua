@@ -49,11 +49,12 @@ local SELL_EXCHANGE_RATE = 40 --percent
 function PlacementService:PlaceObject(player, itemId, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
+    local levelOneMetaData = itemMetaData.Upgrades[1]
 
     --If player can afford placement, subtract cost
-    if (pseudoPlayer[(itemMetaData.CostType or "Cash")]:Get(0) >= itemMetaData.Cost) then
-        pseudoPlayer[(itemMetaData.CostType or "Cash")]:Update(function(currentValue)
-            return currentValue - itemMetaData.Cost
+    if (pseudoPlayer[(levelOneMetaData.CostType or "Cash")]:Get(0) >= levelOneMetaData.Cost) then
+        pseudoPlayer[(levelOneMetaData.CostType or "Cash")]:Update(function(currentValue)
+            return currentValue - levelOneMetaData.Cost
         end)
 
         --Construct a new placementObject, hash into playerObject.Placements
@@ -124,7 +125,6 @@ end
 function PlacementService:UpgradePlacement(player, guid)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
-    
 
     --Verify if object can be upgraded
     if (placementObject:CanUpgrade()) then

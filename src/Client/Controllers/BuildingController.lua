@@ -10,6 +10,9 @@ local BuildingController = {}
 
 local UserInputService = game:GetService("UserInputService")
 
+local NotificationDispatch
+local CodeService
+
 local PlayerGui
 local CoreInterface
 local PlacementApi
@@ -21,10 +24,18 @@ function BuildingController:Start()
     CoreInterface.PC.PersonButton.MouseButton1Click:Connect(function()
         PlacementApi:StartPlacing(4)
     end)
+
+    CoreInterface.PC.MenuButton.MouseButton1Click:Connect(function()
+        local returnData = CodeService:RedeemCode("RELEASE")
+
+        NotificationDispatch:Dispatch(returnData.noticeObject)
+    end)
 end
 
 
 function BuildingController:Init()
+    NotificationDispatch = self.Controllers.NotificationDispatcher
+    CodeService = self.Services.CodeService
     PlacementApi = self.Modules.API.PlacementApi
 end
 

@@ -96,8 +96,8 @@ function PlacementClass:Upgrade()
 	local currentLevel = self.Level
 	
 	--Increase level but clamp between minimum and maximum levels
-	self.Level = math.max(currentLevel + 1, #self.MetaData.Upgrades)
-	
+	self.Level = math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades)
+
 	if (self.Level > currentLevel) then
 		self.PlacedObject:Destroy()
 
@@ -123,7 +123,7 @@ function PlacementClass:CanUpgrade()
 		return false
 	end
 
-	local nextLevel = math.max(self.Level + 1, #self.MetaData.Upgrades)
+	local nextLevel = math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades)
 
 	--Return true if next upgrade is available, false otherwise
 	if (nextLevel > self.Level) then
