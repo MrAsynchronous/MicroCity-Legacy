@@ -81,7 +81,6 @@ end
 function PlacementService:SellPlacement(player, guid)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
-    local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
 
     --Iterate through each upgraded level, increment populationToRemove to reflect level
 
@@ -90,7 +89,7 @@ function PlacementService:SellPlacement(player, guid)
     pseudoPlayer:RemovePlacementObject(guid)
 
     --Calculate return 
-    local discountedProfit = itemMetaData.Cost * SELL_EXCHANGE_RATE
+    local discountedProfit = placementObject.MetaData.Cost * SELL_EXCHANGE_RATE
     pseudoPlayer:Deposit(discountedProfit)
 
     return {
@@ -104,15 +103,24 @@ end
 function PlacementService:UpgradePlacement(player, guid)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
-    local itemMetaData = MetaDataService:GetMetaData(placementObject.ItemId)
+    
 
     --Verify if object can be upgraded
     if (placementObject:CanUpgrade()) then
-        --Localize upgrade cost
-        local upgradeData = itemMetaData.Upgrades[placementObject.Level]
+        local levelMetaData = placementObject:GetLevelMetaData(placementObject.Level + 1)
         
-        --If player can afford upgrade
-        if (true) then
+        --If player can afford upgrade, remove cost form coins
+        if (pseudoPlayer[(levelMetaData.CostType or "Cash")]:Get(0) >= levelMetaData.Cost) then
+            pseudoPlayer[levelMetaData.CostType or "Cash"]:Update(function(currentValue)
+                return currentValue - levelMetaData.Cost
+            end)
+
+            --Update population
+            pseudoPlayer.Population:Update(function(currentValue)
+                return currentValue + levelMetaData.Population
+            end)
+
+            --Upgrade and UpdatePlacementObject
             local currentObjectSpace = placementObject:Encode()
 
             placementObject:Upgrade()

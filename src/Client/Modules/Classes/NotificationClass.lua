@@ -102,7 +102,12 @@ end
 
 
 function NotificationClass:Start()
+    --//Services
+    PlayerGui = self.Player:WaitForChild("PlayerGui")
 
+    --//Locals
+    NotificationRegion = PlayerGui:WaitForChild("NotificationRegion")
+    NotificationTemplate = NotificationRegion.Template
 end
 
 
@@ -110,15 +115,12 @@ function NotificationClass:Init()
     --//Api
 
     --//Services
-    PlayerGui = self.Player:WaitForChild("PlayerGui")
 
     --//Controllers
 
     --//Classes
 
     --//Locals
-    NotificationRegion = PlayerGui:WaitForChild("NotificationRegion")
-    NotificationTemplate = NotificationRegion.Template
 
 end
 

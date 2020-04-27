@@ -21,22 +21,20 @@ local self = PlacementController
 
 --//Api
 local PlacementApi
-local RoadApi
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local PlacementService
-local MetaDataService
 
 --//Controllers
 local NotificationDispatcher
+local GamepadCursor
 
 --//Classes
 
 --//Locals
-local PlotObject
 local Particles
 
 local PlayerGui
@@ -105,6 +103,7 @@ function PlacementController:Start()
 
     PlacementApi.PlacementBegan:Connect(function()
         HideQueue()
+        GamepadCursor:HideCursor()
     end)
 
     --[[
@@ -208,14 +207,13 @@ end
 function PlacementController:Init()
     --//Api
     PlacementApi = self.Modules.API.PlacementApi
-    RoadApi = self.Modules.API.RoadApi
 
     --//Services
     PlacementService = self.Services.PlacementService
-    MetaDataService = self.Services.MetaDataService
 
     --//Controllers
     NotificationDispatcher = self.Controllers.NotificationDispatcher
+    GamepadCursor = self.Controllers.CursorModule
 
     --//Classes
 
@@ -223,8 +221,6 @@ function PlacementController:Init()
     PlayerGui = self.Player:WaitForChild("PlayerGui")
     Particles = ReplicatedStorage:WaitForChild("Items").Particles
     PlacementSelectionQueue = PlayerGui:WaitForChild("PlacementSelectionQueue")
-
-    PlotObject = self.Player:WaitForChild("PlotObject").Value
         
 end
 
