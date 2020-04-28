@@ -6,5 +6,7 @@ return {
     CodesToken = "TwitterCodes_PreAlpha_1",
 
     GlobalPaymentInterval = 30,
+    AmountPerCitizen = 10,
+
     CodeUpdateInterval = 240
 }

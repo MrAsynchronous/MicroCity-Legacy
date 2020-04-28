@@ -30,8 +30,6 @@ local PlayerService
 local timeUntilNextPaycheck
 local lastPayment
 
-local TAX_PER_CITIZEN = 10
-
 
 --TODO
 --Verification of loaded data, unloading data etc
@@ -40,7 +38,7 @@ local function PayPlayer(player)
 
     --Validate pseudoPlayer and the state of pseudoPlayer
     if (pseudoPlayer and pseudoPlayer.IsLoaded) then
-        local paycheck = (pseudoPlayer.Population:Get(0) * TAX_PER_CITIZEN)
+        local paycheck = (pseudoPlayer.Population:Get(0) * GameSettings.AmountPerCitizen)
         
         pseudoPlayer.Cash:Increment(paycheck)
     end
