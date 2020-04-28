@@ -30,7 +30,6 @@ local PlayerService
 local timeUntilNextPaycheck
 local lastPayment
 
-local PAYMENT_INTERVAL = 30 --seconds
 local TAX_PER_CITIZEN = 10
 
 
