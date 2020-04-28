@@ -55,20 +55,26 @@ function CodeService:TryCode(player, input)
     input = string.upper(input)
 
     --Validate that the entered code exists
-    if (CodesCache[input]) then
+    local codeData = CodesCache[input]
+    if (codeData) then
         local codesUsed = pseudoPlayer.CodesUsed:Get({})
 
         --Validate that player has not already used the code
         if (codesUsed[input] == nil) then
-            --Inject input into CodesUsed
-            coroutine.wrap(function()
-                pseudoPlayer.CodesUsed:Update(function(currentValue)
-                    currentValue[input] = true
-                    return currentValue
+            --Reward player
+            if (codeData.rewardType == "currency") then
+                pseudoPlayer[codeData.rewardSubType]:Update(function(currentValue)
+                    return currentValue + codeData.reward
                 end)
-            end)()
+            else
+                print("handling non currency reward")
+            end
 
-            --IMPLEMENT REWARD MECHANICS
+            --Inject input into CodesUsed
+            pseudoPlayer.CodesUsed:Update(function(currentValue)
+                currentValue[input] = true
+                return currentValue
+            end)
 
             return {
                 wasSuccess = true,

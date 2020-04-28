@@ -52,6 +52,15 @@ function NotificationDispatcher:ClearNotifications()
 end
 
 
+--//Removes the objectToRemove from activeNotifications
+function NotificationDispatcher:RemoveNotification(objectToRemove)
+    for index, notificationObject in pairs(activeNotifications) do
+        if (notificationObject == objectToRemove) then
+            table.remove(activeNotifications, index)
+        end
+    end
+end
+
 function NotificationDispatcher:Init()
     --//Api
 

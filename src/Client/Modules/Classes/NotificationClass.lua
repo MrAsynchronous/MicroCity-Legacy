@@ -23,6 +23,7 @@ NotificationClass.__index = NotificationClass
 local PlayerGui
 
 --//Controllers
+local NotificationDispatcher
 
 --//Classes
 
@@ -40,7 +41,7 @@ function NotificationClass.new(notificationInfo)
     local self = setmetatable({
         Text = notificationInfo.Text,
         Color = notificationInfo.Color,
-        Position = ACTIVE_POSITION
+        Position = ACTIVE_POSITION,
 
     }, NotificationClass)
 
@@ -51,6 +52,14 @@ function NotificationClass.new(notificationInfo)
     self.Notification.Position = PRE_ACTIVE_POSITION
     self.Notification.Parent = NotificationRegion.Container
 
+    self.thread = coroutine.create(function()
+        while (tick() < self.removalTime) do wait() end
+
+        if (self and self.Notification and self.Notification.Parent) then
+            self:Hide()
+        end
+    end)
+
     --Call meta-method to show new notification
     self:Show()
 
@@ -60,17 +69,13 @@ end
 
 --//Shows the notification
 function NotificationClass:Show()
-    self.removalTime = os.time() + SHOWING_TIME
+    self.removalTime = tick() + SHOWING_TIME
 
     --Make notification visible, tween, on callback, wait until time to delete, make call
     self.Notification.Visible = true
-    self.Notification:TweenPosition(ACTIVE_POSITION, "Out", "Quint", 0.25, true, function()
-        while (os.time() < self.removalTime) do wait() end
+    self.Notification:TweenPosition(ACTIVE_POSITION, "Out", "Quint", 0.25, true)
 
-        if (self and self.Notification and self.Notification.Parent) then
-            self:Hide()
-        end
-    end)
+    coroutine.resume(self.thread)
 end
 
 
@@ -91,12 +96,12 @@ end
 
 --//Hides then removes notification object from existence
 function NotificationClass:Hide()
-
     --Tween notification out, on callback, destroy 
     self.Notification:TweenPosition(self.Position + UDim2.new(1, 0, 0, 0), "In", "Quint", 0.25, true, function()
         self.Notification.Visible = false
         self.Notification:Destroy()
-        self = nil
+
+        NotificationDispatcher:RemoveNotification(self)
     end)
 end
 
@@ -117,6 +122,7 @@ function NotificationClass:Init()
     --//Services
 
     --//Controllers
+    NotificationDispatcher = self.Controllers.NotificationDispatcher
 
     --//Classes
 
