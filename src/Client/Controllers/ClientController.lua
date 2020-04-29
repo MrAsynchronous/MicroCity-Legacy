@@ -32,7 +32,9 @@ function ClientController:Start()
     character:SetPrimaryPartCFrame(plotObject.Main.CFrame + Vector3.new(0, 5, 0))
 
     --Spawn character at plot on character reload
-    self.Player.CharacterAppearanceLoaded:Connect(function(newCharacter)
+    self.Player.CharacterAdded:Connect(function(newCharacter)
+        while (not newCharacter.PrimaryPart) do wait() end
+
         newCharacter:SetPrimaryPartCFrame(plotObject.Main.CFrame + Vector3.new(0, 5, 0))
     end)
 end
