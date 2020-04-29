@@ -84,10 +84,9 @@ function PlayerService:Start()
 
     game.Players.PlayerRemoving:Connect(function(oldPlayer)
         local pseudoPlayer = self:GetPseudoPlayer(oldPlayer)
-        self:RemovePseudoPlayer(oldPlayer)
-
-        PlotService:AddPlot(pseudoPlayer.PlotObject)
         pseudoPlayer:Destroy()
+
+        self:RemovePseudoPlayer(oldPlayer)
     end)
 
 end
@@ -124,6 +123,7 @@ function PlayerService:Init()
     --//Locals
     pseudoPlayers = {}
 
+    self:RegisterClientEvent("PlotSizeChanged")
     self:RegisterClientEvent("OnPlotLoadComplete")
 end
 

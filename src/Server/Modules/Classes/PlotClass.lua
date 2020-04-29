@@ -26,6 +26,8 @@ local TableUtil
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local PlayerService
+
 --//Controllers
 
 --//Classes
@@ -47,7 +49,8 @@ function PlotClass.new(pseudoPlayer)
 	--Assign physical plot
 	self.Object = table.remove(plotStack, #plotStack)
 
-	--Change plot size
+	--Change plot size to loaded level
+	self:ChangeSize(PlotSettings.Upgrades[self.Level].Size)
 
 	return self
 end
@@ -66,13 +69,17 @@ function PlotClass:Upgrade()
 	if (self:CanUpgrade()) then
 		self.Level = self.Level + 1
 
-		
+		local levelMetaData = PlotSettings.Upgrades[self.Level]
+		self:ChangeSize(levelMetaData.Size)
 	end
 end
 
 
+--//Changes the size of the VisualPart
 function PlotClass:ChangeSize(newSize)
+	self.Object.VisualPart.Size = newSize
 
+	PlayerService:FireClientEvent("PlotSizeChanged", self.Player)
 end
 
 
@@ -128,6 +135,7 @@ function PlotClass:ClearPlacements(parent)
 end	
 
 
+--//Clears all the placements, re-inserts plot object into stack
 function PlotClass:Destroy()
 	self:ClearPlacements()
 
@@ -152,6 +160,7 @@ function PlotClass:Init()
 	TableUtil = self.Shared.TableUtil
 
 	--//Services
+	PlayerService = self.Services.PlayerService
 	
 	--//Controllers
 	

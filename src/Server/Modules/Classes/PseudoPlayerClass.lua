@@ -20,7 +20,6 @@
 		public void UpdatePlacementObject(PlacementObject placementObject, String oldObjectSpace)
 		public PlacementObject GetPlacementObject(String guid)
 		public void RemovePlacementObject(String guid)
-		public void CleanPlot()
 
 ]]
 
@@ -107,15 +106,6 @@ function PseudoPlayer.new(player)
 end
 
 
---//Called when player resets plot of leaves the game
---//Destroys all player objects, doesn't remove placements from data
-function PseudoPlayer:CleanPlot()
-	for _, placementObject in pairs(self.Placements) do
-		placementObject:Destroy()
-	end
-end
-
-
 --//Sets the value at index placementGuid to key placementObject
 --//Called when player places a new object
 function PseudoPlayer:SetPlacementObject(placementObject)
@@ -172,8 +162,7 @@ end
 --//Fully removes PseudoPlayer, placementObjects and event listeners from existence
 --*thanos snap*
 function PseudoPlayer:Destroy()
-	self:CleanPlot()
-
+	self.PlotObject:Destroy()
 	self._Maid:Destroy()
 end
 

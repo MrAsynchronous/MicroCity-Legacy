@@ -602,13 +602,17 @@ function PlacementApi:Start()
         CONSOLE_INTERFACE_SIZE = consoleInterface.Size
 
 
-
     --Setup plot locals
     plotCFrame, plotSize = CalcCanvas()
 
+    --Recalculate plotCFrame and plotSize when it changes
+    PlayerService.PlotSizeChanged:Connect(function()
+        plotCFrame, plotSize = CalcCanvas()
+    end)
+
     --Initially grab character, and grab character when player resets
     character = (self.Player.Character or self.Player.CharacterAdded:Wait())
-    self.Player.CharacterAdded:Connect(function(newCharacter)
+    self.Player.CharacterAppearanceLoaded:Connect(function(newCharacter)
         character = newCharacter
     end)
       
