@@ -46,7 +46,6 @@ local UserInput
 local Platform
 
 --//Services
-local ContextActionService = game:GetService("ContextActionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 local HapticService = game:GetService("HapticService")
@@ -78,10 +77,10 @@ local currentMaid
 local itemRotation
 local localPosition
 local worldPosition
+local preMoveParent
 local selectedObject
 local preferredInput
 local mobileDragPosition
-local draggingStartPosition
 local initialWorldPosition
 local placementSelectionBox
 
@@ -391,6 +390,7 @@ function PlacementApi:StartPlacing(id)
         isMoving = true
 
         itemObject = id
+        preMoveParent = itemObject.Parent
         itemObject.Parent = camera
         initialWorldPosition = itemObject.PrimaryPart.CFrame
     else
@@ -547,7 +547,7 @@ function PlacementApi:StopPlacing(moveFailed)
     --Special cleanup for moving objects
     if (isMoving) then
         if (itemObject) then
-            itemObject.Parent = plotObject.Placements
+            itemObject.Parent = (preMoveParent or plotObject.Placements)
             itemObject.PrimaryPart.Transparency = 1
             ActivateCollisions()
 
@@ -565,6 +565,7 @@ function PlacementApi:StopPlacing(moveFailed)
 
     --Reset locals
     initialWorldPosition = nil
+    preMoveParent = nil
     localPosition = nil
     worldPosition = nil
     isColliding = false
