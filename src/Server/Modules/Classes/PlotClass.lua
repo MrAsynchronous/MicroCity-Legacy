@@ -95,24 +95,26 @@ function PlotClass:LoadPlacements(pseudoPlayer)
         plotSizeData.Size.Z
     )
 
-    --Iterate through all the placements
-	for objectSpace, encodedData in pairs(placementData) do
-		local decodedData = TableUtil.DecodeJSON(encodedData)
+	--Iterate through all the placements asynchronously
+	coroutine.wrap(function()
+		for objectSpace, encodedData in pairs(placementData) do
+			local decodedData = TableUtil.DecodeJSON(encodedData)
 
-		--Create new placementObject and add it to index
-		pseudoPlayer:SetPlacementObject(PlacementClass.new(
-			pseudoPlayer,
-			decodedData.ItemId,
-			CFrameSerializer:DecodeCFrame(objectSpace),
-			decodedData
-        ))
- 
-        --Load objects in triplets
-        objectsLoaded = objectsLoaded + 1;
-        if (objectsLoaded % 3 == 0) then
-            wait()
-        end
-    end
+			--Create new placementObject and add it to index
+			pseudoPlayer:SetPlacementObject(PlacementClass.new(
+				pseudoPlayer,
+				decodedData.ItemId,
+				CFrameSerializer:DecodeCFrame(objectSpace),
+				decodedData
+			))
+	
+			--Load objects in triplets
+			objectsLoaded = objectsLoaded + 1;
+			if (objectsLoaded % 3 == 0) then
+				wait()
+			end
+		end
+	end)()
     
     --Tell client that their plot has been loaded
     pseudoPlayer.IsLoaded = true

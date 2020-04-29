@@ -43,7 +43,7 @@ function PlayerService:Start()
         pseudoPlayer.PlotObject = PlotClass.new(pseudoPlayer)
 
         --Load placements, tell client plot has been loaded
-        coroutine.wrap(pseudoPlayer.PlotObject.LoadPlacements)(pseudoPlayer)
+        pseudoPlayer.PlotObject:LoadPlacements(pseudoPlayer)
 
         --Create plotValue
         local plotValue = Instance.new("ObjectValue")
