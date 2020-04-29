@@ -77,7 +77,12 @@ function PlacementClass.new(pseudoPlayer, itemId, itemPosition, saveData)
 
 	--Construct proper position
 	self.LocalPosition = self:ConstructPosition(itemPosition)
-	self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
+
+	if (saveData) then
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
+	else
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
+	end
 
 	return self
 end
@@ -109,7 +114,7 @@ function PlacementClass:Upgrade()
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
 		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
 
-		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
 	end
 end
 
@@ -134,11 +139,11 @@ end
 
 
 --//Moves ItemObject to desired cframe
-function PlacementClass:Move(itemPosition)
-	self.LocalPosition = self:ConstructPosition(itemPosition)
-	self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
+function PlacementClass:Move(localPosition)
+	self.LocalPosition = self:ConstructPosition(localPosition)
+	self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(localPosition)
 
-	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(itemPosition)
+	self.PlacedObject.PrimaryPart.CFrame = self.Plot.Main.CFrame:ToWorldSpace(localPosition)
 
 	return true
 end

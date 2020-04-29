@@ -27,6 +27,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local PlacementService
+local PlayerGui
 
 --//Controllers
 local NotificationDispatcher
@@ -35,9 +36,9 @@ local GamepadCursor
 --//Classes
 
 --//Locals
+local PlotObject
 local Particles
 
-local PlayerGui
 local PlacementSelectionQueue
 
 local selectedPlacement
@@ -137,13 +138,14 @@ function PlacementController:Start()
                 newParticle.Parent = actionData.newObject.PrimaryPart
                 newParticle.Enabled = true
 
-                actionData.newObject.PrimaryPart.CFrame = actionData.worldPosition - Vector3.new(0, actionData.newObject.PrimaryPart.Size.Y, 0)
                 local effectTween = TweenService:Create(actionData.newObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
                 effectTween:Play()
         
                 effectTween.Completed:Connect(function()
                     effectTween:Destroy()
                     newParticle:Destroy()
+
+                    PlacementService:RequestMove(actionData.newObject.Name, PlotObject.Main.CFrame:ToObjectSpace(actionData.worldPosition))
                 end)          
             end
         end
@@ -174,7 +176,6 @@ function PlacementController:Start()
             newParticle.Enabled = true
 
             --Give the tween effect
-            actionData.placedObject.PrimaryPart.CFrame = actionData.worldPosition - Vector3.new(0, actionData.placedObject.PrimaryPart.Size.Y, 0)
             local effectTween = TweenService:Create(actionData.placedObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
             effectTween:Play()
 
@@ -182,6 +183,8 @@ function PlacementController:Start()
             effectTween.Completed:Connect(function()
                 effectTween:Destroy()
                 newParticle:Destroy()
+
+                PlacementService:RequestMove(actionData.placedObject.Name, localPosition)
             end)
         end
      end)
@@ -210,6 +213,7 @@ function PlacementController:Init()
 
     --//Services
     PlacementService = self.Services.PlacementService
+    PlayerGui = self.Player:WaitForChild("PlayerGui")
 
     --//Controllers
     NotificationDispatcher = self.Controllers.NotificationDispatcher
@@ -218,7 +222,8 @@ function PlacementController:Init()
     --//Classes
 
     --//Locals
-    PlayerGui = self.Player:WaitForChild("PlayerGui")
+    PlotObject = self.Player:WaitForChild("PlotObject").Value
+
     Particles = ReplicatedStorage:WaitForChild("Items").Particles
     PlacementSelectionQueue = PlayerGui:WaitForChild("PlacementSelectionQueue")
         
