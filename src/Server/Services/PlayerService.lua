@@ -43,11 +43,7 @@ function PlayerService:Start()
         pseudoPlayer.PlotObject = PlotClass.new(pseudoPlayer)
 
         --Load placements, tell client plot has been loaded
-        coroutine.wrap(function()
-            pseudoPlayer.PlotObject:LoadPlacements(pseudoPlayer)
-
-            self:FireClientEvent("OnPlotLoadComplete", newPlayer)
-        end)()
+        coroutine.wrap(pseudoPlayer.PlotObject.LoadPlacements)(pseudoPlayer)
 
         --Create plotValue
         local plotValue = Instance.new("ObjectValue")
@@ -124,7 +120,7 @@ function PlayerService:Init()
     pseudoPlayers = {}
 
     self:RegisterClientEvent("PlotSizeChanged")
-    self:RegisterClientEvent("OnPlotLoadComplete")
+    self:RegisterClientEvent("PlotLoadCompleted")
 end
 
 

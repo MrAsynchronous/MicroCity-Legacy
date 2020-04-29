@@ -116,7 +116,8 @@ function PlotClass:LoadPlacements(pseudoPlayer)
     
     --Tell client that their plot has been loaded
     pseudoPlayer.IsLoaded = true
-	
+	PlayerService:FireClientEvent("PlotLoadCompleted", self.Player)
+
 	return true
 end
 

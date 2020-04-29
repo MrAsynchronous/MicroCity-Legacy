@@ -15,7 +15,6 @@ local ClientController = {}
 --//Api
 
 --//Services
-local PlayerService
 
 --//Controllers
 
@@ -43,7 +42,6 @@ function ClientController:Init()
     --//Api
 
     --//Services
-    PlayerService = self.Services.PlayerService
 
     --//Controllers
 

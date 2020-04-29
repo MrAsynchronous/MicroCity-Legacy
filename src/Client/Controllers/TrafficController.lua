@@ -141,7 +141,7 @@ end
 
 function TrafficController:Start()
     --Start spawning vehicles once plot is fully loaded
-    PlayerService.OnPlotLoadComplete:Connect(function()
+    PlayerService.PlotLoadCompleted:Connect(function()
         RunService:BindToRenderStep("VehicleMovement", 3, UpdateVehicles)
     end)
 end
