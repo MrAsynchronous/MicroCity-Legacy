@@ -114,11 +114,11 @@ function PlotClass:LoadPlacements(pseudoPlayer)
 				wait()
 			end
 		end
+
+		--Tell client that their plot has been loaded
+		pseudoPlayer.IsLoaded = true
+		PlayerService:FireClientEvent("PlotLoadCompleted", self.Player)
 	end)()
-    
-    --Tell client that their plot has been loaded
-    pseudoPlayer.IsLoaded = true
-	PlayerService:FireClientEvent("PlotLoadCompleted", self.Player)
 
 	return true
 end

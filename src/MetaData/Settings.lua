@@ -1,7 +1,7 @@
 return {
 
     PlayerDataToken = "PlayerData_PreAlpha_3",
-    PlayerPlacementsToken = "Placements_PreAlpha_4",  
+    PlayerPlacementsToken = "Placements_PreAlpha_4",
 
     CodesToken = "TwitterCodes_PreAlpha_1",
 

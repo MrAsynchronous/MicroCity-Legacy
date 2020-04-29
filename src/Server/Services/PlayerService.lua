@@ -18,11 +18,8 @@ local PlayerService = {Client = {}}
 
 
 --//Api
-local PromiseApi
 
 --//Services
-local PlacementService
-local PlotService
 
 --//Controllers
 
@@ -32,7 +29,6 @@ local PlotClass
 
 --//Locals
 local pseudoPlayers
-local cmdrCommand
 
 
 function PlayerService:Start()
@@ -104,11 +100,8 @@ end
 
 function PlayerService:Init()
     --//Api
-    PromiseApi = self.Shared.Promise
-    
+
     --//Services
-    PlacementService = self.Services.PlacementService
-    PlotService = self.Services.PlotService
     
     --//Controllers
     

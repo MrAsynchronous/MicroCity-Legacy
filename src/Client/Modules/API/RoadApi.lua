@@ -90,7 +90,7 @@ function RoadApi:GetStartingRoad(buildingIndex)
     local baseSize = startingBuilding.PrimaryPart.Size
 
     --Generate a new region3 and get the surrounding road parts
-    local adjacentRegion = Region3.new(basePosition - baseSize, basePosition + baseSize)
+    local adjacentRegion = Region3.new((basePosition - (baseSize / 2)) - Vector3.new(2, 0, 2), (basePosition + (baseSize / 2)) + Vector3.new(2, 0, 2))
     local adjacentParts = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Road:GetChildren(), math.huge)
     local adjacentRoads = {}
 
