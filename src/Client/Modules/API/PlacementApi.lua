@@ -140,15 +140,15 @@ end
 
 --//Smoothly shows the PlotObject's grid pattern
 local function ShowGrid()
-    plotObject.Main.Grid.Transparency = 0
-    plotObject.Main.GridDash.Transparency = 0
+    plotObject.VisualPart.Grid.Transparency = 0
+    plotObject.VisualPart.GridDash.Transparency = 0
 end
 
 
 --//Smoothly hides the plotObject's grid pattern
 local function HideGrid()
-    plotObject.Main.Grid.Transparency = 1
-    plotObject.Main.GridDash.Transparency = 1
+    plotObject.VisualPart.Grid.Transparency = 1
+    plotObject.VisualPart.GridDash.Transparency = 1
 end
 
 
@@ -232,7 +232,7 @@ end
 --//Calculates the proper CFrame and Size for the canvas
 --//Taking into consideration the rotation of the model
 local function CalcCanvas()
-	local canvasSize = plotObject.Main.Size
+	local canvasSize = plotObject.VisualPart.Size
 
 	-- want to create CFrame such that cf.lookVector == self.CanvasPart.CFrame.upVector
 	-- do this by using object space and build the CFrame
@@ -241,7 +241,7 @@ local function CalcCanvas()
 	local right = Vector3.new(-1, 0, 0)
 
 	-- convert to world space
-	local cf = plotObject.Main.CFrame * CFrame.fromMatrix(-back*canvasSize/2, right, top, back)
+	local cf = plotObject.VisualPart.CFrame * CFrame.fromMatrix(-back*canvasSize/2, right, top, back)
 	-- use object space vectors to find the width and height
 	local size = Vector2.new((canvasSize * right).magnitude, (canvasSize * top).magnitude)
 
@@ -349,7 +349,7 @@ local function UpdatePlacement(isInitialUpdate)
 
     --Calculate the worldSpace and ObjectSpace CFrame
     worldPosition = plotCFrame * CFrame.new(x, y, -modelSize.y/2) * CFrame.Angles(-math.pi/2, itemRotation, 0)
-    localPosition = plotObject.Main.CFrame:ToObjectSpace(worldPosition)
+    localPosition = plotObject.VisualPart.CFrame:ToObjectSpace(worldPosition)
 
     --Set the position of the object
     dummyPart.CFrame = worldPosition
@@ -574,8 +574,8 @@ function PlacementApi:StopPlacing(moveFailed)
     itemObject = nil
 
     --Cleanup grid
-    plotObject.Main.Grid.Transparency = 1
-    plotObject.Main.GridDash.Transparency = 1
+    plotObject.VisualPart.Grid.Transparency = 1
+    plotObject.VisualPart.GridDash.Transparency = 1
 
     --Fire placementCancelled event
     self.Events.PlacementEnded:Fire(itemId)

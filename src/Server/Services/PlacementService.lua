@@ -12,7 +12,6 @@
         public boolean RequestMove(Player player, String guid, CFrame localPosition)
         public boolean, object RequestUpgrade(Player player, String guid)
         public boolean RequestPlacement(Player player, int itemId, CFrame localPosition)
-        public void LoadPlacements(PlayerObject playerObject)
 
 ]]
 
@@ -22,8 +21,7 @@ local PlacementService = {Client = {}}
 
 --//Api
 local RoadIntersection
-local CFrameSerializer
-local TableUtil
+local GameSettings
 local Notices
 
 --//Services
@@ -39,7 +37,6 @@ local PlayerService
 local PlacementClass
 
 --//Locals
-local SELL_EXCHANGE_RATE = 40 --percent
 
 
 --[[
@@ -47,7 +44,7 @@ local SELL_EXCHANGE_RATE = 40 --percent
 ]]
 --//Places the requested object
 function PlacementService:PlaceObject(player, itemId, localPosition)
-    local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
+    local pseudoPlayer = PlayerService:GetPseudoPlayer(player) 
     local itemMetaData = MetaDataService:GetMetaData(itemId)
     local levelOneMetaData = itemMetaData.Upgrades[1]
 
@@ -58,7 +55,7 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         end)
 
         --Construct a new placementObject, hash into playerObject.Placements
-        local placementObject = PlacementClass.new(itemId, localPosition, pseudoPlayer)
+        local placementObject = PlacementClass.new(pseudoPlayer, itemId, localPosition)
         pseudoPlayer:SetPlacementObject(placementObject)
 
         --Add population of new building to players population
@@ -107,7 +104,7 @@ function PlacementService:SellPlacement(player, guid)
     --Update currencies to reflect change
     for costType, cost in pairs(refundTypes) do
         pseudoPlayer[costType]:Update(function(currentValue)
-            return currentValue + (cost * SELL_EXCHANGE_RATE)
+            return currentValue + (cost * GameSettings.BuildingBuybackRate)
         end)
     end
 
@@ -188,36 +185,6 @@ function PlacementService:MovePlacement(player, guid, localPosition)
 end
 
 
---//Handle the loading of the players placements
-function PlacementService:LoadPlacements(pseudoPlayer)
-    local placementData = pseudoPlayer.PlacementStore:Get({})
-    local objectsLoaded = 0
-
-    --Iterate through all the placements
-	for objectSpace, encodedData in pairs(placementData) do
-		local decodedData = TableUtil.DecodeJSON(encodedData)
-
-		--Create new placementObject and add it to index
-		pseudoPlayer:SetPlacementObject(PlacementClass.new(
-			decodedData.ItemId,
-			CFrameSerializer:DecodeCFrame(objectSpace),
-			pseudoPlayer,
-			decodedData
-        ))
- 
-        --Load objects in triplets
-        objectsLoaded = objectsLoaded + 1;
-        if (objectsLoaded % 3 == 0) then
-            wait()
-        end
-    end
-    
-    --Tell client that their plot has been loaded
-    pseudoPlayer.IsLoaded = true
-    self:FireClientEvent("OnPlotLoadComplete", pseudoPlayer.Player)
-end
-
-
 --[[
     Client-exposed methods
 ]]
@@ -241,8 +208,7 @@ end
 function PlacementService:Init()
     --//Api
     RoadIntersection = self.Modules.RoadIntersections
-    CFrameSerializer = self.Shared.CFrameSerializer
-    TableUtil = self.Shared.TableUtil
+    GameSettings = require(ReplicatedStorage.MetaData.Settings)
     Notices = require(ReplicatedStorage.MetaData.Notices)
 
     --//Services
@@ -256,9 +222,7 @@ function PlacementService:Init()
     PlacementClass = self.Modules.Classes.PlacementClass
 
     --//Locals	
-    SELL_EXCHANGE_RATE = SELL_EXCHANGE_RATE / 100
-
-    self:RegisterClientEvent("OnPlotLoadComplete")
+ 
 end
 
 

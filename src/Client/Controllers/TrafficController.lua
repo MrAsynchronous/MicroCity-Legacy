@@ -22,7 +22,7 @@ local RoadApi
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local PlacementService
+local PlayerService
 local MetaDataService
 
 --//Controllers
@@ -80,7 +80,7 @@ end
 
 local function UpdateVehicles()
     frameCount = frameCount + 1
-
+    
     --Update road and building index, calculate maximum vehicles
     local roads = PlotObject.Placements.Road:GetChildren()
     local buildings = PlotObject.Placements.Building:GetChildren()
@@ -141,7 +141,7 @@ end
 
 function TrafficController:Start()
     --Start spawning vehicles once plot is fully loaded
-    PlacementService.OnPlotLoadComplete:Connect(function()
+    PlayerService.OnPlotLoadComplete:Connect(function()
         RunService:BindToRenderStep("VehicleMovement", 3, UpdateVehicles)
     end)
 end
@@ -152,7 +152,7 @@ function TrafficController:Init()
     RoadApi = self.Modules.API.RoadApi
 
     --//Services
-    PlacementService = self.Services.PlacementService
+    PlayerService = self.Services.PlayerService
     MetaDataService = self.Services.MetaDataService
 
     --//Controllers

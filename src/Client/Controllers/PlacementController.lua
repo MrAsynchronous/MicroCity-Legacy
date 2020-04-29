@@ -144,7 +144,7 @@ function PlacementController:Start()
                 effectTween.Completed:Connect(function()
                     effectTween:Destroy()
                     newParticle:Destroy()
-                end)                
+                end)          
             end
         end
     end)

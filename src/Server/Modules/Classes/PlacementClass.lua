@@ -45,12 +45,12 @@ local MaidClass
 
 
 --//Constructor for PlacementClass
-function PlacementClass.new(itemId, itemPosition, playerObject, saveData)
+function PlacementClass.new(pseudoPlayer, itemId, itemPosition, saveData)
 	local self = setmetatable({
 		ItemId = itemId,
-		Plot = playerObject.PlotObject,
+		Plot = pseudoPlayer.PlotObject.Object,
 		LocalPosition = itemPosition,
-		WorldPosition = playerObject.PlotObject.Main.CFrame:ToWorldSpace(itemPosition),
+		WorldPosition = pseudoPlayer.PlotObject.Object.Main.CFrame:ToWorldSpace(itemPosition),
 
 		Level = 1,
 		Age = 0,
@@ -93,12 +93,9 @@ end
 --//Updates the level and model of the placed object
 --//Precondition: Player can afford upgrades
 function PlacementClass:Upgrade()
-	local currentLevel = self.Level
-	
-	--Increase level but clamp between minimum and maximum levels
-	self.Level = math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades)
+	if (self:CanUpgrade()) then
+		self.Level = self.Level + 1
 
-	if (self.Level > currentLevel) then
 		self.PlacedObject:Destroy()
 
 		--Replace with new model
@@ -119,18 +116,7 @@ end
 
 --//Returns the next available level
 function PlacementClass:CanUpgrade()
-	if (not self.MetaData.Upgrades) then
-		return false
-	end
-
-	local nextLevel = math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades)
-
-	--Return true if next upgrade is available, false otherwise
-	if (nextLevel > self.Level) then
-		return true
-	else
-		return false
-	end
+	return (self.MetaData.Upgrades and (math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades) > self.Level))
 end
 
 

@@ -1,18 +1,27 @@
 return {
 	ItemId = 100,
-	Cost = 25,
-	CostType = "Cash",
-	Population = 0,
 
 	Upgrades = {
 		{
 			Name = "L-Bend",
+
+			Cost = 25,
+			CostType = "Cash",
+			Population = 0,
 		},
 		{
-			Name = "3-Way Intersection"
+			Name = "3-Way Intersection",
+		
+			Cost = 25,
+			CostType = "Cash",
+			Population = 0,
 		},
 		{
-			Name = "4-Way Intersection"
+			Name = "4-Way Intersection",
+
+			Cost = 25,
+			CostType = "Cash",
+			Population = 0,
 		},
 	},
 	

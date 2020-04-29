@@ -21,6 +21,14 @@ function BuildingController:Start()
     PlayerGui = self.Player:WaitForChild("PlayerGui")
     CoreInterface = PlayerGui:WaitForChild("CoreInterface")
 
+    UserInputService.InputBegan:Connect(function(inputObject)
+        if (inputObject.KeyCode == Enum.KeyCode.One) then
+            PlacementApi:StartPlacing(4)
+        elseif (inputObject.KeyCode == Enum.KeyCode.Two) then
+            PlacementApi:StartPlacing(100)
+        end
+    end)
+
     CoreInterface.PC.PersonButton.MouseButton1Click:Connect(function()
         PlacementApi:StartPlacing(4)
     end)

@@ -7,6 +7,9 @@
 
     Handles the deposit of money to each player
 
+    Methods:
+        private void PayPlayer(Player player)
+
 ]]
 
 

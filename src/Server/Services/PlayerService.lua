@@ -28,6 +28,7 @@ local PlotService
 
 --//Classes
 local PseudoPlayerClass
+local PlotClass
 
 --//Locals
 local pseudoPlayers
@@ -37,19 +38,22 @@ local cmdrCommand
 function PlayerService:Start()
     
     game.Players.PlayerAdded:Connect(function(newPlayer)
-        --Create playerObject
-        local plotObject = PlotService:GetPlot(newPlayer)
+        --Create pseudoPlayer
         local pseudoPlayer = PseudoPlayerClass.new(newPlayer)
-        pseudoPlayer.PlotObject = plotObject
+        pseudoPlayer.PlotObject = PlotClass.new(pseudoPlayer)
+
+        --Load placements, tell client plot has been loaded
+        coroutine.wrap(function()
+            pseudoPlayer.PlotObject:LoadPlacements(pseudoPlayer)
+
+            self:FireClientEvent("OnPlotLoadComplete", newPlayer)
+        end)()
 
         --Create plotValue
         local plotValue = Instance.new("ObjectValue")
         plotValue.Name = "PlotObject"
         plotValue.Parent = newPlayer
-        plotValue.Value = plotObject
-
-        --Load placements
-        PlacementService:LoadPlacements(pseudoPlayer)
+        plotValue.Value = pseudoPlayer.PlotObject.Object
 
         --Create leaderstats
         local leaderstats = Instance.new("Folder")
@@ -115,10 +119,12 @@ function PlayerService:Init()
     
     --//Classes
     PseudoPlayerClass = self.Modules.Classes.PseudoPlayerClass
-    
+    PlotClass = self.Modules.Classes.PlotClass
+
     --//Locals
     pseudoPlayers = {}
 
+    self:RegisterClientEvent("OnPlotLoadComplete")
 end
 
 

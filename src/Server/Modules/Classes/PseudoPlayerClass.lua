@@ -57,6 +57,7 @@ local VALUE_EXCHANGE = {
 function PseudoPlayer.new(player)
 	local self = setmetatable({
 		Player = player,
+
 		Placements = {},
 		IsLoaded = false,
 		
