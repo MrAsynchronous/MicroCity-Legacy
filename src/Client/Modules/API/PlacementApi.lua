@@ -53,6 +53,7 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local PlayerGui
 
+local MetaDataService
 local PlayerService
 
 --//Controllers
@@ -75,6 +76,7 @@ local isDragging
 local isColliding
 local currentMaid
 local itemRotation
+local itemMetaData
 local localPosition
 local worldPosition
 local preMoveParent
@@ -83,6 +85,7 @@ local preferredInput
 local mobileDragPosition
 local initialWorldPosition
 local placementSelectionBox
+local positionChangedSignal
 
 --Ui
 local PlacementInterface
@@ -347,7 +350,12 @@ local function UpdatePlacement(isInitialUpdate)
 	y = math.sign(y)*((math.abs(y) - math.abs(y) % GRID_SIZE) + (size2.y % GRID_SIZE))
 
     --Calculate the worldSpace and ObjectSpace CFrame
-    worldPosition = plotCFrame * CFrame.new(x, y, -modelSize.y/2) * CFrame.Angles(-math.pi/2, itemRotation, 0)
+    local newWorldPosition = plotCFrame * CFrame.new(x, y, -modelSize.y/2) * CFrame.Angles(-math.pi/2, itemRotation, 0)
+    if (worldPosition and (newWorldPosition ~= worldPosition)) then
+        self.Events.PositionChanged:Fire(newWorldPosition)
+    end
+
+    worldPosition = newWorldPosition
     localPosition = plotObject.VisualPart.CFrame:ToObjectSpace(worldPosition)
 
     --Set the position of the object
@@ -388,8 +396,9 @@ function PlacementApi:StartPlacing(id)
     --If placementObject is a valid arg, player is moving object
     if (type(id) == "userdata") then
         isMoving = true
-
         itemObject = id
+
+        itemId = PlayerService:GetItemIdFromGuid(itemObject.Name)
         preMoveParent = itemObject.Parent
         itemObject.Parent = camera
         initialWorldPosition = itemObject.PrimaryPart.CFrame
@@ -400,6 +409,9 @@ function PlacementApi:StartPlacing(id)
         itemObject.Parent = camera
         itemId = id
     end
+
+    --Localize metadata
+    itemMetaData = MetaDataService:GetMetaData(itemId)
 
     --Create dummy part,used for checking collisions
     dummyPart = itemObject.PrimaryPart:Clone()
@@ -427,13 +439,26 @@ function PlacementApi:StartPlacing(id)
         --Handle keybinds
         currentMaid:GiveTask(gamePad.ButtonDown:Connect(function(keyCode)
             if (keyCode == CONSOLE_PLACE_BIND) then
-                PlaceObject()
-                
+                if (isMoving) then
+                    PlaceObject()
+                elseif ((not isMoving) and itemMetaData.Type == "Road") then
+                    positionChangedSignal = self.PositionChanged:Connect(function(newPosition)
+                        PlaceObject()
+                    end)
+                end
             elseif (keyCode == CONSOLE_ROTATE_BIND or keyCode == CONSOLE_ROTATE_ALT_BIND) then
                 RotateObject(keyCode)
 
             elseif (keyCode == CONSOLE_STOP_BIND) then
                 self:StopPlacing(true)
+            end
+        end))
+
+        currentMaid:GiveTask(gamePad.ButtonUp:Connect(function(keyCode)
+            if (keyCode == CONSOLE_PLACE_BIND) then
+                if (positionChangedSignal) then
+                    positionChangedSignal:Disconnect()
+                end
             end
         end))
     elseif (preferredInput == UserInput.Preferred.Touch) then
@@ -500,7 +525,19 @@ function PlacementApi:StartPlacing(id)
 
         --Detect placement key bind
         currentMaid:GiveTask(mouse.LeftDown:Connect(function()
-            PlaceObject()
+            if (isMoving) then
+                PlaceObject()
+            elseif ((not isMoving) and itemMetaData.Type == "Road") then
+                positionChangedSignal = self.PositionChanged:Connect(function(newPosition)
+                    PlaceObject()
+                end)
+            end
+        end))
+
+        currentMaid:GiveTask(mouse.LeftUp:Connect(function()
+            if (positionChangedSignal) then
+                positionChangedSignal:Disconnect()
+            end
         end))
 
         --Handle other keybinds
@@ -563,11 +600,17 @@ function PlacementApi:StopPlacing(moveFailed)
     --Destroy dummyPart
     if (dummyPart) then dummyPart:Destroy() end
 
+    --Disconnect positionChangedSignal
+    if (positionChangedSignal) then
+        positionChangedSignal:Disconnect()
+    end
+
     --Reset locals
     initialWorldPosition = nil
     preMoveParent = nil
     localPosition = nil
     worldPosition = nil
+    itemMetaData = nil
     isColliding = false
     isMoving = false
     itemId = 0
@@ -637,6 +680,7 @@ function PlacementApi:Init()
     Platform = self.Shared.Platform
     
     --//Services
+    MetaDataService = self.Services.MetaDataService
     PlayerService = self.Services.PlayerService
     
     --//Controllers
@@ -654,6 +698,7 @@ function PlacementApi:Init()
     self.Events = {}
     self.Events.PlacementSelectionStarted = Instance.new("BindableEvent")
     self.Events.PlacementSelectionEnded = Instance.new("BindableEvent")
+    self.Events.PositionChanged = Instance.new("BindableEvent")
     self.Events.PlacementEnded = Instance.new("BindableEvent")
     self.Events.PlacementBegan = Instance.new("BindableEvent")
     self.Events.ObjectPlaced = Instance.new("BindableEvent")
@@ -663,6 +708,7 @@ function PlacementApi:Init()
     self.ObjectPlaced = self.Events.ObjectPlaced.Event
     self.PlacementBegan = self.Events.PlacementBegan.Event
     self.PlacementEnded = self.Events.PlacementEnded.Event
+    self.PositionChanged = self.Events.PositionChanged.Event
     self.PlacementSelectionEnded = self.Events.PlacementSelectionEnded.Event
     self.PlacementSelectionStarted = self.Events.PlacementSelectionStarted.Event
 end

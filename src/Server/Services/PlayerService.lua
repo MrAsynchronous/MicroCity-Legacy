@@ -84,6 +84,19 @@ function PlayerService:Start()
 end
 
 
+--//Client patch for GetItemIdFromGuid
+function PlayerService.Client:GetItemIdFromGuid(...)
+    return self.Server:GetItemIdFromGuid(...)
+end
+
+
+--//Returns the ItemId from the given guid
+function PlayerService:GetItemIdFromGuid(player, guid)
+    local pseudoPlayer = self:GetPseudoPlayer(player)
+    return pseudoPlayer:GetPlacementObject(guid).ItemId
+end
+
+
 --//Returns the PlayerObject associated with Player
 function PlayerService:GetPseudoPlayer(player)
     return pseudoPlayers[player]
