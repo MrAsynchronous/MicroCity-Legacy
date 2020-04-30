@@ -525,7 +525,7 @@ function PlacementApi:StartPlacing(id)
 
         --Detect placement key bind
         currentMaid:GiveTask(mouse.LeftDown:Connect(function()
-            if (isMoving) then
+            if (isMoving or itemMetaData.Type ~= "Road") then
                 PlaceObject()
             elseif ((not isMoving) and itemMetaData.Type == "Road") then
                 positionChangedSignal = self.PositionChanged:Connect(function(newPosition)

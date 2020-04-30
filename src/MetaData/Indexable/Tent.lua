@@ -1,25 +1,30 @@
 return {
-
 	ItemId = 2,
-	Cost = 50,
-	CostType = "Cash",
-	Population = 1,
-	
+	Name = script.Name,
+
 	Upgrades ={	
 		{
 			Name = "Small Trailor",
 			Cost = 100,
 			CostType = "Cash",
-			PopulationBoost = 1.5
+
+			Population = 1
+		},
+		{
+			Name = "Small Trailor",
+			Cost = 100,
+			CostType = "Cash",
+
+			Population = 1
 		},
 		{
 			Name = "Large Trailor",
 			Cost = 200,
 			CostType = "Exp",
-			PopulationBoost = 2
+
+			Population = 2
 		}
 	},
 	
-	Name = script.Name,
 	Type = "Building",	
 }

@@ -23,8 +23,14 @@ function BuildingController:Start()
 
     UserInputService.InputBegan:Connect(function(inputObject)
         if (inputObject.KeyCode == Enum.KeyCode.One) then
-            PlacementApi:StartPlacing(4)
+            PlacementApi:StartPlacing(1)
         elseif (inputObject.KeyCode == Enum.KeyCode.Two) then
+            PlacementApi:StartPlacing(2)
+        elseif (inputObject.KeyCode == Enum.KeyCode.Three) then
+            PlacementApi:StartPlacing(3)
+        elseif (inputObject.KeyCode == Enum.KeyCode.Four) then
+            PlacementApi:StartPlacing(4)
+        elseif (inputObject.KeyCode == Enum.KeyCode.Five) then
             PlacementApi:StartPlacing(100)
         end
     end)

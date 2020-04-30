@@ -3,6 +3,6 @@ return {
     Speed = 0.05,
     SoundId = "rbxassetid://4870274018",
 
-    Name = script.Parent,
+    Name = script.Name,
     Type = "Vehicle"
 }

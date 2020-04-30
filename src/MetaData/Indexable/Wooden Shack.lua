@@ -1,23 +1,31 @@
 return {
 	
 	ItemId = 1,
-	Cost = 50,
-	CostType = "Cash",
-	Population = 1,
+	Name = script.Name,
 	
 	Upgrades ={	
 		{
 			Name = "Wooden Shack with Porch",
+			Cost = 50,
+			CostType = "Cash",
+
+			Population = 1,
+		},
+		{
+			Name = "Wooden Shack with Porch",
 			Cost = 150,
-			CostType = "Cash"
+			CostType = "Cash",
+
+			Population = 1,
 		},
 		{
 			Name = "Wooden House",
 			Cost = 300,
-			CostType = "Exp"
+			CostType = "Exp",
+
+			Population = 1,
 		}
 	},
 	
-	Name = script.Name,
 	Type = "Building",
 }
