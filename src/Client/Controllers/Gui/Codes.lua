@@ -1,5 +1,5 @@
 -- Codes
--- Username
+-- MrAsync
 -- May 7, 2020
 
 
@@ -12,15 +12,26 @@ local Codes = {}
 local PlayerGui
 
 --//Controllers
+local NavigationController
 
 --//Classes
+local GuiClass
 
 --//Locals
 local CodesGui
-
+local GuiObject
 
 function Codes:Start()
-    CodesGui.Enabled = false
+    if (not NavigationController:HasLoaded()) then
+        NavigationController.IsLoaded:Wait()
+    end
+
+    CodesGui = PlayerGui.Codes
+    GuiObject = GuiClass.new(CodesGui)
+
+    NavigationController.CodesButtonClicked:Connect(function()
+        GuiObject:ChangeVisibility()
+    end)
 end
 
 
@@ -31,11 +42,12 @@ function Codes:Init()
      PlayerGui = self.Player.PlayerGui
 
     --//Controllers
+    NavigationController = self.Controllers.Gui.Navigation
 
     --//Classes
+    GuiClass = self.Modules.Classes.GuiClass
 
     --//Locals
-    CodesGui = PlayerGui.Codes
 
 end
 

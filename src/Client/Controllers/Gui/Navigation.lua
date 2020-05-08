@@ -24,49 +24,51 @@ local PlayerGui
 --//Controllers
 
 --//Classes
+local GuiClass
 
 --//Locals
-local NavigationGui
-local PcContainer
-local MobileContainer
+local isLoaded = false
 
 
 function Navigation:Start()
-    if (UserInput:GetPreferremd() == UserInput.Preferred.Touch) then
+    local NavigationGui = PlayerGui.Navigation
+    local PcContainer = NavigationGui.PC
+
+    local PcGuiObject =  GuiClass.new(PcContainer, true)
+
+    if (UserInput:GetPreferred() == UserInput.Preferred.Touch) then
         print("MOBILE")
     else
         for _, button in pairs(PcContainer.Buttons:GetChildren()) do
             if (not button:IsA("Frame")) then continue end
 
-            local defaultSize = button.Button.Size
-            local hoverSize = UDim2.new(defaultSize.X.Scale * 1.2, 0, defaultSize.Y.Scale * 1.2, 0)
-            local clickSize = UDim2.new(defaultSize.X.Scale * 0.85, 0, defaultSize.Y.Scale * 0.85, 0)
+            --Create bindableEvent
+            local appendedName = button.Name .. "ButtonClicked"
+            self.Events[appendedName] = Instance.new("BindableEvent")
+            self[appendedName] = self.Events[appendedName].Event
 
-            button.MouseEnter:Connect(function()
-                button.Button:TweenSize(hoverSize, "Out", "Quint", 0.1, true)
-            end)
-
-            button.MouseLeave:Connect(function()
-                button.Button:TweenSize(defaultSize, "In", "Quint", 0.1, true)
-            end)
-
-            button.Button.MouseButton1Down:Connect(function()
-                button.Button:TweenSize(clickSize, "Out", "Quint", 0.1, true)
-            end)
-
-            button.Button.MouseButton1Up:Connect(function()
-                button.Button:TweenSize(hoverSize, "In", "Quint", 0.1, true)
-            end)
-
-            button.Button.MouseButton1Click:Connect(function()
-                self.Events.ButtonClicked:Fire(button.Name)
+            --Fire corresponding event when button is clicked
+            PcGuiObject:BindButton(button, function()
+                self.Events[appendedName]:Fire()
             end)
         end
     end 
+
+    isLoaded = true
+    self.Events.IsLoaded:Fire()
+end
+
+
+function Navigation:HasLoaded()
+    return isLoaded
 end
 
 
 function Navigation:Init()
+    if (not game:IsLoaded()) then
+        game.IsLoaded:Wait()
+    end
+
     --//Api
     UserInput = self.Controllers.UserInput
 
@@ -76,13 +78,12 @@ function Navigation:Init()
     --//Controllers
 
     --//Classes
+    GuiClass = self.Modules.Classes.GuiClass
 
     --//Locals
-    PcContainer = PlayerGui.Navigation.PC
-
     self.Events = {}
-    self.Events.ButtonClicked = Instance.new("BindableEvent")
-    self.ButtonClicked = self.Events.ButtonClicked.Event
+    self.Events.IsLoaded = Instance.new("BindableEvent")
+    self.IsLoaded = self.Events.IsLoaded.Event
 
 end
 

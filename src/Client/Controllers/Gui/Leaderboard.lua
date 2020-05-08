@@ -72,6 +72,9 @@ end
 
 
 function Leaderboard:Start()
+    LeaderboardGui = PlayerGui.Leaderboard
+    TemplateGui = ReplicatedStorage.UserInterface.Resources.LeaderboardTemplate
+    
     LeaderboardGui.Container.Position = UDim2.new(1, 0, 0, -36)
 
     --Hide UI on mobile devices
@@ -116,16 +119,14 @@ function Leaderboard:Init()
     MoneyLib = self.Shared.MoneyLib
 
     --//Services
-    PlayerGui = self.Player:WaitForChild("PlayerGui")
+    PlayerGui = self.Player.PlayerGui
 
     --//Controllers
 
     --//Classes
     MaidClass = self.Shared.Maid
-
+ 
     --//Locals
-    LeaderboardGui = PlayerGui:WaitForChild("Leaderboard")
-    TemplateGui = LeaderboardGui.Container:WaitForChild("Template")
 
 end
 
