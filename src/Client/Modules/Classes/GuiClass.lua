@@ -26,12 +26,15 @@ local MaidClass
 local CLOSED_POSITION = UDim2.new(0.5, 0, 1, 0)
 local CLOSED_SIZE = UDim2.new(0, 0, 0, 0)
 
+local TWEEN_LENGTH = 0.25
+
 
 --//Constructor
 function GuiClass.new(guiObject, isVisible)
     local self = setmetatable({
         Object = guiObject,
         IsVisible = false,
+        IsTweening = false,
 
         _Maid = MaidClass.new()
     }, GuiClass)
@@ -41,7 +44,7 @@ function GuiClass.new(guiObject, isVisible)
         self.Container = guiObject
     end
 
-    IsVisible = isVisible
+    self.IsVisible = isVisible
     self.Container.Visible = isVisible
 
     self.OriginalSize = self.Container.Size
@@ -78,19 +81,19 @@ function GuiClass:BindButton(buttonObject, callback)
     local clickSize = UDim2.new(defaultSize.X.Scale * 0.85, 0, defaultSize.Y.Scale * 0.85, 0)
 
     self._Maid:GiveTask(buttonObject.MouseEnter:Connect(function()
-        buttonObject.Button:TweenSize(hoverSize, "Out", "Quint", 0.25, true)
+        buttonObject.Button:TweenSize(hoverSize, "Out", "Quint", 0.1, true)
     end))
 
     self._Maid:GiveTask(buttonObject.MouseLeave:Connect(function()
-        buttonObject.Button:TweenSize(defaultSize, "In", "Quint", 0.25, true)
+        buttonObject.Button:TweenSize(defaultSize, "In", "Quint", 0.1, true)
     end))
 
     self._Maid:GiveTask(buttonObject.Button.MouseButton1Down:Connect(function()
-        buttonObject.Button:TweenSize(clickSize, "Out", "Quint", 0.25, true)
+        buttonObject.Button:TweenSize(clickSize, "Out", "Quint", 0.1, true)
     end))
 
     self._Maid:GiveTask(buttonObject.Button.MouseButton1Up:Connect(function()
-        buttonObject.Button:TweenSize(hoverSize, "In", "Quint", 0.25, true)
+        buttonObject.Button:TweenSize(hoverSize, "In", "Quint", 0.1, true)
     end))
 
     self._Maid:GiveTask(buttonObject.Button.MouseButton1Click:Connect(function()
@@ -107,6 +110,7 @@ end
 
 --//Receives the isVisible bool from controller, shows or hides GUI according to inverse boolean
 function GuiClass:ChangeVisibility()
+    if (self.IsTweening) then return end
     self.IsVisible = not self.IsVisible
 
     if (self.IsVisible) then
@@ -114,21 +118,24 @@ function GuiClass:ChangeVisibility()
     else
         self:Hide()
     end
-
-    return self.IsVisible
 end
 
 
 --//Shows the GUI
 function GuiClass:Show()
     self.Container.Visible = true
-    self.Container:TweenSizeAndPosition(self.OriginalSize, self.OriginalPosition, "Out", "Quint", .25, true)
+    self.IsTweening = true
+    self.Container:TweenSizeAndPosition(self.OriginalSize, self.OriginalPosition, "Out", "Quint", TWEEN_LENGTH, true, function()
+        self.IsTweening = false
+    end)
 end
 
 
 --//Hides the GUI
 function GuiClass:Hide()
-    self.Container:TweenSizeAndPosition(CLOSED_SIZE, CLOSED_POSITION, "Out", "Quint", .25, true, function()
+    self.IsTweening = true
+    self.Container:TweenSizeAndPosition(CLOSED_SIZE, CLOSED_POSITION, "Out", "Quint", TWEEN_LENGTH, true, function()
+        self.IsTweening = false
         self.Container.Visible = false
     end)
 end

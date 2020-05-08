@@ -33,12 +33,14 @@ local isLoaded = false
 function Navigation:Start()
     local NavigationGui = PlayerGui.Navigation
     local PcContainer = NavigationGui.PC
-
-    local PcGuiObject =  GuiClass.new(PcContainer, true)
+    local MobileContainer
 
     if (UserInput:GetPreferred() == UserInput.Preferred.Touch) then
+        local MobileGuiObject
         print("MOBILE")
     else
+        local PcGuiObject = GuiClass.new(PcContainer, true)
+
         for _, button in pairs(PcContainer.Buttons:GetChildren()) do
             if (not button:IsA("Frame")) then continue end
 

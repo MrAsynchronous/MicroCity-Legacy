@@ -9,18 +9,9 @@
 local BuildingController = {}
 
 local UserInputService = game:GetService("UserInputService")
-
-local NotificationDispatch
-local CodeService
-
-local PlayerGui
-local CoreInterface
 local PlacementApi
 
 function BuildingController:Start()
-    PlayerGui = self.Player:WaitForChild("PlayerGui")
-    CoreInterface = PlayerGui:WaitForChild("CoreInterface")
-
     UserInputService.InputBegan:Connect(function(inputObject)
         if (inputObject.KeyCode == Enum.KeyCode.One) then
             PlacementApi:StartPlacing(1)
@@ -33,16 +24,6 @@ function BuildingController:Start()
         elseif (inputObject.KeyCode == Enum.KeyCode.Five) then
             PlacementApi:StartPlacing(100)
         end
-    end)
-
-    CoreInterface.PC.PersonButton.MouseButton1Click:Connect(function()
-        PlacementApi:StartPlacing(4)
-    end)
-
-    CoreInterface.PC.MenuButton.MouseButton1Click:Connect(function()
-        local returnData = CodeService:RedeemCode("RELEASE")
-
-        NotificationDispatch:Dispatch(returnData.noticeObject)
     end)
 end
 

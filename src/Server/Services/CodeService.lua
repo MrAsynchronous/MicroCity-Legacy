@@ -97,6 +97,13 @@ end
 
 --//Calls server-sided TryCode method
 function CodeService.Client:RedeemCode(player, input)
+    if ((not input) or (input == "") or (input == "Enter Code Here")) then
+        return {
+            wasSucess = false,
+            noticeObject = self.Server.Notices.codeInvalid
+        }
+    end
+
     return self.Server:TryCode(player, input)
 end
 

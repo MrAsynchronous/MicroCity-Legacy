@@ -74,8 +74,6 @@ end
 function Leaderboard:Start()
     LeaderboardGui = PlayerGui.Leaderboard
     TemplateGui = ReplicatedStorage.UserInterface.Resources.LeaderboardTemplate
-    
-    LeaderboardGui.Container.Position = UDim2.new(1, 0, 0, -36)
 
     --Hide UI on mobile devices
     if (UserInput:GetPreferred() == UserInput.Preferred.Touch) then
