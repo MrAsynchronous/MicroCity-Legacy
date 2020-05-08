@@ -7,6 +7,9 @@
 
     Handles the core gui (sidebar and mobile topbar)
 
+    Events:
+        ButtonClicked -> String buttonName
+
 ]]
 
 
@@ -16,8 +19,6 @@ local Navigation = {}
 local UserInput
 
 --//Services
-local StarterGui = game:GetService("StarterGui")
-
 local PlayerGui
 
 --//Controllers
@@ -31,9 +32,7 @@ local MobileContainer
 
 
 function Navigation:Start()
-    StarterGui:SetCore("TopbarEnabled", false)
-
-    if (UserInput:GetPreferred() == UserInput.Preferred.Touch) then
+    if (UserInput:GetPreferremd() == UserInput.Preferred.Touch) then
         print("MOBILE")
     else
         for _, button in pairs(PcContainer.Buttons:GetChildren()) do
@@ -58,6 +57,10 @@ function Navigation:Start()
             button.Button.MouseButton1Up:Connect(function()
                 button.Button:TweenSize(hoverSize, "In", "Quint", 0.1, true)
             end)
+
+            button.Button.MouseButton1Click:Connect(function()
+                self.Events.ButtonClicked:Fire(button.Name)
+            end)
         end
     end 
 end
@@ -68,15 +71,18 @@ function Navigation:Init()
     UserInput = self.Controllers.UserInput
 
     --//Services
-    PlayerGui = self.Player:WaitForChild("PlayerGui")
+    PlayerGui = self.Player.PlayerGui
 
     --//Controllers
 
     --//Classes
 
     --//Locals
-    NavigationGui = PlayerGui:WaitForChild("Navigation")
-    PcContainer = NavigationGui:WaitForChild("PC")
+    PcContainer = PlayerGui.Navigation.PC
+
+    self.Events = {}
+    self.Events.ButtonClicked = Instance.new("BindableEvent")
+    self.ButtonClicked = self.Events.ButtonClicked.Event
 
 end
 
