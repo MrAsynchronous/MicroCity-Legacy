@@ -32,7 +32,6 @@ local pseudoPlayers
 
 
 function PlayerService:Start()
-    
     game.Players.PlayerAdded:Connect(function(newPlayer)
         --Create pseudoPlayer
         local pseudoPlayer = PseudoPlayerClass.new(newPlayer)
@@ -127,6 +126,7 @@ function PlayerService:Init()
 
     self:RegisterClientEvent("PlotSizeChanged")
     self:RegisterClientEvent("PlotLoadCompleted")
+    self:RegisterClientEvent("GameSettingsLoaded")
 end
 
 

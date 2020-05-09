@@ -1,5 +1,4 @@
 return {
-
     PlayerDataToken = "PlayerData_PreAlpha_3",
     PlayerPlacementsToken = "Placements_PreAlpha_5",
 
@@ -10,5 +9,13 @@ return {
 
     BuildingBuybackRate = 40    /   100,
 
-    CodeUpdateInterval = 240
+    CodeUpdateInterval = 240,
+
+    DefaultSettings = {
+        SoundFx = true,
+        Music = true,
+        Vehicles = true,
+        Blur = true,
+        SmoothDrag = true
+    }
 }
