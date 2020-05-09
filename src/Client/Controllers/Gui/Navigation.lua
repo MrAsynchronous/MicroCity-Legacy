@@ -35,6 +35,10 @@ function Navigation:Start()
     local PcContainer = NavigationGui.PC
     local MobileContainer
 
+    --Create bindableEvent
+    self.Events.ButtonClicked = Instance.new("BindableEvent")
+    self.ButtonClicked = self.Events.ButtonClicked.Event
+
     if (UserInput:GetPreferred() == UserInput.Preferred.Touch) then
         local MobileGuiObject
         print("MOBILE")
@@ -52,6 +56,7 @@ function Navigation:Start()
             --Fire corresponding event when button is clicked
             PcGuiObject:BindButton(button, function()
                 self.Events[appendedName]:Fire()
+                self.Events.ButtonClicked:Fire(button.Name)
             end)
         end
     end 

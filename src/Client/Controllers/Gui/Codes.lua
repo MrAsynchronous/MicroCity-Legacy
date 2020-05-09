@@ -18,7 +18,7 @@ local CodeService
 local NavigationController
 
 --//Classes
-local GuiClass  
+local GuiClass
 
 --//Locals
 local DEFAULT_INPUTBOX_MESSAGE = "Enter Code Here"
