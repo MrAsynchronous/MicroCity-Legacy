@@ -57,6 +57,7 @@ local MetaDataService
 local PlayerService
 
 --//Controllers
+local SettingsController
 
 --//Classes
 local Maid
@@ -362,7 +363,7 @@ local function UpdatePlacement(isInitialUpdate)
     dummyPart.CFrame = worldPosition
 
     --Immedietely snap itemObject to proper position
-    if (isInitialUpdate == true) then
+    if (isInitialUpdate == true or (not SettingsController.SmoothDrag.Enabled)) then
         itemObject.PrimaryPart.CFrame = worldPosition
     else
         itemObject.PrimaryPart.CFrame = itemObject.PrimaryPart.CFrame:Lerp(worldPosition, DAMPENING_SPEED)
@@ -684,6 +685,7 @@ function PlacementApi:Init()
     PlayerService = self.Services.PlayerService
     
     --//Controllers
+    SettingsController = self.Controllers.Gui.Settings
     
     --//Classes
     Maid = self.Shared.Maid

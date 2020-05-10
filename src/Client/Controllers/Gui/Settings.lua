@@ -67,7 +67,7 @@ function Settings:Start()
             SettingsService:ChangeSetting(settingFrame.Name, newValue)
 
             --Quality of life aesthetic feature (only change when settings gui is active)
-            if (settingFrame.Name == "Blur" and GuiObject.Visible) then
+            if (settingFrame.Name == "Blur" and SettingsGui.Container.Visible) then
                 workspace.CurrentCamera.Blur.Enabled = newValue
             end
         end)
