@@ -21,6 +21,8 @@ local UserInput
 --//Services
 local PlayerGui
 
+local PlayerService
+
 --//Controllers
 
 --//Classes
@@ -81,6 +83,8 @@ function Navigation:Init()
 
     --//Services
     PlayerGui = self.Player.PlayerGui
+
+    PlayerService = self.Services.PlayerService
 
     --//Controllers
 

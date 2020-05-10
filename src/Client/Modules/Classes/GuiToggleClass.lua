@@ -11,6 +11,7 @@
         public Toggle()
         public Enable()
         public Disable()
+        public ToggleToBoolean()
 
 ]]
 
@@ -32,21 +33,19 @@ local EASING_DIRECTION = Enum.EasingDirection.Out
 
 
 --//Constuctor for guiToggleClass
-function GuiToggleClass.new(guiObject)
+function GuiToggleClass.new(guiObject, isEnabled)
     local self = setmetatable({
         Object = guiObject,
-        Enabled = true,
+        Enabled = isEnabled,
 
-        _Changed = Instance.new("BindableEvent")
+        _Toggled = Instance.new("BindableEvent")
     }, GuiToggleClass)
 
     --Setup event
-    self.Changed = self._Changed.Event
+    self.Toggled = self._Toggled.Event
 
-    --If setting is disable by default, edit settings
-    if (guiObject.Button.Position == INACTIVE_TOGGLE_POSITION) then
-        self.Enabled = false
-        self.Object.Background.ImageColor3 = INACTIVE_TOGGLE_COLOR
+    if (not self.Enabled) then
+        self:Disable()
     end
 
     self.Object.Button.MouseButton1Click:Connect(function()
@@ -82,8 +81,10 @@ function GuiToggleClass:Enable()
         colorTween:Destroy()
     end)
 
-    self.Object.Button:TweenPosition(ACTIVE_TOGGLE_POSITION, EASING_DIRECTION, EASING_STYLE, .25, true)
+    self.Object.Button:TweenPosition(ACTIVE_TOGGLE_POSITION, EASING_DIRECTION, EASING_STYLE, 0.25, true)
     colorTween:Play()
+
+    self._Toggled:Fire(self.Enabled)
 end
 
 
@@ -96,8 +97,20 @@ function GuiToggleClass:Disable()
         colorTween:Destroy()
     end)
 
-    self.Object.Button:TweenPosition(INACTIVE_TOGGLE_POSITION, EASING_DIRECTION, EASING_STYLE, .25, true)
+    self.Object.Button:TweenPosition(INACTIVE_TOGGLE_POSITION, EASING_DIRECTION, EASING_STYLE, 0.25, true)
     colorTween:Play()
+
+    self._Toggled:Fire(self.Enabled)
+end
+
+
+--//Sets the state of the toggle to the passed boolean
+function GuiToggleClass:SetState(isEnabled)
+    if (isEnabled) then
+        self:Enable()
+    else
+        self:Disable()
+    end
 end
 
 

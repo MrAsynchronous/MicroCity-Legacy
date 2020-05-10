@@ -26,6 +26,7 @@ local PlayerService
 local MetaDataService
 
 --//Controllers
+local SettingsController
 
 --//Classes
 local QueueClass
@@ -79,6 +80,16 @@ end
 
 
 local function UpdateVehicles()
+    if (not SettingsController.Vehicles.Enabled) then 
+        for i, vehicleTable in pairs(spawnedVehicles) do
+            vehicleTable.Model:Destroy()
+
+            table.remove(spawnedVehicles, i)
+        end
+
+        return
+    end
+
     frameCount = frameCount + 1
     
     --Update road and building index, calculate maximum vehicles
@@ -156,6 +167,7 @@ function TrafficController:Init()
     MetaDataService = self.Services.MetaDataService
 
     --//Controllers
+    SettingsController = self.Controllers.Gui.Settings
 
     --//Classes
     QueueClass = self.Shared.Queue

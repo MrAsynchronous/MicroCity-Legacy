@@ -10,12 +10,4 @@ return {
     BuildingBuybackRate = 40    /   100,
 
     CodeUpdateInterval = 240,
-
-    DefaultSettings = {
-        SoundFx = true,
-        Music = true,
-        Vehicles = true,
-        Blur = true,
-        SmoothDrag = true
-    }
 }

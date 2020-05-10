@@ -18,8 +18,10 @@ local PlayerService = {Client = {}}
 
 
 --//Api
+local PlayerDataApi
 
 --//Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 --//Controllers
 
@@ -89,6 +91,19 @@ function PlayerService.Client:GetItemIdFromGuid(...)
 end
 
 
+--//Client patch for GetSettings
+function PlayerService.Client:GetSettings(...)
+    return self.Server:GetSettings(...)
+end
+
+
+--//Returns the current settings array for given player
+function PlayerService:GetSettings(player)
+    local pseudoPlayer = self:GetPseudoPlayer(player)
+    return pseudoPlayer.Settings:Get(PlayerDataApi.Settings)
+end
+
+
 --//Returns the ItemId from the given guid
 function PlayerService:GetItemIdFromGuid(player, guid)
     local pseudoPlayer = self:GetPseudoPlayer(player)
@@ -112,6 +127,7 @@ end
 
 function PlayerService:Init()
     --//Api
+    PlayerDataApi = require(ReplicatedStorage.MetaData.Player)
 
     --//Services
     

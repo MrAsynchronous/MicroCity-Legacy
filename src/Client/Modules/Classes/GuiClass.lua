@@ -19,6 +19,9 @@
 local GuiClass = {}
 GuiClass.__index = GuiClass
 
+--//Controllers
+local SettingsController
+
 --//Classes
 local MaidClass
 
@@ -128,6 +131,11 @@ function GuiClass:Show()
     self.Container:TweenSizeAndPosition(self.OriginalSize, self.OriginalPosition, "Out", "Quint", TWEEN_LENGTH, true, function()
         self.IsTweening = false
     end)
+
+    --Settings permitting, enable blur
+    if (SettingsController.Blur.Enabled) then
+        workspace.CurrentCamera.Blur.Enabled = true
+    end
 end
 
 
@@ -138,6 +146,8 @@ function GuiClass:Hide()
         self.IsTweening = false
         self.Container.Visible = false
     end)
+
+    workspace.CurrentCamera.Blur.Enabled = false
 end
 
 
@@ -148,6 +158,9 @@ end
 
 
 function GuiClass:Init()
+    --//Controllers
+    SettingsController = self.Controllers.Gui.Settings
+
     --//Classes
     MaidClass = self.Shared.Maid
 

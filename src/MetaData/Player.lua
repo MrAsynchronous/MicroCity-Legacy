@@ -10,6 +10,13 @@ return {
     Exp = 0,
 
     CodesUsed = {},
+    Settings = {
+        SoundFx = true,
+        Music = true,
+        Vehicles = true,
+        Blur = true,
+        SmoothDrag = true
+    },
 
     TotalVisits = 0,
     TotalTimePlayed = 0,
