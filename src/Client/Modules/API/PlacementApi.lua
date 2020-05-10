@@ -449,9 +449,9 @@ function PlacementApi:StartPlacing(id)
         --Handle keybinds
         currentMaid:GiveTask(gamePad.ButtonDown:Connect(function(keyCode)
             if (keyCode == CONSOLE_PLACE_BIND) then
-                if (isMoving or itemMetaData.Type ~= "Road") then
-                    PlaceObject()
-                elseif ((not isMoving) and itemMetaData.Type == "Road") then
+                PlaceObject()
+                
+                if ((not isMoving) and itemMetaData.Type == "Road") then
                     positionChangedSignal = self.PositionChanged:Connect(function(newPosition)
                         PlaceObject()
                     end)
@@ -499,7 +499,7 @@ function PlacementApi:StartPlacing(id)
                 isDragging = false
                 UserInputService.MouseIconEnabled = true
             end
-        end))        
+        end)) 
 
         --When touch input changes and user is dragging, update mobileDragPosition
         currentMaid:GiveTask(UserInputService.InputChanged:Connect(function(input)
@@ -545,6 +545,8 @@ function PlacementApi:StartPlacing(id)
         end))
 
         currentMaid:GiveTask(mouse.LeftUp:Connect(function()
+            PlaceObject()
+
             if (positionChangedSignal) then
                 positionChangedSignal:Disconnect()
             end

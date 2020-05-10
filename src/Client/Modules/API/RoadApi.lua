@@ -58,6 +58,9 @@ local function GetAdjacentRoads(currentRoad, lastRoad)
         local orientation = math.abs(model.PrimaryPart.Orientation.Y)
         local positionDifference = roadPosition - position
 
+        if ((roadPosition.X == position.X and roadPosition.Z ~= position.Z) and roadOrientation == orientation) then continue end
+        if ((roadPosition.Z == position.Z and roadPosition.X ~= roadPosition.X) and roadOrientation == orientation) then continue end
+
         --Only add model if model is not currentRoad model is not already in index, and if it is directly adjacent with a tolerance of .25 studs
         if ((model ~= currentRoad) and (model ~= lastRoad) and (not table.find(modelsInRegion, model)) and (math.abs(positionDifference.X) <= 0.25 or math.abs(positionDifference.Z) <= 0.25)) then
             table.insert(modelsInRegion, model)
@@ -90,7 +93,7 @@ function RoadApi:GetStartingRoad(buildingIndex)
     local baseSize = startingBuilding.PrimaryPart.Size
 
     --Generate a new region3 and get the surrounding road parts
-    local adjacentRegion = Region3.new((basePosition - (baseSize / 2)) - Vector3.new(2, 0, 2), (basePosition + (baseSize / 2)) + Vector3.new(2, 0, 2))
+    local adjacentRegion = Region3.new((basePosition - (baseSize / 2)) - Vector3.new(1.5, 0, 1.5), (basePosition + (baseSize / 2)) + Vector3.new(1.5, 0, 1.5))
     local adjacentParts = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Road:GetChildren(), math.huge)
     local adjacentRoads = {}
 
