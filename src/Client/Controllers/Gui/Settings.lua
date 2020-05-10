@@ -11,12 +11,14 @@
 
 
 local Settings = {}
+local self = Settings
 
 --//Api
 
 --//Services
 local PlayerGui
 
+local SettingsService
 local PlayerService
 
 --//Controllers
@@ -27,34 +29,53 @@ local GuiToggleClass
 local GuiClass
 
 --//Locals
-local toggleObjectCache = {}
+local GuiObject
 
 
-function Settings:Start()
+--//Updates all toggles
+local function UpdateSettings(settingsCache)
+    for settingName, isEnabled in pairs(settingsCache) do
+        local settingFrame = GuiObject.Container.List:FindFirstChild(settingName)
+        if (not settingName) then continue end
+
+        local toggleObject = self[settingFrame.Name]
+        toggleObject:SetState(isEnabled)
+    end
+end
+
+
+function Settings:Start()  
     if (not NavigationController:HasLoaded()) then
         NavigationController.IsLoaded:Wait()
     end
 
     local SettingsGui = PlayerGui.Settings
-    local GuiObject = GuiClass.new(SettingsGui)
+    GuiObject = GuiClass.new(SettingsGui)
 
     NavigationController.SettingsButtonClicked:Connect(function()
         GuiObject:ChangeVisibility()
     end)
 
-    PlayerService.GameSettingsLoaded:Connect(function(settingsTable)
-        for settingName, isEnabled in pairs(settingsTable) do
-            local settingFrame = 
-        end
-    end)
-
-    --Setup all toggles, create GuiToggleObjects, load settings
-    for _, settingFrame in pairs(SettingsGui.Container.List:GetChildren()) do
+    --Create ToggleObject for each toggle
+    for _, settingFrame in pairs(GuiObject.Container.List:GetChildren()) do
         if (not settingFrame:IsA("Frame")) then continue end
 
         local toggleObject = GuiToggleClass.new(settingFrame.Toggle)
-        toggleObjectCache[settingFrame] = toggleObject
+        self[settingFrame.Name] = toggleObject
+
+        toggleObject.Toggled:Connect(function(newValue)
+            SettingsService:ChangeSetting(settingFrame.Name, newValue)
+
+            --Quality of life aesthetic feature (only change when settings gui is active)
+            if (settingFrame.Name == "Blur" and SettingsGui.Container.Visible) then
+                workspace.CurrentCamera.Blur.Enabled = newValue
+            end
+        end)
     end
+
+    --Request settings from server
+    local gameSettings = PlayerService:GetSettings()
+    UpdateSettings(gameSettings)
 end
 
 
@@ -64,6 +85,7 @@ function Settings:Init()
     --//Services
     PlayerGui = self.Player.PlayerGui
 
+    SettingsService = self.Services.SettingsService
     PlayerService = self.Services.PlayerService
 
     --//Controllers
