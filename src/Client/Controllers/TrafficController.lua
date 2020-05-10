@@ -69,6 +69,11 @@ local function SpawnVehicle(buildings)
         sound:Play()
     end
 
+    --Obey game settings
+    if (not SettingsController.SoundFx.Enabled) then
+        sound.Volume = 0
+    end
+
     --Return previousRoad, currentRoad
     return {
         MetaData = vehicleMetaData,
@@ -111,6 +116,13 @@ local function UpdateVehicles()
         local vehicle = vehicleTable.Model
         local currentRoad = vehicleTable.CurrentRoad
         local nextRoad = vehicleTable.NextRoad
+
+        --Obey game settings
+        if (not SettingsController.SoundFx.Enabled) then
+            vehicle.PrimaryPart:FindFirstChildOfClass("Sound").Volume = 0
+        else
+            vehicle.PrimaryPart:FindFirstChildOfClass("Sound").Volume = 0.5
+        end
 
         --If vehicle is close to currentRoad, get next road, continue to 
         if ((vehicle.PrimaryPart.Position - currentRoad.PrimaryPart.Position).magnitude <= TOLERANCE) then

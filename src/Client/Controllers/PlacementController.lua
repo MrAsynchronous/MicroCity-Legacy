@@ -31,6 +31,7 @@ local PlayerGui
 
 --//Controllers
 local NotificationDispatcher
+local SettingsController
 local GamepadCursor
 
 --//Classes
@@ -63,6 +64,9 @@ local function HideQueue(isReset)
         if (isReset) then
             PlacementSelectionQueue.Adornee = nil
             selectedPlacement = nil
+
+            local blurEffect = workspace.CurrentCamera:FindFirstChildOfClass("DepthOfFieldEffect")
+            blurEffect.InFocusRadius = 50
         end
     end)
 end
@@ -78,6 +82,9 @@ local function SetSelection(placementObject)
     local yOffset = -((modelSize.Y / 2) - hipHeight)
 
     PlacementSelectionQueue.StudsOffsetWorldSpace = Vector3.new(0, yOffset, 0)
+    
+    local blurEffect = workspace.CurrentCamera:FindFirstChildOfClass("DepthOfFieldEffect")
+    blurEffect.InFocusRadius = (placementObject.PrimaryPart.Position - workspace.CurrentCamera.CFrame.Position).magnitude
 
     --Only tween UI if selectedPlacement fresh, or hot-selecting a different placementObject
     if (not selectedPlacement or (selectedPlacement and (placementObject ~= selectedPlacement))) then
@@ -217,6 +224,7 @@ function PlacementController:Init()
 
     --//Controllers
     NotificationDispatcher = self.Controllers.NotificationDispatcher
+    SettingsController = self.Controllers.Gui.Settings
     GamepadCursor = self.Controllers.CursorModule
 
     --//Classes

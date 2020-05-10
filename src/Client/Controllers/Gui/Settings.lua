@@ -67,8 +67,12 @@ function Settings:Start()
             SettingsService:ChangeSetting(settingFrame.Name, newValue)
 
             --Quality of life aesthetic feature (only change when settings gui is active)
-            if (settingFrame.Name == "Blur" and SettingsGui.Container.Visible) then
-                workspace.CurrentCamera.Blur.Enabled = newValue
+            if (settingFrame.Name == "Blur") then
+                workspace.CurrentCamera:FindFirstChildOfClass("DepthOfFieldEffect").Enabled = newValue
+
+                if (SettingsGui.Container.Visible) then
+                    workspace.CurrentCamera:FindFirstChildOfClass("BlurEffect").Enabled = newValue
+                end
             end
         end)
     end

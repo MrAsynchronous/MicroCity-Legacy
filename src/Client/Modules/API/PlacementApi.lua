@@ -263,7 +263,7 @@ local function CheckSelection()
     --Fire EndedSignal if rayPart is not longer selected
     if (rayPart and rayPart:IsDescendantOf(plotObject.Placements) and (rayPart.Position - character.PrimaryPart.Position).magnitude <= MAX_INTERACTION_DISTANCE) then
         selectedObject = rayPart:FindFirstAncestorOfClass("Model")
-            
+           
         self.Events.PlacementSelectionStarted:Fire(selectedObject)
     else
         if (selectedObject) then
@@ -290,6 +290,15 @@ local function CheckHover()
         end
     else
         placementSelectionBox.Adornee = nil
+    end
+
+    --Dynamically update DepthOfField effect
+    if (SettingsController.Blur.Enabled and selectedObject) then
+        local blurEffect = camera:FindFirstChildOfClass("DepthOfFieldEffect")
+
+        if (blurEffect) then
+            blurEffect.InFocusRadius = (selectedObject.PrimaryPart.Position - camera.CFrame.Position).magnitude
+        end
     end
 end
 
