@@ -9,8 +9,8 @@
 
     Methods
         public Model GetNextRoad(Model currentRoad, Model lastRoad)
-        private Array GetAdjacentRoads(Model currentRoad, Model lastRoad)
-        private Model, Model GetStartingRoad(Array buildings)
+        public Array GetAdjacentRoads(Model currentRoad, Model lastRoad)
+        public Model, Model GetStartingRoad(Array buildings)
 ]]
 
 
@@ -29,10 +29,8 @@ local MetaDataService
 --//Controllers
 
 --//Classes
-local VehicleClass
 
 --//Locals
-local PlotObject
 local RandomObject
 
 
@@ -43,11 +41,11 @@ local RandomObject
 
 --//Returns an array containing all adjacent roads
 --//Region3 based
-local function GetAdjacentRoads(currentRoad, lastRoad)
+function  RoadApi:GetAdjacentRoads(plotObject, currentRoad, lastRoad, ingoreOrientation)
     local roadPosition = currentRoad.PrimaryPart.Position
     local roadOrientation = math.abs(currentRoad.PrimaryPart.Orientation.Y)
     local adjacentRegion = Region3.new(roadPosition - Vector3.new(1, 1, 1), roadPosition + Vector3.new(1, 1, 1))
-    local roadsInRegion = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Road:GetChildren(), math.huge)
+    local roadsInRegion = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, plotObject.Placements.Road:GetChildren(), math.huge)
     local modelsInRegion = {}
 
     --Iterate through all parts in Region3
@@ -58,8 +56,8 @@ local function GetAdjacentRoads(currentRoad, lastRoad)
         local orientation = math.abs(model.PrimaryPart.Orientation.Y)
         local positionDifference = roadPosition - position
 
-        if ((roadPosition.X == position.X and roadPosition.Z ~= position.Z) and roadOrientation == orientation) then continue end
-        if ((roadPosition.Z == position.Z and roadPosition.X ~= roadPosition.X) and roadOrientation == orientation) then continue end
+        if ((roadPosition.X == position.X and roadPosition.Z ~= position.Z) and roadOrientation == orientation and (not ingoreOrientation)) then continue end
+        if ((roadPosition.Z == position.Z and roadPosition.X ~= roadPosition.X) and roadOrientation == orientation and (not ingoreOrientation)) then continue end
 
         --Only add model if model is not currentRoad model is not already in index, and if it is directly adjacent with a tolerance of .25 studs
         if ((model ~= currentRoad) and (model ~= lastRoad) and (not table.find(modelsInRegion, model)) and (math.abs(positionDifference.X) <= 0.25 or math.abs(positionDifference.Z) <= 0.25)) then
@@ -76,15 +74,15 @@ end
 ]]
 --//Returns a random road from the returned array of adjacent roads
 --//Returns nil of no roads are found
-function RoadApi:GetNextRoad(currentRoad, lastRoad)
-    local adjacentRoads = GetAdjacentRoads(currentRoad, lastRoad)
+function RoadApi:GetNextRoad(plotObject, currentRoad, lastRoad)
+    local adjacentRoads = RoadApi:GetAdjacentRoads(plotObject, currentRoad, lastRoad)
     return adjacentRoads[RandomObject:NextInteger(1, #adjacentRoads)]
 end
 
 
 --//Picks a random building to position new vehicle at
---//Picks a random adjacent road as the first raod position
-function RoadApi:GetStartingRoad(buildingIndex)
+--//Picks a random adjacent road as the first road position
+function RoadApi:GetStartingRoad(plotObject, buildingIndex)
     local startingBuilding = buildingIndex[RandomObject:NextInteger(1, #buildingIndex)]
     if (not startingBuilding) then return end
 
@@ -94,7 +92,7 @@ function RoadApi:GetStartingRoad(buildingIndex)
 
     --Generate a new region3 and get the surrounding road parts
     local adjacentRegion = Region3.new((basePosition - (baseSize / 2)) - Vector3.new(1.5, 0, 1.5), (basePosition + (baseSize / 2)) + Vector3.new(1.5, 0, 1.5))
-    local adjacentParts = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, PlotObject.Placements.Road:GetChildren(), math.huge)
+    local adjacentParts = workspace:FindPartsInRegion3WithWhiteList(adjacentRegion, plotObject.Placements.Road:GetChildren(), math.huge)
     local adjacentRoads = {}
 
     --Iterate through all road parts, if road is not already in index, add it
@@ -107,12 +105,6 @@ function RoadApi:GetStartingRoad(buildingIndex)
     end
 
     return startingBuilding, adjacentRoads[RandomObject:NextInteger(1, #adjacentRoads)]
-end
-
-
---//Creates interval to spawn vehicles
-function RoadApi:Start()
-    PlotObject = self.Player:WaitForChild("PlotObject").Value
 end
 
 

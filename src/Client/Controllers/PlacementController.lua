@@ -21,6 +21,7 @@ local self = PlacementController
 
 --//Api
 local PlacementApi
+local RoadApi
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -217,6 +218,7 @@ end
 function PlacementController:Init()
     --//Api
     PlacementApi = self.Modules.API.PlacementApi
+    RoadApi = self.Shared.API.RoadApi
 
     --//Services
     PlacementService = self.Services.PlacementService

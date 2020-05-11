@@ -48,7 +48,7 @@ local DEFAULT_SPEED = 0.06
 
 --//Spawns a vehicle at the homeBuilding position moving towards baseRoad
 local function SpawnVehicle(buildings)
-    local homeBuilding, baseRoad = RoadApi:GetStartingRoad(buildings)
+    local homeBuilding, baseRoad = RoadApi:GetStartingRoad(PlotObject, buildings)
     if (not homeBuilding or not baseRoad) then return end
 
     --Clone random vehicle, get vehicle MetaData
@@ -79,7 +79,7 @@ local function SpawnVehicle(buildings)
         MetaData = vehicleMetaData,
         Model = vehicleModel,
         CurrentRoad = baseRoad,
-        NextRoad = RoadApi:GetNextRoad(baseRoad, baseRoad)
+        NextRoad = RoadApi:GetNextRoad(PlotObject, baseRoad, baseRoad)
     }
 end
 
@@ -127,7 +127,7 @@ local function UpdateVehicles()
         --If vehicle is close to currentRoad, get next road, continue to 
         if ((vehicle.PrimaryPart.Position - currentRoad.PrimaryPart.Position).magnitude <= TOLERANCE) then
             --Find new road, update current and next roads
-            local newNext = RoadApi:GetNextRoad(nextRoad, currentRoad)
+            local newNext = RoadApi:GetNextRoad(PlotObject, nextRoad, currentRoad)
             currentRoad = nextRoad
             nextRoad = newNext
         end
@@ -172,7 +172,7 @@ end
 
 function TrafficController:Init()
     --//Api
-    RoadApi = self.Modules.API.RoadApi
+    RoadApi = self.Shared.API.RoadApi
 
     --//Services
     PlayerService = self.Services.PlayerService
