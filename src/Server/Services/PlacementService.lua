@@ -62,28 +62,28 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         local levelMetaData = placementObject:GetLevelMetaData()
         pseudoPlayer.Population:Increment(levelMetaData.Population)
 
-        --Adjacent road detection
-        local adjacentRoads = RoadApi:GetAdjacentRoads(pseudoPlayer.PlotObject.Object, placementObject.PlacedObject, placementObject.PlacedObject)
-        if (#adjacentRoads == 4) then
-            placementObject:Upgrade(5)
-        elseif (#adjacentRoads == 3) then
-            placementObject:Upgrade(4)
-        elseif (#adjacentRoads == 2) then
-            placementObject:Upgrade(3)
-        end
+        -- --Adjacent road detection
+        -- local adjacentRoads = RoadApi:GetAdjacentRoads(pseudoPlayer.PlotObject.Object, placementObject.PlacedObject, placementObject.PlacedObject)
+        -- if (#adjacentRoads == 4) then
+        --     placementObject:Upgrade(5)
+        -- elseif (#adjacentRoads == 3) then
+        --     placementObject:Upgrade(4)
+        -- elseif (#adjacentRoads == 2) then
+        --     placementObject:Upgrade(3)
+        -- end
 
-        for _, road in pairs(adjacentRoads) do
-            local subPlacementObject = pseudoPlayer:GetPlacementObject(road.Name)
-            local subAdjacentRoads = RoadApi:GetAdjacentRoads(pseudoPlayer.PlotObject.Object, road, road)
+        -- for _, road in pairs(adjacentRoads) do
+        --     local subPlacementObject = pseudoPlayer:GetPlacementObject(road.Name)
+        --     local subAdjacentRoads = RoadApi:GetAdjacentRoads(pseudoPlayer.PlotObject.Object, road, road)
 
-            if (#subAdjacentRoads == 4) then
-                subPlacementObject:Upgrade(5)
-            elseif (#subAdjacentRoads == 3) then
-                subPlacementObject:Upgrade(4)
-            elseif (#subAdjacentRoads == 2) then
-                subPlacementObject:Upgrade(3)
-            end
-        end
+        --     if (#subAdjacentRoads == 4) then
+        --         subPlacementObject:Upgrade(5)
+        --     elseif (#subAdjacentRoads == 3) then
+        --         subPlacementObject:Upgrade(4)
+        --     elseif (#subAdjacentRoads == 2) then
+        --         subPlacementObject:Upgrade(3)
+        --     end
+        -- end
 
         return {
             wasSuccess = true,
