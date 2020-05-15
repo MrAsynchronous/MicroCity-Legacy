@@ -18,7 +18,6 @@
 
 local PlacementService = {Client = {}}
 
-
 --//Api
 local GameSettings
 local RoadApi
