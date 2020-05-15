@@ -32,7 +32,7 @@ local PlayerGui
 
 --//Controllers
 local NotificationDispatcher
-local SettingsController
+local UpgradesController
 local GamepadCursor
 
 --//Classes
@@ -133,29 +133,31 @@ function PlacementController:Start()
     --Invoke server to upgrade object 
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            local actionData = PlacementService:RequestUpgrade(selectedPlacement.Name)
-            NotificationDispatcher:Dispatch(actionData.noticeObject)
+            UpgradesController:Show()
 
-            --Reset selection queue to new model
-            if (actionData.wasSuccess) then
-                SetSelection(actionData.newObject)
+            -- local actionData = PlacementService:RequestUpgrade(selectedPlacement.Name)
+            -- NotificationDispatcher:Dispatch(actionData.noticeObject)
 
-                --Tween and particle effect
-                --Clone particle effect
-                local newParticle = Particles.PlacementEffect:Clone()
-                newParticle.Parent = actionData.newObject.PrimaryPart
-                newParticle.Enabled = true
+            -- --Reset selection queue to new model
+            -- if (actionData.wasSuccess) then
+            --     SetSelection(actionData.newObject)
 
-                local effectTween = TweenService:Create(actionData.newObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
-                effectTween:Play()
+            --     --Tween and particle effect
+            --     --Clone particle effect
+            --     local newParticle = Particles.PlacementEffect:Clone()
+            --     newParticle.Parent = actionData.newObject.PrimaryPart
+            --     newParticle.Enabled = true
+
+            --     local effectTween = TweenService:Create(actionData.newObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
+            --     effectTween:Play()
         
-                effectTween.Completed:Connect(function()
-                    effectTween:Destroy()
-                    newParticle:Destroy()
+            --     effectTween.Completed:Connect(function()
+            --         effectTween:Destroy()
+            --         newParticle:Destroy()
 
-                    PlacementService:RequestMove(actionData.newObject.Name, PlotObject.Main.CFrame:ToObjectSpace(actionData.worldPosition))
-                end)          
-            end
+            --         PlacementService:RequestMove(actionData.newObject.Name, PlotObject.Main.CFrame:ToObjectSpace(actionData.worldPosition))
+            --     end)          
+            -- end
         end
     end)
 
@@ -226,7 +228,7 @@ function PlacementController:Init()
 
     --//Controllers
     NotificationDispatcher = self.Controllers.NotificationDispatcher
-    SettingsController = self.Controllers.Gui.Settings
+    UpgradesController = self.Controllers.Gui.Upgrades
     GamepadCursor = self.Controllers.CursorModule
 
     --//Classes

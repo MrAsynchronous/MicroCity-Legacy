@@ -100,7 +100,9 @@ function GuiClass:BindButton(buttonObject, callback)
     end))
 
     self._Maid:GiveTask(buttonObject.Button.MouseButton1Click:Connect(function()
-        coroutine.wrap(callback)()
+        if (callback) then
+            coroutine.wrap(callback)()
+        end
     end))
 end
 
