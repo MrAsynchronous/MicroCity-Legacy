@@ -133,7 +133,8 @@ function PlacementController:Start()
     --Invoke server to upgrade object 
     actionButtons.Upgrade.MouseButton1Click:Connect(function()
         if (selectedPlacement) then
-            UpgradesController:Show()
+            HideQueue()
+            UpgradesController:Show(selectedPlacement.Name)
 
             -- local actionData = PlacementService:RequestUpgrade(selectedPlacement.Name)
             -- NotificationDispatcher:Dispatch(actionData.noticeObject)

@@ -12,6 +12,8 @@ local Upgrades = {}
 local PlayerGui
 
 local NotificationDispatch
+local MetaDataService
+local PlayerService
 
 --//Controllers
 
@@ -23,7 +25,11 @@ local GuiObject
 
 
 --//Public facing Show
-function Upgrades:Show()
+function Upgrades:Show(guid)
+    --Viewport!
+    local itemId = PlayerService:GetItemIdFromGuid(guid)
+    local metaData = MetaDataService:GetMetaData(itemId)
+
     return GuiObject:Show()
 end
 
@@ -45,6 +51,8 @@ function Upgrades:Init()
     PlayerGui = self.Player.PlayerGui
 
     NotificationDispatch = self.Controllers.NotificationDispatcher
+    MetaDataService = self.Services.MetaDataService
+    PlayerService = self.Services.PlayerService
 
     --//Controllers
 
