@@ -9,6 +9,7 @@ local Upgrades = {}
 --//Api
 
 --//Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PlayerGui
 
 local NotificationDispatch
