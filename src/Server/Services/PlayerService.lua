@@ -91,9 +91,22 @@ function PlayerService.Client:GetItemIdFromGuid(...)
 end
 
 
+--//Client patch for GetLevelFromGuid
+function PlayerService.Client:GetLevelFromGuid(...)
+    return self.Server:GetLevelFromGuid(...)
+end
+
+
 --//Client patch for GetSettings
 function PlayerService.Client:GetSettings(...)
     return self.Server:GetSettings(...)
+end
+
+
+--//Returns the current level for a given guid
+function PlayerService:GetLevelFromGuid(player, guid)
+    local pseudoPlayer = self:GetPseudoPlayer(player)
+    return pseudoPlayer:GetPlacementObject(guid).Level
 end
 
 

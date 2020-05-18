@@ -449,8 +449,6 @@ function PlacementApi:StartPlacing(id)
         --Handle keybinds
         currentMaid:GiveTask(gamePad.ButtonDown:Connect(function(keyCode)
             if (keyCode == CONSOLE_PLACE_BIND) then
-                PlaceObject()
-                
                 if ((not isMoving) and itemMetaData.Type == "Road") then
                     positionChangedSignal = self.PositionChanged:Connect(function(newPosition)
                         PlaceObject()
@@ -535,9 +533,7 @@ function PlacementApi:StartPlacing(id)
 
         --Detect placement key bind
         currentMaid:GiveTask(mouse.LeftDown:Connect(function()
-            if (isMoving or itemMetaData.Type ~= "Road") then
-                PlaceObject()
-            elseif ((not isMoving) and itemMetaData.Type == "Road") then
+            if ((not isMoving) and itemMetaData.Type == "Road") then
                 positionChangedSignal = self.PositionChanged:Connect(function(newPosition)
                     PlaceObject()
                 end)
