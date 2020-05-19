@@ -40,7 +40,7 @@ local objectSpinConnection
 local function TweenCamera(toCFrame)
     local cameraTween = TweenService:Create(Camera, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {CFrame = toCFrame})
     cameraTween.Completed:Connect(function(playbackState)
-        if (playbackState == Enum.PlaybackState.Complete) then
+        if (playbackState == Enum.PlaybackState.Completed) then
             cameraTween:Destroy()
         end
     end)
