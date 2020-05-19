@@ -35,7 +35,21 @@ local upgradeModels
 local selectedModel
 local objectSpinConnection
 
---Calculate and return position for model to center it perfectly in the viewport frame
+
+--//Used for moving camera to and from models
+local function TweenCamera(toCFrame)
+    local cameraTween = TweenService:Create(Camera, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {CFrame = toCFrame})
+    cameraTween.Completed:Connect(function(playbackState)
+        if (playbackState == Enum.PlaybackState.Complete) then
+            cameraTween:Destroy()
+        end
+    end)
+
+    return cameraTween:Play()
+end
+
+
+--//Calculate and return position for model to center it perfectly in the viewport frame
 local function AttachCameraToModel(model)
     local cf, size = model:GetBoundingBox()
     local rot = CFrame.Angles(math.rad(22.5), math.rad(180), 0)
@@ -106,11 +120,13 @@ local function CleanupViewport()
         objectSpinConnection:Disconnect()
     end
 
-    for i, model in pairs(upgradeModels) do
+    --Destroy all models
+    for i, model in ipairs(upgradeModels) do
         model:Destroy()
-
-        table.remove(upgradeModels, i)
     end
+
+    --Reset array
+    upgradeModels = {}
 end
 
 
@@ -134,32 +150,30 @@ function Upgrades:Start()
     ViewportFrame.CurrentCamera = Camera
     Camera.Parent = ViewportFrame
 
+    --Forward button bind
     GuiObject:BindButton(UpgradesGui.Container.Forward, function()
-        selectedModel = math.clamp(selectedModel + 1, 1, #itemMetaData.Upgrades)
+        --Increment selectedModel, account for infinite scroll
+        selectedModel = selectedModel + 1
+        if (selectedModel > #upgradeModels) then
+            selectedModel = 1
+        end
+
+        --Get model, tween camera
         local model = upgradeModels[selectedModel]
-
-        local beautyTween = TweenService:Create(Camera, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {CFrame = AttachCameraToModel(model)})
-        beautyTween.Completed:Connect(function(playbackState)
-            if (playbackState == Enum.PlaybackState.Completed) then
-                beautyTween:Destroy()
-            end
-        end)
-
-        beautyTween:Play()
+        TweenCamera(AttachCameraToModel(model))
     end)
 
+    --Back button binds
     GuiObject:BindButton(UpgradesGui.Container.Back, function()
-        selectedModel = math.clamp(selectedModel - 1, 1, #itemMetaData.Upgrades)
+        --Decrement selectedModel, account for infinite scroll
+        selectedModel = selectedModel - 1
+        if (selectedModel < 1) then
+            selectedModel = #upgradeModels
+        end
+
+        --Get model and tween camera
         local model = upgradeModels[selectedModel]
-
-        local beautyTween = TweenService:Create(Camera, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {CFrame = AttachCameraToModel(model)})
-        beautyTween.Completed:Connect(function(playbackState)
-            if (playbackState == Enum.PlaybackState.Completed) then
-                beautyTween:Destroy()
-            end
-        end)
-
-        beautyTween:Play()
+        TweenCamera(AttachCameraToModel(model))
     end)
 
     --Clear models when GUI closes
