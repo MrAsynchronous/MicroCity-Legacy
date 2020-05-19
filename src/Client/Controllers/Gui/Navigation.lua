@@ -31,6 +31,9 @@ local GuiClass
 --//Locals
 local isLoaded = false
 
+local isGuiOpen = false
+local openGui = nil
+
 
 function Navigation:Start()
     local NavigationGui = PlayerGui.Navigation
@@ -57,6 +60,8 @@ function Navigation:Start()
 
             --Fire corresponding event when button is clicked
             PcGuiObject:BindButton(button, function()
+                if (not isGuiOpen) then isGuiOpen = true else return end
+
                 self.Events[appendedName]:Fire()
                 self.Events.ButtonClicked:Fire(button.Name)
             end)
