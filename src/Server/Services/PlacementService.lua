@@ -38,6 +38,35 @@ local PlacementClass
 --//Locals
 
 
+--//Returns true if object would be colliding with other objects
+local function IsColliding(pseudoPlayer, itemId, position)
+    local worldPosition = pseudoPlayer.PlotObject.Object.Main.CFrame:ToWorldSpace(position)
+    local dummyPart = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":1").PrimaryPart:Clone()
+    dummyPart.Parent = workspace   
+    dummyPart.CFrame = worldPosition
+    dummyPart.Touched:Connect(function() end)
+
+    --Iterate through all touching parts
+    --Returns true if touching a primary part
+    for _, part in pairs(dummyPart:GetTouchingParts()) do
+        local model = part:FindFirstAncestorOfClass("Model")
+        if (not model) then continue end
+
+        local placementObject = pseudoPlayer:GetPlacementObject(model.Name)
+        if (not placementObject) then continue end
+
+        if (part == placementObject.PlacedObject.PrimaryPart) then
+            dummyPart:Destroy()
+
+            return true
+        end
+    end
+
+    dummyPart:Destroy()
+    return false
+end
+
+
 --[[
     Server methods
 ]]
@@ -46,6 +75,14 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player) 
     local itemMetaData = MetaDataService:GetMetaData(itemId)
     local levelOneMetaData = itemMetaData.Upgrades[1]
+
+    --Collision detection
+    if (IsColliding(pseudoPlayer, itemId, localPosition)) then
+        return {
+            wasSuccess = false,
+            noticeObject = Notices.buildingCollisionError
+        }
+    end
 
     --If player can afford placement, subtract cost
     if (pseudoPlayer[(levelOneMetaData.CostType or "Cash")]:Get(0) >= levelOneMetaData.Cost) then
@@ -60,9 +97,6 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         --Add population of new building to players population
         local levelMetaData = placementObject:GetLevelMetaData()
         pseudoPlayer.Population:Increment(levelMetaData.Population)
-
-        --Anti-exploit
-        table.insert(pseudoPlayer.PlotObject.CachedPlacements, placementObject)
 
         --Road networking
         pseudoPlayer.PlotObject:AddRoadToNetwork(placementObject)
@@ -152,9 +186,6 @@ function PlacementService:UpgradePlacement(player, guid)
             placementObject:Upgrade()
             pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
 
-            --Anti-exploit
-            table.insert(pseudoPlayer.PlotObject.CachedPlacements, placementObject)
-
             return {
                 wasSuccess = true,
                 newObject = placementObject.PlacedObject,
@@ -181,33 +212,31 @@ function PlacementService:MovePlacement(player, guid, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
 
-    local index = table.find(pseudoPlayer.PlotObject.CachedPlacements, placementObject)
-    if (index) then
-        table.remove(pseudoPlayer.PlotObject.CachedPlacements, index)
-
-        local currentObjectSpace = placementObject:Encode()
-
-        --Road networking
-        pseudoPlayer.PlotObject:RemoveRoadFromNetwork(placementObject)
-
-        --//Move object and update PlacementMap
-        placementObject:Move(localPosition)
-        pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
-    
-        --Road networking
-        pseudoPlayer.PlotObject:AddRoadToNetwork(placementObject)
-
-        return {
-            wasSuccess = true,
-            object = placementObject.PlacedObject,
-            noticeObject = Notices.buildingMoveSuccess
-        }
-    else
+    --Collision detection
+    if (IsColliding(pseudoPlayer, placementObject.ItemId, localPosition)) then
         return {
             wasSuccess = false,
-            noticeObject = Notices.invalidMoveError
-        }
+            noticeObject = Notices.buildingCollisionError
+        } 
     end
+
+    local currentObjectSpace = placementObject:Encode()
+
+    --Road networking
+    pseudoPlayer.PlotObject:RemoveRoadFromNetwork(placementObject)
+
+    --//Move object and update PlacementMap
+    placementObject:Move(localPosition)
+    pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
+
+    --Road networking
+    pseudoPlayer.PlotObject:AddRoadToNetwork(placementObject)
+
+    return {
+        wasSuccess = true,
+        object = placementObject.PlacedObject,
+        noticeObject = Notices.buildingMoveSuccess
+    }
 end
 
 

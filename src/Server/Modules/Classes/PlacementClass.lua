@@ -98,6 +98,8 @@ end
 --//Updates the level and model of the placed object
 --//Precondition: Player can afford upgrades
 function PlacementClass:Upgrade(level, skipTween)
+	print("Wanted level: ", level)
+
 	if (self:CanUpgrade()) then
 		self.Level = (level or self.Level + 1)
 		self.PlacedObject:Destroy()

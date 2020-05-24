@@ -72,7 +72,7 @@ function PlotClass.new(pseudoPlayer)
 			part.Color = Color3.fromRGB(255, 0, 0)
 			part.Size = Vector3.new(1, 1, 1)
 			part.CFrame = self.cframe + (Vector3.new(1 * (v - 1), 3, 1 * (i - 1)))
-		--	part.Parent = workspace
+			part.Parent = workspace
 
 			self.DebugNetwork[i][v] = part
 		end
@@ -177,6 +177,7 @@ function PlotClass:AddRoadToNetwork(placementObject, isBeingLoaded)
 
 	local gridSpace = self:ToGridSpace(placementObject.WorldPosition)
 	self.RoadNetwork[gridSpace.Z][gridSpace.X] = placementObject
+	self.DebugNetwork[gridSpace.Z][gridSpace.X].Color = Color3.fromRGB(0, 255, 0)
 
 	--Only solve if road is not being loaded
 	if (not isBeingLoaded) then
@@ -196,8 +197,21 @@ end
 function PlotClass:RemoveRoadFromNetwork(placementObject)
 	if (placementObject.MetaData.Type ~= "Road") then return end
 
+	print("Removing")
+
 	local gridSpace = self:ToGridSpace(placementObject.WorldPosition)
 	self.RoadNetwork[gridSpace.Z][gridSpace.X] = nil
+	self.DebugNetwork[gridSpace.Z][gridSpace.X].Color = Color3.fromRGB(255, 0, 0)
+
+	local adjacentRoads = self:GetAdjacentRoads(gridSpace)
+
+	--Update surrounding tiles
+	for _, adjacentRoad in pairs(adjacentRoads) do
+		print("Upading adjacent tiles")
+
+		local adjacentGridSpace = self:ToGridSpace(adjacentRoad.PlacedObject.PrimaryPart.CFrame)
+		self:NetworkRoad(adjacentRoad, self:GetAdjacentRoads(adjacentGridSpace))
+	end
 end
 
 
