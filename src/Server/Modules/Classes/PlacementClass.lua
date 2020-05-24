@@ -97,10 +97,9 @@ end
 
 --//Updates the level and model of the placed object
 --//Precondition: Player can afford upgrades
-function PlacementClass:Upgrade(level)
+function PlacementClass:Upgrade(level, skipTween)
 	if (self:CanUpgrade()) then
 		self.Level = (level or self.Level + 1)
-
 		self.PlacedObject:Destroy()
 
 		--Replace with new model
@@ -114,7 +113,10 @@ function PlacementClass:Upgrade(level)
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
 		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
 
-		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
+		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
+		if (not skipTween) then
+			self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
+		end
 	end
 end
 

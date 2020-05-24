@@ -3,6 +3,13 @@ return {
 
 	Upgrades = {
 		{
+			Name = "Straight",
+
+			Cost = 25,
+			CostType = "Cash",
+			Population = 0,
+		},
+		{
 			Name = "L-Bend",
 
 			Cost = 25,

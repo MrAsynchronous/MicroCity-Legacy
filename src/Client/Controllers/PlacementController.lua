@@ -135,30 +135,6 @@ function PlacementController:Start()
         if (selectedPlacement) then
             HideQueue()
             UpgradesController:Show(selectedPlacement.Name)
-
-            -- local actionData = PlacementService:RequestUpgrade(selectedPlacement.Name)
-            -- NotificationDispatcher:Dispatch(actionData.noticeObject)
-
-            -- --Reset selection queue to new model
-            -- if (actionData.wasSuccess) then
-            --     SetSelection(actionData.newObject)
-
-            --     --Tween and particle effect
-            --     --Clone particle effect
-            --     local newParticle = Particles.PlacementEffect:Clone()
-            --     newParticle.Parent = actionData.newObject.PrimaryPart
-            --     newParticle.Enabled = true
-
-            --     local effectTween = TweenService:Create(actionData.newObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
-            --     effectTween:Play()
-        
-            --     effectTween.Completed:Connect(function()
-            --         effectTween:Destroy()
-            --         newParticle:Destroy()
-
-            --         PlacementService:RequestMove(actionData.newObject.Name, PlotObject.Main.CFrame:ToObjectSpace(actionData.worldPosition))
-            --     end)          
-            -- end
         end
     end)
 

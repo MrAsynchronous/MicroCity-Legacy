@@ -35,6 +35,10 @@ return {
         Text = "Building is colliding with another!",
         Color = Color3.fromRGB(231, 76, 60)
     },
+    invalidMoveError = {
+        Text = "You cannot move this building!",
+        Color = Color3.fromRGB(231, 76, 60)
+    },
     codeInvalid = {
         Text = "Code entered is invalid!",
         Color = Color3.fromRGB(231, 76, 60)

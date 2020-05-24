@@ -1,6 +1,6 @@
 return {
     PlayerDataToken = "PlayerData_PreAlpha_3",
-    PlayerPlacementsToken = "Placements_PreAlpha_5",
+    PlayerPlacementsToken = "Placements_PreAlpha_11",
 
     CodesToken = "TwitterCodes_PreAlpha_1",
 

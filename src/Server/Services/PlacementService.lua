@@ -61,28 +61,11 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
         local levelMetaData = placementObject:GetLevelMetaData()
         pseudoPlayer.Population:Increment(levelMetaData.Population)
 
-        -- --Adjacent road detection
-        -- local adjacentRoads = RoadApi:GetAdjacentRoads(pseudoPlayer.PlotObject.Object, placementObject.PlacedObject, placementObject.PlacedObject)
-        -- if (#adjacentRoads == 4) then
-        --     placementObject:Upgrade(5)
-        -- elseif (#adjacentRoads == 3) then
-        --     placementObject:Upgrade(4)
-        -- elseif (#adjacentRoads == 2) then
-        --     placementObject:Upgrade(3)
-        -- end
+        --Anti-exploit
+        table.insert(pseudoPlayer.PlotObject.CachedPlacements, placementObject)
 
-        -- for _, road in pairs(adjacentRoads) do
-        --     local subPlacementObject = pseudoPlayer:GetPlacementObject(road.Name)
-        --     local subAdjacentRoads = RoadApi:GetAdjacentRoads(pseudoPlayer.PlotObject.Object, road, road)
-
-        --     if (#subAdjacentRoads == 4) then
-        --         subPlacementObject:Upgrade(5)
-        --     elseif (#subAdjacentRoads == 3) then
-        --         subPlacementObject:Upgrade(4)
-        --     elseif (#subAdjacentRoads == 2) then
-        --         subPlacementObject:Upgrade(3)
-        --     end
-        -- end
+        --Road networking
+        pseudoPlayer.PlotObject:AddRoadToNetwork(placementObject)
 
         return {
             wasSuccess = true,
@@ -130,6 +113,9 @@ function PlacementService:SellPlacement(player, guid)
         end)
     end
 
+    --Road networking
+    pseudoPlayer.PlotObject:RemoveRoadFromNetwork(placementObject)
+
     --Remove placementObject from PlacementMap
     pseudoPlayer:RemovePlacementObject(guid)
 
@@ -166,6 +152,9 @@ function PlacementService:UpgradePlacement(player, guid)
             placementObject:Upgrade()
             pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
 
+            --Anti-exploit
+            table.insert(pseudoPlayer.PlotObject.CachedPlacements, placementObject)
+
             return {
                 wasSuccess = true,
                 newObject = placementObject.PlacedObject,
@@ -184,8 +173,6 @@ function PlacementService:UpgradePlacement(player, guid)
             noticeObject = Notices.maxLevelError
         }
     end
-
-    return {}
 end
 
 
@@ -193,17 +180,34 @@ end
 function PlacementService:MovePlacement(player, guid, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer:GetPlacementObject(guid)
-    local currentObjectSpace = placementObject:Encode()
 
-    --//Move object and update PlacementMap
-    placementObject:Move(localPosition)
-    pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
+    local index = table.find(pseudoPlayer.PlotObject.CachedPlacements, placementObject)
+    if (index) then
+        table.remove(pseudoPlayer.PlotObject.CachedPlacements, index)
 
-    return {
-        wasSuccess = true,
-        object = placementObject.PlacedObject,
-        noticeObject = Notices.buildingMoveSuccess
-    }
+        local currentObjectSpace = placementObject:Encode()
+
+        --Road networking
+        pseudoPlayer.PlotObject:RemoveRoadFromNetwork(placementObject)
+
+        --//Move object and update PlacementMap
+        placementObject:Move(localPosition)
+        pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
+    
+        --Road networking
+        pseudoPlayer.PlotObject:AddRoadToNetwork(placementObject)
+
+        return {
+            wasSuccess = true,
+            object = placementObject.PlacedObject,
+            noticeObject = Notices.buildingMoveSuccess
+        }
+    else
+        return {
+            wasSuccess = false,
+            noticeObject = Notices.invalidMoveError
+        }
+    end
 end
 
 
