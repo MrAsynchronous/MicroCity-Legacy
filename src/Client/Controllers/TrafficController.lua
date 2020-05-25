@@ -105,8 +105,6 @@ local function UpdateVehicles()
     if ((frameCount >= 50) and (#spawnedVehicles < maxVehicles)) then
         frameCount = 0
 
-         print("Spawning vehicle")
-
         local vehicleTable = SpawnVehicle(buildings)
         table.insert(spawnedVehicles, vehicleTable)
     end

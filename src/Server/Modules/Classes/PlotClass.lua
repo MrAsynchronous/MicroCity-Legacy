@@ -96,22 +96,22 @@ end
 
 --//Returns the four adjacent tiles
 --//Indecies may be null
-function PlotClass:GetAdjacentRoads(gridSpace)
-	if (self.RoadNetwork[gridSpace.Z] and (self.RoadNetwork[gridSpace.Z][gridSpace.X])) then 
+function PlotClass:GetAdjacentRoads(gridSpace, isRemoving)
+--	if (self.RoadNetwork[gridSpace.Z] and (self.RoadNetwork[gridSpace.Z][gridSpace.X])) then 
 		return {
 			Top = self.RoadNetwork[math.clamp(gridSpace.Z - 1, 1, self.TotalRows)][gridSpace.X],
 			Bottom = self.RoadNetwork[math.clamp(gridSpace.Z + 1, 1, self.TotalRows)][gridSpace.X],
 			Left = self.RoadNetwork[gridSpace.Z][math.clamp(gridSpace.X - 1, 1, self.TotalRows)],
 			Right = self.RoadNetwork[gridSpace.Z][math.clamp(gridSpace.X + 1, 1, self.TotalRows)]
 		}
-	else
-		return {
-			Top = nil,
-			Bottom = nil,
-			Left = nil,
-			Right = nil
-		}
-	end
+--	else
+--		return {
+--			Top = nil,
+--			Bottom = nil,
+--			Left = nil,
+--			Right = nil
+--		}
+--	end
 end
 
 
@@ -156,6 +156,10 @@ function PlotClass:NetworkRoad(placementObject, adjacentRoads)
 
 	--Straight road possiblities
 	elseif (adjacentRoads.Top or adjacentRoads.Bottom or adjacentRoads.Left or adjacentRoads.Right) then
+		if (placementObject.Level > 1) then
+			placementObject:Upgrade(1, true)
+		end
+
 		--Orientation detection
 		local worldPosition = CFrame.new(
 			placementObject.WorldPosition.Position, 
@@ -197,17 +201,15 @@ end
 function PlotClass:RemoveRoadFromNetwork(placementObject)
 	if (placementObject.MetaData.Type ~= "Road") then return end
 
-	print("Removing")
-
 	local gridSpace = self:ToGridSpace(placementObject.WorldPosition)
 	self.RoadNetwork[gridSpace.Z][gridSpace.X] = nil
 	self.DebugNetwork[gridSpace.Z][gridSpace.X].Color = Color3.fromRGB(255, 0, 0)
 
-	local adjacentRoads = self:GetAdjacentRoads(gridSpace)
+	local adjacentRoads = self:GetAdjacentRoads(gridSpace, true)
 
 	--Update surrounding tiles
 	for _, adjacentRoad in pairs(adjacentRoads) do
-		print("Upading adjacent tiles")
+		print("Updating adjacent road")
 
 		local adjacentGridSpace = self:ToGridSpace(adjacentRoad.PlacedObject.PrimaryPart.CFrame)
 		self:NetworkRoad(adjacentRoad, self:GetAdjacentRoads(adjacentGridSpace))

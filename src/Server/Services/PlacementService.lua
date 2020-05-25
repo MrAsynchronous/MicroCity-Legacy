@@ -149,8 +149,6 @@ function PlacementService:SellPlacement(player, guid)
 
     --Road networking
     pseudoPlayer.PlotObject:RemoveRoadFromNetwork(placementObject)
-
-    --Remove placementObject from PlacementMap
     pseudoPlayer:RemovePlacementObject(guid)
 
     return {

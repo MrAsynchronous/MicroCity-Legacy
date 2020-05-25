@@ -59,7 +59,7 @@ function PseudoPlayer.new(player)
 
 		Placements = {},
 		IsLoaded = false,
-		
+	
 		PlacementStore = DataStore2(GameSettings.PlayerPlacementsToken, player),
 
 		_Maid = MaidClass.new(),
