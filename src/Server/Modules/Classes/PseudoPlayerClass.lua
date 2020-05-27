@@ -123,13 +123,12 @@ end
 
 --//Updates a stored placement object on both the server
 --//and on the DataStore
-function PseudoPlayer:UpdatePlacementObject(placementObject, oldObjectSpace)
+function PseudoPlayer:UpdatePlacementObject(placementObject)
 	self.Placements[placementObject.Guid] = placementObject
 
 	--Remove old key and insert new key
 	self.PlacementStore:Update(function(oldTable)
 		local objectSpace, objectData = placementObject:Encode()
-		oldTable[oldObjectSpace] = nil
 		oldTable[objectSpace] = objectData
 
 		return oldTable

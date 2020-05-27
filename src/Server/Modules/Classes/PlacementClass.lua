@@ -73,10 +73,11 @@ function PlacementClass.new(pseudoPlayer, itemId, itemPosition, saveData)
 	self.PlacedObject.Parent = self.Plot.Placements:FindFirstChild(self.MetaData.Type)
 	self.PlacedObject.Name = self.Guid
 
-	self._Maid:GiveTask(self.PlacedObject)
-
 	--Construct proper position
 	self.LocalPosition = self:ConstructPosition(itemPosition)
+	self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
+
+	self._Maid:GiveTask(self.PlacedObject)
 
 	if (saveData) then
 		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
@@ -98,7 +99,7 @@ end
 --//Updates the level and model of the placed object
 --//Precondition: Player can afford upgrades
 function PlacementClass:Upgrade(level, skipTween)
-	if (true) then
+	if (level or (not level and self:CanUpgrade())) then
 		self.Level = (level or self.Level + 1)
 		self.PlacedObject:Destroy()
 
@@ -111,7 +112,7 @@ function PlacementClass:Upgrade(level, skipTween)
 	
 		--Reconstruct CFrame to account for model size differences
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
-		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)
+		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)		
 
 		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
 		if (not skipTween) then
@@ -161,10 +162,7 @@ end
 
 --//Returns a JSON table containing information to be saved
 function PlacementClass:Encode()
-	local xPosition, _, zPosition, R00, R01, R02, R10, R11, R12, R20, R21, R22 = self.LocalPosition:GetComponents()
-
-	return xPosition .. "/" .. zPosition, TableUtil.EncodeJSON({
-		Rotatation = { R00 = R00, R01 = R01, R02 = R02, R10 = R10, R11 = R11, R12 = R12, R20 = R20, R21 = R21, R22 = R22 },
+	return CFrameSerializer:EncodeCFrameForSaving(self.LocalPosition), TableUtil.EncodeJSON({
 		ItemId = self.ItemId,
 		Level = self.Level,
 		Age = self.Age

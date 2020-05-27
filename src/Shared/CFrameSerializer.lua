@@ -155,6 +155,27 @@ function CFrameSerializer:EncodeCFrame(cf, raw)
 	return serialCF
 end
 
+function CFrameSerializer:EncodeCFrameForSaving(cf, raw)
+	local pos = cf.Position
+	local posTable = { pos.X, 0, pos.Z }
+	
+	local serialCF = {}
+	serialCF.p = compressNumbers(posTable)
+	
+	local orientId = getOrientId(cf)
+	if orientId >= 0 then
+		serialCF.o = orientId
+	else
+		serialCF.m = toQuaternion(cf)
+	end
+	
+	if not raw then
+		serialCF = HttpService:JSONEncode(serialCF)
+	end
+	
+	return serialCF
+end
+
 function CFrameSerializer:DecodeCFrame(cfJson, raw)
 	local serialCF = raw and cfJson or HttpService:JSONDecode(cfJson)
 	local pos = serialCF.p

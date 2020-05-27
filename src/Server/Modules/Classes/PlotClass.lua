@@ -45,7 +45,7 @@ function PlotClass.new(pseudoPlayer)
 
 		DebugNetwork = {},
 		RoadNetwork = {},
-		CachedPlacements = {},
+
 		Level = pseudoPlayer.PlotLevel:Get(1)
 	}, PlotClass)
 
@@ -209,8 +209,6 @@ function PlotClass:RemoveRoadFromNetwork(placementObject)
 
 	--Update surrounding tiles
 	for _, adjacentRoad in pairs(adjacentRoads) do
-		print("Updating adjacent road")
-
 		local adjacentGridSpace = self:ToGridSpace(adjacentRoad.PlacedObject.PrimaryPart.CFrame)
 		self:NetworkRoad(adjacentRoad, self:GetAdjacentRoads(adjacentGridSpace))
 	end

@@ -113,8 +113,6 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
             noticeObject = Notices.noFundsError
         }
     end
-
-    return {}
 end
 
 
@@ -178,11 +176,8 @@ function PlacementService:UpgradePlacement(player, guid)
                 return currentValue + levelMetaData.Population
             end)
 
-            --Upgrade and UpdatePlacementObject
-            local currentObjectSpace = placementObject:Encode()
-
             placementObject:Upgrade()
-            pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
+            pseudoPlayer:UpdatePlacementObject(placementObject)
 
             return {
                 wasSuccess = true,
