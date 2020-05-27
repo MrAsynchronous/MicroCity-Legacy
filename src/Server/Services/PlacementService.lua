@@ -52,7 +52,7 @@ local function IsColliding(pseudoPlayer, itemId, position)
         local model = part:FindFirstAncestorOfClass("Model")
         if (not model) then continue end
 
-        local placementObject = pseudoPlayer:GetPlacementObject(model.Name)
+        local placementObject = pseudoPlayer.PlotObject:GetPlacementObject(model.Name)
         if (not placementObject) then continue end
 
         if (part == placementObject.PlacedObject.PrimaryPart) then
@@ -92,7 +92,7 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
 
         --Construct a new placementObject, hash into playerObject.Placements
         local placementObject = PlacementClass.new(pseudoPlayer, itemId, localPosition)
-        pseudoPlayer:SetPlacementObject(placementObject)
+        pseudoPlayer.PlotObject:SetPlacementObject(placementObject)
 
         --Add population of new building to players population
         local levelMetaData = placementObject:GetLevelMetaData()
@@ -119,7 +119,7 @@ end
 --//Sells a PlacedObject
 function PlacementService:SellPlacement(player, guid)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
-    local placementObject = pseudoPlayer:GetPlacementObject(guid)
+    local placementObject = pseudoPlayer.PlotObject:GetPlacementObject(guid)
     
     local populationToRemove = 0
     local refundTypes = {}
@@ -147,7 +147,7 @@ function PlacementService:SellPlacement(player, guid)
 
     --Road networking
     pseudoPlayer.PlotObject:RemoveRoadFromNetwork(placementObject)
-    pseudoPlayer:RemovePlacementObject(guid)
+    pseudoPlayer.PlotObject:RemovePlacementObject(guid)
 
     return {
         wasSuccess = true,
@@ -159,7 +159,7 @@ end
 --//Upgrades a placedObject
 function PlacementService:UpgradePlacement(player, guid)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
-    local placementObject = pseudoPlayer:GetPlacementObject(guid)
+    local placementObject = pseudoPlayer.PlotObject:GetPlacementObject(guid)
 
     --Verify if object can be upgraded
     if (placementObject:CanUpgrade()) then
@@ -177,7 +177,7 @@ function PlacementService:UpgradePlacement(player, guid)
             end)
 
             placementObject:Upgrade()
-            pseudoPlayer:UpdatePlacementObject(placementObject)
+            pseudoPlayer.PlotObject:UpdatePlacementObject(placementObject)
 
             return {
                 wasSuccess = true,
@@ -203,7 +203,7 @@ end
 --//Moves a PlacementObject to the new localPosition
 function PlacementService:MovePlacement(player, guid, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
-    local placementObject = pseudoPlayer:GetPlacementObject(guid)
+    local placementObject = pseudoPlayer.PlotObject:GetPlacementObject(guid)
 
     --Collision detection
     if (IsColliding(pseudoPlayer, placementObject.ItemId, localPosition)) then
@@ -220,7 +220,7 @@ function PlacementService:MovePlacement(player, guid, localPosition)
 
     --//Move object and update PlacementMap
     placementObject:Move(localPosition)
-    pseudoPlayer:UpdatePlacementObject(placementObject, currentObjectSpace)
+    pseudoPlayer.PlotObject:UpdatePlacementObject(placementObject, currentObjectSpace)
 
     --Road networking
     pseudoPlayer.PlotObject:AddRoadToNetwork(placementObject)

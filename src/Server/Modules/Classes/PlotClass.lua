@@ -6,6 +6,16 @@
 --[[
 
 	Methods:
+		public void SetPlacementObject(PlacementObject placementObject)
+		public void RemovePlacementObject(String guid)
+		public void UpdatePlacementObject(PlacementObject placementObject)
+		public PlacementObject GetPlacementObject(String guid)
+
+		public Vector3 ToGridSpace(CFrame localSpace)
+		public void NetworkRoad(PlacementObject placementObject, PlacementObject[] adjacentRoads)
+		public void AddRoadToNetwork(PlacementObject placementObject, Boolean isBeingLoaded)
+		public void RemoveRoadFromNetwork(PlacementObject placementObject)
+
 		public PlotObject PlotClass.new(PseudoPlayer pseudoPlayer)
 		public void Upgrade(Integer newLevel)
 		public void ChangeSize()
@@ -42,9 +52,11 @@ local plotContainer
 function PlotClass.new(pseudoPlayer)
 	local self = setmetatable({
 		Player = pseudoPlayer.Player,
+		PlacementStore = pseudoPlayer.PlacementStore,
 
 		DebugNetwork = {},
 		RoadNetwork = {},
+		Placements = {},
 
 		Level = pseudoPlayer.PlotLevel:Get(1)
 	}, PlotClass)
@@ -63,23 +75,81 @@ function PlotClass.new(pseudoPlayer)
 	--Populate the list
 	self.TotalRows = self.Object.Main.Size.Z / 2
 	for i=1, self.TotalRows do
-		table.insert(self.DebugNetwork, {})
 		table.insert(self.RoadNetwork, {})
-
-		for v=1, self.TotalRows do
-			local part = Instance.new("Part")
-			part.Anchored = true
-			part.Color = Color3.fromRGB(255, 0, 0)
-			part.Size = Vector3.new(1, 1, 1)
-			part.CFrame = self.cframe + (Vector3.new(1 * (v - 1), 3, 1 * (i - 1)))
-			part.Parent = workspace
-
-			self.DebugNetwork[i][v] = part
-		end
 	end
 
 	return self
 end
+
+
+--[[
+██████  ██       █████   ██████ ███████ ███    ███ ███████ ███    ██ ████████      ██████  ██████       ██ ███████  ██████ ████████ ███████ 
+██   ██ ██      ██   ██ ██      ██      ████  ████ ██      ████   ██    ██        ██    ██ ██   ██      ██ ██      ██         ██    ██      
+██████  ██      ███████ ██      █████   ██ ████ ██ █████   ██ ██  ██    ██        ██    ██ ██████       ██ █████   ██         ██    ███████ 
+██      ██      ██   ██ ██      ██      ██  ██  ██ ██      ██  ██ ██    ██        ██    ██ ██   ██ ██   ██ ██      ██         ██         ██ 
+██      ███████ ██   ██  ██████ ███████ ██      ██ ███████ ██   ████    ██         ██████  ██████   █████  ███████  ██████    ██    ███████                                                                                                                                            
+]]
+
+
+--//Sets the value at index placementGuid to key placementObject
+--//Called when player places a new object
+function PlotClass:SetPlacementObject(placementObject)
+	self.Placements[placementObject.Guid] = placementObject
+
+	--Update placementStore
+	self.PlacementStore:Update(function(oldTable)
+		local objectSpace, objectData = placementObject:Encode()
+		oldTable[objectSpace] = objectData
+
+		return oldTable
+	end)
+end
+
+
+--//Updates a stored placement object on both the server
+--//and on the DataStore
+function PlotClass:UpdatePlacementObject(placementObject)
+	self.Placements[placementObject.Guid] = placementObject
+
+	--Remove old key and insert new key
+	self.PlacementStore:Update(function(oldTable)
+		local objectSpace, objectData = placementObject:Encode()
+		oldTable[objectSpace] = objectData
+
+		return oldTable
+	end)
+end
+
+
+--//Sets the value at index placementGuid to nil
+function PlotClass:RemovePlacementObject(placementGuid)
+	local placementObject = self:GetPlacementObject(placementGuid)
+	local objectSpace = placementObject:Encode()
+
+	placementObject:Destroy()
+	
+	--Update placementStore
+	self.PlacementStore:Update(function(oldTable)
+		oldTable[objectSpace] = nil
+
+		return oldTable
+	end)
+end
+
+
+--//Returns the value at index placementGuid
+function PlotClass:GetPlacementObject(placementGuid)
+	return self.Placements[placementGuid]
+end
+
+
+--[[
+██████   ██████   █████  ██████      ███    ██ ███████ ████████ ██     ██  ██████  ██████  ██   ██ 
+██   ██ ██    ██ ██   ██ ██   ██     ████   ██ ██         ██    ██     ██ ██    ██ ██   ██ ██  ██  
+██████  ██    ██ ███████ ██   ██     ██ ██  ██ █████      ██    ██  █  ██ ██    ██ ██████  █████   
+██   ██ ██    ██ ██   ██ ██   ██     ██  ██ ██ ██         ██    ██ ███ ██ ██    ██ ██   ██ ██  ██  
+██   ██  ██████  ██   ██ ██████      ██   ████ ███████    ██     ███ ███   ██████  ██   ██ ██   ██ 
+]]
 
 
 --//Converts a worldSpace to a GridSpace
@@ -115,6 +185,8 @@ function PlotClass:GetAdjacentRoads(gridSpace, isRemoving)
 end
 
 
+--//Handles the networking of a road
+--//Changes the roads model based on the number and positioning of surrounding roads
 function PlotClass:NetworkRoad(placementObject, adjacentRoads)
 	--Four way intersection
 	if (adjacentRoads.Top and adjacentRoads.Bottom and adjacentRoads.Left and adjacentRoads.Right) then
@@ -172,6 +244,8 @@ function PlotClass:NetworkRoad(placementObject, adjacentRoads)
 		--Update model
 		placementObject:Move(self.cframe:ToObjectSpace(worldPosition))
 	end	
+
+	self:UpdatePlacementObject(placementObject)
 end
 
 
@@ -181,7 +255,6 @@ function PlotClass:AddRoadToNetwork(placementObject, isBeingLoaded)
 
 	local gridSpace = self:ToGridSpace(placementObject.WorldPosition)
 	self.RoadNetwork[gridSpace.Z][gridSpace.X] = placementObject
-	self.DebugNetwork[gridSpace.Z][gridSpace.X].Color = Color3.fromRGB(0, 255, 0)
 
 	--Only solve if road is not being loaded
 	if (not isBeingLoaded) then
@@ -203,16 +276,23 @@ function PlotClass:RemoveRoadFromNetwork(placementObject)
 
 	local gridSpace = self:ToGridSpace(placementObject.WorldPosition)
 	self.RoadNetwork[gridSpace.Z][gridSpace.X] = nil
-	self.DebugNetwork[gridSpace.Z][gridSpace.X].Color = Color3.fromRGB(255, 0, 0)
 
+	--Update adjacent tiles
 	local adjacentRoads = self:GetAdjacentRoads(gridSpace, true)
-
-	--Update surrounding tiles
 	for _, adjacentRoad in pairs(adjacentRoads) do
 		local adjacentGridSpace = self:ToGridSpace(adjacentRoad.PlacedObject.PrimaryPart.CFrame)
 		self:NetworkRoad(adjacentRoad, self:GetAdjacentRoads(adjacentGridSpace))
 	end
 end
+
+
+--[[
+██████  ██       ██████  ████████ 
+██   ██ ██      ██    ██    ██    
+██████  ██      ██    ██    ██    
+██      ██      ██    ██    ██    
+██      ███████  ██████     ██    
+]]
 
 
 --//Returns true if Plot can be upgraded
@@ -242,6 +322,7 @@ function PlotClass:ChangeSize(newSize)
 end
 
 
+--//Sequentially loads the placements
 function PlotClass:LoadPlacements(pseudoPlayer)
     local placementData = pseudoPlayer.PlacementStore:Get({})
     local objectsLoaded = 0
@@ -264,7 +345,7 @@ function PlotClass:LoadPlacements(pseudoPlayer)
 			end
 
 			--Create new placementObject and add it to index
-			pseudoPlayer:SetPlacementObject(placementObject)
+			self:SetPlacementObject(placementObject)
 	
 			--Load objects in triplets
 			objectsLoaded = objectsLoaded + 1;
@@ -306,7 +387,6 @@ end
 
 
 function PlotClass:Start()
-
 	--Push all plot objects into plotStack
 	for _, plotObject in pairs(plotContainer:GetChildren()) do
 		table.insert(plotStack, #plotStack + 1, plotObject)

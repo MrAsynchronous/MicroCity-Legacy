@@ -56,10 +56,7 @@ local VALUE_EXCHANGE = {
 function PseudoPlayer.new(player)
 	local self = setmetatable({
 		Player = player,
-
-		Placements = {},
 		IsLoaded = false,
-	
 		PlacementStore = DataStore2(GameSettings.PlayerPlacementsToken, player),
 
 		_Maid = MaidClass.new(),
@@ -103,58 +100,6 @@ function PseudoPlayer.new(player)
 	end 
 
 	return self
-end
-
-
---//Sets the value at index placementGuid to key placementObject
---//Called when player places a new object
-function PseudoPlayer:SetPlacementObject(placementObject)
-	self.Placements[placementObject.Guid] = placementObject
-
-	--Update placementStore
-	self.PlacementStore:Update(function(oldTable)
-		local objectSpace, objectData = placementObject:Encode()
-		oldTable[objectSpace] = objectData
-
-		return oldTable
-	end)
-end
-
-
---//Updates a stored placement object on both the server
---//and on the DataStore
-function PseudoPlayer:UpdatePlacementObject(placementObject)
-	self.Placements[placementObject.Guid] = placementObject
-
-	--Remove old key and insert new key
-	self.PlacementStore:Update(function(oldTable)
-		local objectSpace, objectData = placementObject:Encode()
-		oldTable[objectSpace] = objectData
-
-		return oldTable
-	end)
-end
-
-
---//Sets the value at index placementGuid to nil
-function PseudoPlayer:RemovePlacementObject(placementGuid)
-	local placementObject = self:GetPlacementObject(placementGuid)
-	local objectSpace = placementObject:Encode()
-
-	placementObject:Destroy()
-	
-	--Update placementStore
-	self.PlacementStore:Update(function(oldTable)
-		oldTable[objectSpace] = nil
-
-		return oldTable
-	end)
-end
-
-
---//Returns the value at index placementGuid
-function PseudoPlayer:GetPlacementObject(placementGuid)
-	return self.Placements[placementGuid]
 end
 
 
