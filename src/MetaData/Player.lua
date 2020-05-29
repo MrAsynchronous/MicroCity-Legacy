@@ -1,5 +1,5 @@
 return {
-    Cash = 0,
+    Cash = 100000,
     Population = 0,
     Age = 0,
     Worth = 0,

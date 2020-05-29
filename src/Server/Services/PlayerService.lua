@@ -106,7 +106,7 @@ end
 --//Returns the current level for a given guid
 function PlayerService:GetLevelFromGuid(player, guid)
     local pseudoPlayer = self:GetPseudoPlayer(player)
-    return pseudoPlayer:GetPlacementObject(guid).Level
+    return pseudoPlayer.PlotObject:GetPlacementObject(guid).Level
 end
 
 
@@ -120,7 +120,7 @@ end
 --//Returns the ItemId from the given guid
 function PlayerService:GetItemIdFromGuid(player, guid)
     local pseudoPlayer = self:GetPseudoPlayer(player)
-    return pseudoPlayer:GetPlacementObject(guid).ItemId
+    return pseudoPlayer.PlotObject:GetPlacementObject(guid).ItemId
 end
 
 

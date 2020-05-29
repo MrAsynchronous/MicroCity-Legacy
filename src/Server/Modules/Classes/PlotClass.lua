@@ -98,8 +98,8 @@ function PlotClass:SetPlacementObject(placementObject)
 
 	--Update placementStore
 	self.PlacementStore:Update(function(oldTable)
-		local objectSpace, objectData = placementObject:Encode()
-		oldTable[objectSpace] = objectData
+		local guid, objectData = placementObject:Encode()
+		oldTable[guid] = objectData
 
 		return oldTable
 	end)
@@ -113,8 +113,8 @@ function PlotClass:UpdatePlacementObject(placementObject)
 
 	--Remove old key and insert new key
 	self.PlacementStore:Update(function(oldTable)
-		local objectSpace, objectData = placementObject:Encode()
-		oldTable[objectSpace] = objectData
+		local guid, objectData = placementObject:Encode()
+		oldTable[guid] = objectData
 
 		return oldTable
 	end)
@@ -124,13 +124,13 @@ end
 --//Sets the value at index placementGuid to nil
 function PlotClass:RemovePlacementObject(placementGuid)
 	local placementObject = self:GetPlacementObject(placementGuid)
-	local objectSpace = placementObject:Encode()
+	local guid = placementObject:Encode()
 
 	placementObject:Destroy()
 	
 	--Update placementStore
 	self.PlacementStore:Update(function(oldTable)
-		oldTable[objectSpace] = nil
+		oldTable[guid] = nil
 
 		return oldTable
 	end)
@@ -329,13 +329,14 @@ function PlotClass:LoadPlacements(pseudoPlayer)
 
 	--Iterate through all the placements asynchronously
 	coroutine.wrap(function()
-		for objectSpace, encodedData in pairs(placementData) do
+		for guid, encodedData in pairs(placementData) do
 			local decodedData = TableUtil.DecodeJSON(encodedData)
 
 			local placementObject = PlacementClass.new(
 				pseudoPlayer,
 				decodedData.ItemId,
-				CFrameSerializer:DecodeCFrame(objectSpace),
+				CFrameSerializer:DecodeCFrame(decodedData.Position),
+				guid,
 				decodedData
 			)
 

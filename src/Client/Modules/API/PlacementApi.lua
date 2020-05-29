@@ -105,6 +105,7 @@ local UP = Vector3.new(0, 1, 0)
 local BACK = Vector3.new(0, 0, 1)
 local SELECTION_BOX_THICKNESS = 0.05
 local MAX_INTERACTION_DISTANCE = 30
+local ROAD_COLOR = Color3.fromRGB(52, 152, 219)
 local COLLISION_COLOR = Color3.fromRGB(231, 76, 60)
 local NO_COLLISION_COLOR = Color3.fromRGB(46, 204, 113)
 
@@ -386,7 +387,11 @@ local function UpdatePlacement(isInitialUpdate)
     if (isColliding) then
         itemObject.PrimaryPart.Color = COLLISION_COLOR
     else
-        itemObject.PrimaryPart.Color = NO_COLLISION_COLOR
+        if (itemMetaData.Type == "Road") then
+            itemObject.PrimaryPart.Color = ROAD_COLOR
+        else
+            itemObject.PrimaryPart.Color = NO_COLLISION_COLOR
+        end
     end
 end
 
@@ -427,6 +432,7 @@ function PlacementApi:StartPlacing(id)
     dummyPart = itemObject.PrimaryPart:Clone()
     dummyPart.Parent = camera
     dummyPart.Touched:Connect(function() end)
+    dummyPart.Transparency = 1
 
     --Show bounding box, set position to plot
     itemObject.PrimaryPart.Transparency = 0.5
@@ -436,6 +442,16 @@ function PlacementApi:StartPlacing(id)
 
     --Disable collisions
     DeactivateCollisions()
+
+    --Road
+    if (itemMetaData.Type == "Road") then
+        itemObject.PrimaryPart.Color = ROAD_COLOR
+
+        --Make all decoration parts invisible
+        for _, part in pairs(itemObject.Decor:GetChildren()) do
+            part.Transparency = 1
+        end
+    end
 
     --Keybind Setup (playform dependent)
     preferredInput = UserInput:GetPreferred()

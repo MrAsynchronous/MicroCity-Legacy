@@ -45,7 +45,7 @@ local MaidClass
 
 
 --//Constructor for PlacementClass
-function PlacementClass.new(pseudoPlayer, itemId, itemPosition, saveData)
+function PlacementClass.new(pseudoPlayer, itemId, itemPosition, guid, saveData)
 	local self = setmetatable({
 		ItemId = itemId,
 		Plot = pseudoPlayer.PlotObject.Object,
@@ -55,7 +55,7 @@ function PlacementClass.new(pseudoPlayer, itemId, itemPosition, saveData)
 		Level = 1,
 		Age = 0,
 
-		Guid = HttpService:GenerateGUID(false),
+		Guid = (guid or HttpService:GenerateGUID(false)),
 		_Maid = MaidClass.new()
 	}, PlacementClass)
 
@@ -162,7 +162,8 @@ end
 
 --//Returns a JSON table containing information to be saved
 function PlacementClass:Encode()
-	return CFrameSerializer:EncodeCFrameForSaving(self.LocalPosition), TableUtil.EncodeJSON({
+	return self.Guid, TableUtil.EncodeJSON({
+		Position = CFrameSerializer:EncodeCFrame(self.LocalPosition),
 		ItemId = self.ItemId,
 		Level = self.Level,
 		Age = self.Age
