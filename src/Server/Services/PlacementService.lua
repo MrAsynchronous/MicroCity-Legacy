@@ -72,6 +72,12 @@ end
 ]]
 --//Places the requested object
 function PlacementService:PlaceObject(player, itemId, localPosition)
+    if (typeof(localPosition) ~= "CFrame") then
+        return {
+            wasSuccess = false
+        }
+    end
+
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player) 
     local itemMetaData = MetaDataService:GetMetaData(itemId)
     local levelOneMetaData = itemMetaData.Upgrades[1]
@@ -112,6 +118,15 @@ function PlacementService:PlaceObject(player, itemId, localPosition)
             wasSuccess = false,
             noticeObject = Notices.noFundsError
         }
+    end
+end
+
+
+function PlacementService:PlaceRoads(player, positions)
+    for _, pos in pairs(positions) do
+        if (typeof(pos) ~= "CFrame") then continue end
+
+        self:PlaceObject(player, 100, pos)
     end
 end
 
@@ -242,6 +257,10 @@ end
 ]]
 function PlacementService.Client:RequestPlacement(...)
     return self.Server:PlaceObject(...)
+end
+
+function PlacementService.Client:RequestRoadPlacement(...)
+    return self.Server:PlaceRoads(...)
 end
 
 function PlacementService.Client:RequestMove(...)

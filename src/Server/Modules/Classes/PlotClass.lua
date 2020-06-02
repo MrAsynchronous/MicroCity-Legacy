@@ -158,9 +158,9 @@ function PlotClass:ToGridSpace(worldSpace)
 	local objectSpace = self.corner:ToObjectSpace(worldSpace)
 
 	return Vector3.new(
-		NumberUtil:Round(math.abs(objectSpace.X / 2) + 1),
+		NumberUtil.Round(math.abs(objectSpace.X / 2) + 1),
 		0,
-		NumberUtil:Round(math.abs(objectSpace.Z / 2) + 1)
+		NumberUtil.Round(math.abs(objectSpace.Z / 2) + 1)
 	)
 end
 
@@ -373,7 +373,7 @@ function PlotClass:Destroy()
 	self:ClearPlacements()
 
 	--Push plotObject back into plotStack
-	table.insert(plotStack, #plotStack + 1, self.Object)
+	table.insert(plotStack, self.Object)
 end
 
 

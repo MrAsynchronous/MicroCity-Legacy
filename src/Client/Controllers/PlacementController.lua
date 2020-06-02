@@ -152,7 +152,7 @@ function PlacementController:Start()
         PlacementApi intereaction
     ]]
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
-        local actionData = PlacementService:RequestPlacement(itemId, localPosition)
+        local actionData = (type(localPosition) == "table" and PlacementService:RequestRoadPlacement(localPosition) or PlacementService:RequestPlacement(itemId, localPosition))
         NotificationDispatcher:Dispatch(actionData.noticeObject)
      end)
 

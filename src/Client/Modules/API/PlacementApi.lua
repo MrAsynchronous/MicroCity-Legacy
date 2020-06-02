@@ -83,7 +83,9 @@ local worldPosition
 local preMoveParent
 local selectedObject
 local preferredInput
+local cachedRoadModels
 local mobileDragPosition
+local cachedRoadPositions
 local initialWorldPosition
 local placementSelectionBox
 local positionChangedSignal
@@ -139,6 +141,17 @@ local function CastRay(ignoreList, screenPosition, yOffset, skipRayCast)
     local screenRay = Ray.new(screenUnitRay.Origin, (screenUnitRay.Direction * 100))
 
     return workspace:FindPartOnRayWithIgnoreList(screenRay, ignoreList)
+end
+
+
+local function CacheRoad()
+    local dummyRoad = dummyPart:Clone()
+    dummyRoad.Transparency = 0.5
+    dummyRoad.Color = Color3.fromRGB(0, 0, 255)
+    dummyRoad.Parent = camera
+
+    table.insert(cachedRoadModels, dummyRoad)
+    table.insert(cachedRoadPositions, localPosition)
 end
 
 
@@ -227,7 +240,7 @@ local function PlaceObject()
         if (isMoving) then
             self.Events.ObjectMoved:Fire(itemObject.Name, localPosition)
         else
-            self.Events.ObjectPlaced:Fire(itemId, localPosition)
+            self.Events.ObjectPlaced:Fire(itemId, ((itemMetaData.Type == "Road" and cachedRoadPositions) or localPosition))
         end
     end
 end
@@ -550,14 +563,30 @@ function PlacementApi:StartPlacing(id)
         --Detect placement key bind
         currentMaid:GiveTask(mouse.LeftDown:Connect(function()
             if ((not isMoving) and itemMetaData.Type == "Road") then
+                CacheRoad()
+
                 positionChangedSignal = self.PositionChanged:Connect(function(newPosition)
-                    PlaceObject()
+                    if (not table.find(cachedRoadPositions, localPosition)) then
+                        CacheRoad()
+                    end
                 end)
             end
         end))
 
         currentMaid:GiveTask(mouse.LeftUp:Connect(function()
             PlaceObject()
+
+            --Clean dummy roads
+            if (cachedRoadModels) then
+                for _, dummyRoad in pairs(cachedRoadModels) do
+                    dummyRoad:Destroy()
+                end
+            else
+                cachedRoadModels = {}
+            end
+
+            --Reset cachedPositions
+            cachedRoadPositions = {}
 
             if (positionChangedSignal) then
                 positionChangedSignal:Disconnect()
@@ -588,6 +617,9 @@ end
 function PlacementApi:StopPlacing(moveFailed)
     --Hide grid
     HideGrid()
+
+    --Unbind actions
+    currentMaid:DoCleaning()
 
     --Ui cleanup
     if (pcInterface.Visible) then
@@ -624,6 +656,18 @@ function PlacementApi:StopPlacing(moveFailed)
     --Destroy dummyPart
     if (dummyPart) then dummyPart:Destroy() end
 
+    --Clean dummy roads
+    if (cachedRoadModels) then
+        for _, dummyRoad in pairs(cachedRoadModels) do
+            dummyRoad:Destroy()
+        end
+    else
+        cachedRoadModels = {}
+    end
+
+    --Reset cachedPositions
+    cachedRoadPositions = {}
+
     --Disconnect positionChangedSignal
     if (positionChangedSignal) then
         positionChangedSignal:Disconnect()
@@ -648,8 +692,6 @@ function PlacementApi:StopPlacing(moveFailed)
     --Fire placementCancelled event
     self.Events.PlacementEnded:Fire(itemId)
 
-    --Unbind actions
-    currentMaid:DoCleaning()
     RunService:UnbindFromRenderStep("UpdatePlacement")
 end
 
