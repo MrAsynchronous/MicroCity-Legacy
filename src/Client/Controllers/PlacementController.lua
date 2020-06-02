@@ -154,26 +154,6 @@ function PlacementController:Start()
     PlacementApi.ObjectPlaced:Connect(function(itemId, localPosition)
         local actionData = PlacementService:RequestPlacement(itemId, localPosition)
         NotificationDispatcher:Dispatch(actionData.noticeObject)
-
-        --Tween and particle effect
-        if (actionData.wasSuccess and actionData.placedObject) then
-            --Clone particle effect
-            local newParticle = Particles.PlacementEffect:Clone()
-            newParticle.Parent = actionData.placedObject.PrimaryPart
-            newParticle.Enabled = true
-
-            --Give the tween effect
-            local effectTween = TweenService:Create(actionData.placedObject.PrimaryPart, TweenInfo.new(1), {CFrame = actionData.worldPosition})
-            effectTween:Play()
-
-            --When tween completes, destroy tween and particle 
-            effectTween.Completed:Connect(function()
-                effectTween:Destroy()
-                newParticle:Destroy()
-
-                PlacementService:RequestMove(actionData.placedObject.Name, localPosition)
-            end)
-        end
      end)
 
     --When player finishes moving an object, tell server

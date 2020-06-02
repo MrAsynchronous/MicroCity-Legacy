@@ -31,6 +31,7 @@ PlotClass.__index = PlotClass
 --//Api
 local CFrameSerializer
 local PlotSettings
+local NumberUtil
 local TableUtil
 
 --//Services
@@ -70,7 +71,7 @@ function PlotClass.new(pseudoPlayer)
 	--Size, CFrame and corner localization
 	self.size = self.Object.Main.Size
 	self.cframe = self.Object.Main.CFrame
-	self.corner = self.cframe - (self.size / 2) + Vector3.new(1, 0, 1)
+	self.corner = self.cframe * CFrame.new(self.size.X / 2, self.size.Y / 2, self.size.Z / 2) + Vector3.new(1, 0, 1)
 
 	--Populate the list
 	self.TotalRows = self.Object.Main.Size.Z / 2
@@ -157,31 +158,22 @@ function PlotClass:ToGridSpace(worldSpace)
 	local objectSpace = self.corner:ToObjectSpace(worldSpace)
 
 	return Vector3.new(
-		math.ceil(math.abs(objectSpace.X / 2) + 1),
+		NumberUtil:Round(math.abs(objectSpace.X / 2) + 1),
 		0,
-		math.ceil(math.abs(objectSpace.Z / 2) + 1)
+		NumberUtil:Round(math.abs(objectSpace.Z / 2) + 1)
 	)
 end
 
 
 --//Returns the four adjacent tiles
 --//Indecies may be null
-function PlotClass:GetAdjacentRoads(gridSpace, isRemoving)
---	if (self.RoadNetwork[gridSpace.Z] and (self.RoadNetwork[gridSpace.Z][gridSpace.X])) then 
-		return {
-			Top = self.RoadNetwork[math.clamp(gridSpace.Z - 1, 1, self.TotalRows)][gridSpace.X],
-			Bottom = self.RoadNetwork[math.clamp(gridSpace.Z + 1, 1, self.TotalRows)][gridSpace.X],
-			Left = self.RoadNetwork[gridSpace.Z][math.clamp(gridSpace.X - 1, 1, self.TotalRows)],
-			Right = self.RoadNetwork[gridSpace.Z][math.clamp(gridSpace.X + 1, 1, self.TotalRows)]
-		}
---	else
---		return {
---			Top = nil,
---			Bottom = nil,
---			Left = nil,
---			Right = nil
---		}
---	end
+function PlotClass:GetAdjacentRoads(gridSpace)
+	return {
+		Top = self.RoadNetwork[math.clamp(gridSpace.Z - 1, 1, self.TotalRows)][gridSpace.X],
+		Bottom = self.RoadNetwork[math.clamp(gridSpace.Z + 1, 1, self.TotalRows)][gridSpace.X],
+		Left = self.RoadNetwork[gridSpace.Z][math.clamp(gridSpace.X - 1, 1, self.TotalRows)],
+		Right = self.RoadNetwork[gridSpace.Z][math.clamp(gridSpace.X + 1, 1, self.TotalRows)]
+	}
 end
 
 
@@ -190,11 +182,11 @@ end
 function PlotClass:NetworkRoad(placementObject, adjacentRoads)
 	--Four way intersection
 	if (adjacentRoads.Top and adjacentRoads.Bottom and adjacentRoads.Left and adjacentRoads.Right) then
-		placementObject:Upgrade(4, true)
+		placementObject:Upgrade(5, true)
 
 	--Three way intetsection possibilites
 	elseif ((adjacentRoads.Top and adjacentRoads.Bottom and (adjacentRoads.Right or adjacentRoads.Left)) or (adjacentRoads.Right and adjacentRoads.Left and (adjacentRoads.Top or adjacentRoads.Bottom))) then
-		placementObject:Upgrade(3, true)
+		placementObject:Upgrade(4, true)
 
 		--Orientation detection
 		local worldPosition = placementObject.WorldPosition
@@ -209,7 +201,7 @@ function PlotClass:NetworkRoad(placementObject, adjacentRoads)
 
 	--Turn possibilities
 	elseif (adjacentRoads.Top and adjacentRoads.Left or adjacentRoads.Top and adjacentRoads.Right or adjacentRoads.Bottom and adjacentRoads.Right or adjacentRoads.Bottom and adjacentRoads.Left) then
-		placementObject:Upgrade(2, true)
+		placementObject:Upgrade(3, true)
 
 		--Orientation detection
 		local worldPosition = placementObject.WorldPosition
@@ -228,9 +220,7 @@ function PlotClass:NetworkRoad(placementObject, adjacentRoads)
 
 	--Straight road possiblities
 	elseif (adjacentRoads.Top or adjacentRoads.Bottom or adjacentRoads.Left or adjacentRoads.Right) then
-		if (placementObject.Level > 1) then
-			placementObject:Upgrade(1, true)
-		end
+		placementObject:Upgrade(2, true)
 
 		--Orientation detection
 		local worldPosition = CFrame.new(
@@ -399,6 +389,7 @@ function PlotClass:Init()
 	--//Api
 	CFrameSerializer= self.Shared.CFrameSerializer
 	PlotSettings = require(ReplicatedStorage.MetaData.Plot)
+	NumberUtil = self.Shared.NumberUtil
 	TableUtil = self.Shared.TableUtil
 
 	--//Services

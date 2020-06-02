@@ -205,6 +205,10 @@ function PlacementService:MovePlacement(player, guid, localPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     local placementObject = pseudoPlayer.PlotObject:GetPlacementObject(guid)
 
+    if (not localPosition) then
+        localPosition = placementObject.localPosition
+    end
+
     --Collision detection
     if (IsColliding(pseudoPlayer, placementObject.ItemId, localPosition)) then
         return {

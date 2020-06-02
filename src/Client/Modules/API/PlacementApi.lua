@@ -444,14 +444,14 @@ function PlacementApi:StartPlacing(id)
     DeactivateCollisions()
 
     --Road
-    if (itemMetaData.Type == "Road") then
-        itemObject.PrimaryPart.Color = ROAD_COLOR
+    -- if (itemMetaData.Type == "Road") then
+    --     itemObject.PrimaryPart.Color = ROAD_COLOR
 
-        --Make all decoration parts invisible
-        for _, part in pairs(itemObject.Decor:GetChildren()) do
-            part.Transparency = 1
-        end
-    end
+    --     --Make all decoration parts invisible
+    --     for _, part in pairs(itemObject.Decor:GetChildren()) do
+    --         part.Transparency = 1
+    --     end
+    -- end
 
     --Keybind Setup (playform dependent)
     preferredInput = UserInput:GetPreferred()

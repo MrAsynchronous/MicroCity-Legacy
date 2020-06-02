@@ -79,11 +79,7 @@ function PlacementClass.new(pseudoPlayer, itemId, itemPosition, guid, saveData)
 
 	self._Maid:GiveTask(self.PlacedObject)
 
-	if (saveData) then
-		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
-	else
-		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
-	end
+	self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
 
 	return self
 end
@@ -98,7 +94,7 @@ end
 
 --//Updates the level and model of the placed object
 --//Precondition: Player can afford upgrades
-function PlacementClass:Upgrade(level, skipTween)
+function PlacementClass:Upgrade(level)
 	if (level or (not level and self:CanUpgrade())) then
 		self.Level = (level or self.Level + 1)
 		self.PlacedObject:Destroy()
@@ -112,12 +108,9 @@ function PlacementClass:Upgrade(level, skipTween)
 	
 		--Reconstruct CFrame to account for model size differences
 		self.LocalPosition = self:ConstructPosition(self.LocalPosition)
-		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)		
+		self.WorldPosition = self.Plot.Main.CFrame:ToWorldSpace(self.LocalPosition)	
 
 		self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition
-		if (not skipTween) then
-			self.PlacedObject.PrimaryPart.CFrame = self.WorldPosition - Vector3.new(0, self.PlacedObject.PrimaryPart.Size.Y, 0)
-		end
 	end
 end
 

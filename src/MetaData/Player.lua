@@ -9,6 +9,10 @@ return {
     Level = 0,
     Exp = 0,
 
+    UnlockedItems = {
+        "1:1"
+    },
+
     CodesUsed = {},
     Settings = {
         SoundFx = true,

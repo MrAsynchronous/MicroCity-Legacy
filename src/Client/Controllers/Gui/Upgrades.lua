@@ -7,6 +7,7 @@
 local Upgrades = {}
 
 --//Api
+local TableUtil
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,26 +15,61 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local PlayerGui
 
-local NotificationDispatch
+local PlacementService
 local MetaDataService
 local PlayerService
 
 --//Controllers
+local NotificationDispatch
 
 --//Classes
 local GuiClass
 
 --//Locals
+local ReplicatedData
+local UnlockedItems
 local UpgradesGui
+local PlotObject
 local GuiObject
+local Particles
 
 local ViewportFrame
 local Camera
 
+local selectedGuid
 local itemMetaData
 local upgradeModels
 local selectedModel
 local objectSpinConnection
+
+local CAN_AFFORD_BUTTON = "rbxassetid://5124300858"
+local CANNOT_AFFORD_BUTTON = "rbxassetid://5124300940"
+local OWNED_BUTTON = "rbxassetid://4981264069"
+
+
+--//Returns index of item if found
+local function HasItem(itemId, level)
+    return table.find(UnlockedItems, itemId .. ":" .. level)
+end
+
+
+--//Changes the viewports color to the given color
+local function ChangeViewportColors(color)
+    ViewportFrame.Ambient = color
+    ViewportFrame.LightColor = color
+end
+
+
+--//Changes the viewports view to black
+local function Blackout()
+    return ChangeViewportColors(Color3.fromRGB(0, 0, 0))
+end
+
+
+--//Changes the viewports view to white
+local function Whiteout()
+    return ChangeViewportColors(Color3.fromRGB(255, 255, 255))
+end
 
 
 --//Used for moving camera to and from models
@@ -82,6 +118,9 @@ local function SetupViewport(itemId, level)
     itemMetaData = MetaDataService:GetMetaData(itemId)
     selectedModel = level
 
+    Whiteout()
+    UpgradesGui.Container.Purchase.Button.Image = OWNED_BUTTON
+
     --Clone all models
     for index, data in ipairs(itemMetaData.Upgrades) do
         local modelClone = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":" .. index):Clone()
@@ -125,14 +164,18 @@ local function CleanupViewport()
         model:Destroy()
     end
 
-    --Reset array
+    --Reset variables
     upgradeModels = {}
+    selectedGuid = nil
+    itemMetaData = nil
+    selectedModel = nil
 end
 
 
 --//Public facing Show
 function Upgrades:Show(guid)
-    --Viewport!
+    selectedGuid = guid
+
     local itemId = PlayerService:GetItemIdFromGuid(guid)
     local level = PlayerService:GetLevelFromGuid(guid)
     SetupViewport(itemId, level)
@@ -161,6 +204,13 @@ function Upgrades:Start()
         --Get model, tween camera
         local model = upgradeModels[selectedModel]
         TweenCamera(AttachCameraToModel(model))
+
+        --Either black or whiteout the viewport frame depending on if the item is owned
+        if (not HasItem(itemMetaData.ItemId, selectedModel)) then
+            Blackout()
+        else
+            Whiteout()
+        end
     end)
 
     --Back button binds
@@ -174,6 +224,13 @@ function Upgrades:Start()
         --Get model and tween camera
         local model = upgradeModels[selectedModel]
         TweenCamera(AttachCameraToModel(model))
+
+        --Either black or whiteout the viewport frame depending on if the item is owned
+        if (not HasItem(itemMetaData.ItemId, selectedModel)) then
+            Blackout()
+        else
+            Whiteout()
+        end
     end)
 
     --Clear models when GUI closes
@@ -183,26 +240,36 @@ function Upgrades:Start()
         CleanupViewport()
     end)
 
-    GuiObject:BindButton(UpgradesGui.Container.Purchase)
+    GuiObject:BindButton(UpgradesGui.Container.Purchase, function()
+        local actionData = PlacementService:RequestUpgrade(selectedGuid)
+        NotificationDispatch:Dispatch(actionData.noticeObject)
+    end)
 end
 
 
 function Upgrades:Init()
     --//Api
+    TableUtil = self.Shared.TableUtil
     
     --//Services
     PlayerGui = self.Player.PlayerGui
 
-    NotificationDispatch = self.Controllers.NotificationDispatcher
+    PlacementService = self.Services.PlacementService
     MetaDataService = self.Services.MetaDataService
     PlayerService = self.Services.PlayerService
 
     --//Controllers
+    NotificationDispatch = self.Controllers.NotificationDispatcher
 
     --//Classes
     GuiClass = self.Modules.Classes.GuiClass
     
     --//Locals
+    ReplicatedData = ReplicatedStorage.ReplicatedData:WaitForChild(self.Player.UserId)
+    UnlockedItems = TableUtil.DecodeJSON(ReplicatedData:WaitForChild("UnlockedItems").Value)
+    PlotObject = self.Player:WaitForChild("PlotObject").Value
+    Particles = ReplicatedStorage:WaitForChild("Items").Particles
+
     upgradeModels = {}
 
 end
