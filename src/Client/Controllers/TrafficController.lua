@@ -17,6 +17,7 @@ local TrafficController = {}
 
 --//Api
 local RoadApi
+local Smooth
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -139,11 +140,24 @@ local function UpdateVehicles()
 
         if (currentRoad and nextRoad) then
             local vehicleRightVector = vehicle.PrimaryPart.CFrame.RightVector
+            local speed = metaData.Speed
+
+            --Dynamic traffic speeds
+            local Ray = Ray.new(vehicle.PrimaryPart.Position, vehicle.PrimaryPart.CFrame.lookVector * 2)
+            local part, position = workspace:FindPartOnRayWithIgnoreList(Ray, {vehicle})
+
+            if (part and part:IsDescendantOf(PlotObject.Vehicles)) then
+                speed = speed / 2
+
+                if (metaData.ItemId == 1002) then
+                    speed = speed / 2
+                end
+            end
 
             --Construct and set CFrame
             vehicle.PrimaryPart.CFrame = vehicle.PrimaryPart.CFrame:Lerp(
                 CFrame.new(currentRoad.PrimaryPart.Position + (vehicleRightVector / 2), nextRoad.PrimaryPart.Position + (vehicleRightVector / 2)),
-                metaData.Speed
+                speed
             )
             
             --Re-construct table
@@ -174,6 +188,7 @@ end
 function TrafficController:Init()
     --//Api
     RoadApi = self.Shared.API.RoadApi
+    Smooth = self.Modules.Smooth
 
     --//Services
     PlayerService = self.Services.PlayerService
