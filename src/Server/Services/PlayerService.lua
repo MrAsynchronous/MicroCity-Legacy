@@ -39,7 +39,7 @@ function PlayerService:Start()
             PseudoPlayers[player] = pseudoPlayer
 
             pseudoPlayer.Plot = PlotClass.new(pseudoPlayer)
-            self:FireClientEvent("PlotLoaded", player, pseudoPlayer.Plot.Object)
+            self:FireClientEvent("RequestPlot", player, pseudoPlayer.Plot.Object)
 
     end)
 
@@ -89,7 +89,7 @@ function PlayerService:Init()
     --//Controllers
 
     --//Locals	
-    self:RegisterClientEvent("PlotLoaded")
+    self:RegisterClientEvent("RequestPlot")
 
 end
 

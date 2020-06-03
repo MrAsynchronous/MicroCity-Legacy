@@ -40,7 +40,7 @@ end
 function PlotController:Start()
     LogApi:Log("Client | PlotController | Start: Requesting Plot from server")
     
-    Plot = (PlayerService:RequestPlot() or PlayerService.PlotLoaded:Wait())
+    Plot = (PlayerService:RequestPlot() or PlayerService.RequestPlot:Wait())
 
     --Grab or wait for character to be added
     local Character = (self.Player.Character or self.Player.CharacterAdded:Wait())
