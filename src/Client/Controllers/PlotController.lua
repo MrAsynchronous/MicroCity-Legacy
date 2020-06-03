@@ -27,23 +27,28 @@ local PlayerService
 local Plot
 
 
+local function MoveCharToPlot(character)
+    LogApi:Log("Client | PlotController | MoveCharToPlot: Moving character to plot")
+
+    --Yield for HumanoidRootPart because Roblox is dumb and fires the CharacterAdded event before the primarypart is set
+    if (character.PrimaryPart == nil) then character:WaitForChild("HumanoidRootPart") end
+
+    character:SetPrimaryPartCFrame(Plot.Main.CFrame + Vector3.new(0, 15, 0))
+end
+
+
 function PlotController:Start()
     LogApi:Log("Client | PlotController | Start: Requesting Plot from server")
     
-    Plot = PlayerService:RequestPlot()
-    
-    LogApi:Log("Client | PlotController | Start: Moving player-character to plot")
+    Plot = (PlayerService:RequestPlot() or PlayerService.PlotLoaded:Wait())
 
-    --Move character to plot
-    local character = self.Player.Character or self.Player.CharacterAdded:Wait()
-    character:SetPrimaryPartCFrame(Plot.Main.CFrame + Vector3.new(0, 15, 0))
+    --Grab or wait for character to be added
+    local Character = (self.Player.Character or self.Player.CharacterAdded:Wait())
+    MoveCharToPlot(Character)
 
-    --Listen for CharacterAdded to move player to plot
-    self.Player.CharacterAdded:Connect(function(newCharacter)
-        while (newCharacter.PrimaryPart == nil) do wait() end
-        
-        LogApi:Log("Client | PlotController | Start: Moving player-character to plot after reset")
-        newCharacter:SetPrimaryPartCFrame(Plot.Main.CFrame + Vector3.new(0, 15, 0))
+    --Listen for CharacterAdded event to move new character to plot
+    self.Player.CharacterAdded:Connect(function(char)
+        MoveCharToPlot(char)
     end)
 end
 

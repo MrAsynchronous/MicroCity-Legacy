@@ -3,6 +3,12 @@
 -- June 2, 2020
 
 
+--[[
+
+    Handles the fulfillment of MetaData requests
+
+]]
+
 
 local MetaDataService = {Client = {}}
 
@@ -24,6 +30,8 @@ local MiscMetaData = {}
 
 --//Returns MetaData for a give itemId
 function MetaDataService:GetMetaData(itemId)
+    LogApi:Log("Server | MetaDataService | GetMetaData: Fulfilling MetaData request for " .. itemId)
+
     if (typeof(itemId) == "string") then
         return MiscMetaData[itemId]
     elseif (typeof(itemId) == "number") then
@@ -35,7 +43,9 @@ end
 
 
 --//Client patch
-function MetaDataService.Client:GetMetaData(player, itemId)
+function MetaDataService.Client:RequestMetaData(player, itemId)
+    LogApi:Log("Server | MetaDataService | RequestMetaData: Received request for MetaData")
+
     return self.Server:GetMetaData(itemId)
 end
 
