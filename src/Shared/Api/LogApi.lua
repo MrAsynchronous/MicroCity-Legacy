@@ -33,15 +33,19 @@ local SessionLog = {}
 
 --//Logs a normal event
 function LogApi:Log(info)
-    print("Log @", info)
-
+    if (not RunService:IsStudio()) then
+        print("Log @", info)
+    end
+    
     table.insert(SessionLog, "Log @ " .. info)
 end
 
 
 --//Logs a warning event
 function LogApi:LogWarn(info)
-    warn("Warning @", info)
+    if (not RunService:IsStudio()) then
+        warn("Warning @", info)
+    end
 
     table.insert(SessionLog, "Warning @ " .. info)
 end
@@ -49,9 +53,16 @@ end
 
 --//Logs an error event
 function LogApi:LogError(info)
-    error("Error @", info)
+    if (not RunService:IsStudio()) then
+        error("Error @", info)
+    end
 
     table.insert(SessionLog, "Error @ " .. info)
+end
+
+
+function LogApi:PullSessionLog()
+    return SessionLog
 end
 
 

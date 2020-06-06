@@ -26,6 +26,10 @@ function InitService:Start()
     local cmdr = require(ServerScriptService:WaitForChild("Cmdr"))
     cmdr:RegisterDefaultCommands()
 
+    LogApi:Log("Server | InitService | Start: Moving Items")
+
+    Workspace.Items.Parent = ReplicatedStorage
+
     LogApi:Log("Server | InitService | Start: Completed")
 end
 

@@ -9,9 +9,6 @@
         "Shared": {
           "$path": "src/Shared"
         }
-      },
-      "MetaData": {
-        "$path": "src/MetaData"
       }
     },
     "ReplicatedFirst": {
@@ -30,6 +27,10 @@
         "Services": {
           "$path": "src/Server/Services"
         }
+      },
+      "MetaData": {
+        "$className": "Folder",
+        "$path": "src/MetaData"
       }
     },
     "ServerScriptService": {

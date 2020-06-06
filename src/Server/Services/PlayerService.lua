@@ -41,14 +41,14 @@ function PlayerService:Start()
             pseudoPlayer.Plot = PlotClass.new(pseudoPlayer)
             self:FireClientEvent("RequestPlot", player, pseudoPlayer.Plot.Object)
 
-    end)
+        pseudoPlayer.Plot:LoadBuildings(pseudoPlayer, pseudoPlayer.BuildingStore:Get({}))
+    end)    
 
     Players.PlayerRemoving:Connect(function(player)
         LogApi:Log("Server | PlayerService | PlayerRemoving: " .. player.Name .. " has left the game")
 
         local pseudoPlayer = self:GetPseudoPlayerFromPlayer(player)
         pseudoPlayer.Plot:Unload()
-
     end)
 
     LogApi:Log("Server | PlayerService | Start: Completed")

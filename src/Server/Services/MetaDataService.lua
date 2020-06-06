@@ -16,7 +16,7 @@ local MetaDataService = {Client = {}}
 local LogApi
 
 --//Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
 
 --//Classes
 
@@ -79,7 +79,7 @@ function MetaDataService:Init()
     --//Controllers
 
     --//Locals
-    MetaDataContainer = ReplicatedStorage:WaitForChild("MetaData")
+    MetaDataContainer = ServerStorage:WaitForChild("MetaData")
 end
 
 

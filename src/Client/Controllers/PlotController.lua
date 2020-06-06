@@ -14,6 +14,7 @@ local PlotController = {}
 
 
 --//Api
+local PlacementApi
 local LogApi
 
 --//Services
@@ -55,6 +56,7 @@ end
 
 function PlotController:Init()
     --//Api
+    PlacementApi = self.Modules.Api.PlacementApi
     LogApi = self.Shared.Api.LogApi
 
     --//Services

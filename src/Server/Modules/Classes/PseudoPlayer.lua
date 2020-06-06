@@ -9,6 +9,7 @@ PseudoPlayer.__index = PseudoPlayer
 
 
 --//Api
+local CompressionApi
 local DataStore2
 local TableUtil
 local LogApi
@@ -16,6 +17,7 @@ local LogApi
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 
 local MetaDataService
 local PlayerService
@@ -46,6 +48,42 @@ function PseudoPlayer.new(player)
 
         _Maid = MaidClass.new()
     }, PseudoPlayer)
+
+    self.BuildingStore = DataStore2("Buildings", player)
+
+    --De-serializes data before initially loaded
+    self.BuildingStore:BeforeInitialGet(function(serialized)
+        local decompressedData = CompressionApi:decompress(serialized)
+        local buildingData = string.split(decompressedData, "|")
+        serialized = {}
+
+        --Iterate through all split strings, insert them into table
+        for _, JSONData in pairs(buildingData) do
+            serialized[HttpService:GenerateGUID(false)] = JSONData
+        end
+
+        return serialized
+    end)
+
+    --Serializes data before save
+    self.BuildingStore:BeforeSave(function(deserialized)
+        local str = ""
+
+        --Iterate through all placements, combine JSONData
+        for guid, jsonArray in pairs(deserialized) do
+            if (type(jsonArray) == "table") then
+                jsonArray = TableUtil.EncodeJSON(jsonArray:Encode())
+            end
+
+            if (str == "") then
+                str = jsonArray
+            else
+                str = str .. "|" .. jsonArray
+            end 
+        end
+
+        return CompressionApi:compress(str)
+    end)
 
     --Initiate DataStore2
     self.ReplicatedDataContainer = Instance.new("Folder")
@@ -102,6 +140,7 @@ end
 
 function PseudoPlayer:Init()
     --//Api
+    CompressionApi = self.Shared.Api.CompressionApi
     DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
     TableUtil = self.Shared.TableUtil
     LogApi = self.Shared.Api.LogApi

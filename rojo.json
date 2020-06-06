@@ -24,7 +24,7 @@
     },
     "MetaData": {
       "path": "src/Shared",
-      "target": "ReplicatedStorage.MetaData"
+      "target": "ServerStorage.MetaData"
     },
     "_ReplicatedFirst": {
       "path": "src/_framework/rep_first",

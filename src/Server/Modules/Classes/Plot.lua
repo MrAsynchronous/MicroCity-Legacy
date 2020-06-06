@@ -20,6 +20,7 @@ local LogApi
 local Workspace = game:GetService("Workspace")
 
 --//Classes
+local BuildingClass
 
 --//Controllers
 
@@ -33,13 +34,32 @@ function Plot.new(pseudoPlayer)
 
     local self = setmetatable({
         Player = pseudoPlayer.Player
+
     }, Plot)
 
     --Pop last plot and give it to player
     self.Object = table.remove(AvailablePlots, #AvailablePlots)
     if (not self.Object) then LogApi:LogWarn("Server | PlotCass | Constructor: No plot object was given to " .. pseudoPlayer.Player.Name .. "!") end
 
+    self.CFrame = self.Object.Main.CFrame
+    self.MainSize = self.Object.Main.Size
+    self.VisualPartSize = self.Object.VisualPart.Size
+
     return self
+end
+
+
+--//Loads buildings from a save list
+function Plot:LoadBuildings(pseudoPlayer, buildingList)
+    pseudoPlayer.BuildingStore:Update(function(serialized)
+        serialized = {}
+
+        for guid, JSONData in pairs(buildingList) do
+            serialized[guid] = BuildingClass.newFromSave(pseudoPlayer, guid, JSONData)
+        end
+
+        return serialized
+    end)
 end
 
 
@@ -77,6 +97,7 @@ function Plot:Init()
     --//Services
 
     --//Classes
+    BuildingClass = self.Modules.Classes.Building
 
     --//Controllers
 
