@@ -7,6 +7,7 @@
 local Building = {}
 Building.__index = Building
 
+
 --//Api
 local CFrameSerializer
 local TableUtil
@@ -44,6 +45,7 @@ function Building.new(pseudoPlayer, itemId, objectPosition, guid, saveData)
         Player = pseudoPlayer.Player,
         ItemId = itemId,
         ObjectPosition = objectPosition,
+        WorldPosition = pseudoPlayer.Plot.CFrame:ToWorldSpace(objectPosition),
         MetaData = MetaDataService:GetMetaData(itemId),
 
         Level = ((saveData and saveData.Level) or 1),
@@ -74,7 +76,7 @@ function Building:Encode()
 	return TableUtil.EncodeJSON({
 		Position = CFrameSerializer:EncodeCFrame(self.ObjectPosition),
 		ItemId = self.ItemId,
-		Level = self.Level,
+		Level = self.Level
 	})
 end
 

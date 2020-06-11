@@ -28,15 +28,17 @@ function PlacementController:Start()
         PlacementApi.Loaded:Wait()
     end
 
+    PlacementApi.RoadsPlaced:Connect(function(roadPositions)
+        local actionData = PlacementService:RequestRoadPlacement(roadPositions)
+    end)
+
     PlacementApi.ObjectPlaced:Connect(function(itemId, objectPosition)
         LogApi:Log("Client | PlacementController | ObjectPlaced.Listener: Received signal, client wants to place an item!")
 
         local actionData = PlacementService:RequestPlacement(itemId, objectPosition)
-        NotificationController:Dispatch(actionData.noticeObject)
-
     end)
 
-    PlacementApi:StartPlacing(3)
+    PlacementApi:StartPlacing(100)
 
     LogApi:Log("Client | PlacementController | Start: Completed")
 end

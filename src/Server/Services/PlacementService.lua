@@ -18,6 +18,7 @@ local LogApi
 
 --//Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local MetaDataService
 local PlayerService
@@ -31,21 +32,47 @@ local BuildingClass
 local Notices
 
 
+local function IsColliding(pseudoPlayer, objectCFrame, itemSize)
+    local worldCFrame = pseudoPlayer.Plot.Object.Main.CFrame:ToWorldSpace(objectCFrame)
+
+    local collisionRegion = Region3.new(worldCFrame.Position - (itemSize / 2), worldCFrame.Position + (itemSize / 2))
+    local parts = Workspace:FindPartsInRegion3WithIgnoreList(collisionRegion, {})
+
+    for _, part in pairs(parts) do
+        if (part:IsDescendantOf(pseudoPlayer.Plot.Object.Placements)) then
+            return true
+        end
+    end
+    return false
+end
+
+
+function PlacementService.Client:RequestRoadPlacement(player, roadPositions)
+    local pseudoPlayer = PlayerService:GetPseudoPlayerFromPlayer(player)
+    local itemMetaData = MetaDataService:GetMetaData(100)
+    local level1MetaData = itemMetaData.Upgrades[1]
+
+    for _, position in pairs(roadPositions) do
+        if (pseudoPlayer.Cash:Get(0) >= level1MetaData.Cost) then
+        --    if (IsColliding(pseudoPlayer, position, ReplicatedStorage.Items.Buildings:FindFirstChild("100:1").PrimaryPart.Size)) then continue end
+    
+            local buildingObject = BuildingClass.new(pseudoPlayer, 100, position)
+            pseudoPlayer.Plot:AddBuildingObject(buildingObject)
+        end        
+    end
+end
+
+
 function PlacementService.Client:RequestPlacement(player, itemId, objectPosition)
     local pseudoPlayer = PlayerService:GetPseudoPlayerFromPlayer(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
     local level1MetaData = itemMetaData.Upgrades[1]
 
     if (pseudoPlayer.Cash:Get(0) >= level1MetaData.Cost) then
+        if (IsColliding(pseudoPlayer, objectPosition, ReplicatedStorage.Items.Buildings:FindFirstChild(itemId).PrimaryPart.Size)) then return end
+
         local buildingObject = BuildingClass.new(pseudoPlayer, itemId, objectPosition)
-        
-        pseudoPlayer.BuildingStore:Update(function(currentIndex)
-            currentIndex[buildingObject.Guid] = buildingObject:Encode()
-
-            return currentIndex
-        end)
-    else
-
+        pseudoPlayer.Plot:AddBuildingObject(buildingObject)
     end
 end
 

@@ -35,13 +35,16 @@ function PlayerService:Start()
     Players.PlayerAdded:Connect(function(player)
         LogApi:Log("Server | PlayerService | PlayerAdded: " .. player.Name .. " has joined the game")
 
+        --Construct a new PseudoPlayer
         local pseudoPlayer = PseudoPlayerClass.new(player)
             PseudoPlayers[player] = pseudoPlayer
 
-            pseudoPlayer.Plot = PlotClass.new(pseudoPlayer)
-            self:FireClientEvent("RequestPlot", player, pseudoPlayer.Plot.Object)
+       --Construct a new plotObject
+        pseudoPlayer.Plot = PlotClass.new(pseudoPlayer)
+        self:FireClientEvent("RequestPlot", player, pseudoPlayer.Plot.Object)
 
-        pseudoPlayer.Plot:LoadBuildings(pseudoPlayer, pseudoPlayer.BuildingStore:Get({}))
+        --Loadbuildings
+        pseudoPlayer.Plot:LoadBuildings(pseudoPlayer, pseudoPlayer.Plot.BuildingStore:Get({}))
     end)    
 
     Players.PlayerRemoving:Connect(function(player)

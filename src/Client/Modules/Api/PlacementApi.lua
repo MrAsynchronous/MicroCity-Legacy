@@ -22,7 +22,8 @@
         PlacementBegan -> Integer itemId
         PlacementEnded -> Integer itemId
         ObjectPlaced -> Integer itemId, CFrame objectPosition
-        ObjectMoved -> CFrame oldObjectPosition, CFrame newObjectPosition
+        ObjectMoved -> CFrame newObjectPosition
+        RoadsPlaced -> Array <CFrame> roadPositions
         
 ]]
 
@@ -59,6 +60,7 @@ local Session = {}
 
 local DEFAULT_PART_COLOR = Color3.fromRGB(52, 152, 219)
 local INVALID_PART_COLOR = Color3.fromRGB(231, 76, 60)
+local DUMMY_ROAD_COLOR = Color3.fromRGB(52, 152, 219)
 
 local KEYBOARD_ROTATE = Enum.KeyCode.R
 local KEYBOARD_CANCEL = Enum.KeyCode.X
@@ -70,6 +72,8 @@ local GAMEPAD_CANCEL = Enum.KeyCode.ButtonB
 --//Returns a table of models to ignore
 --//Character, Model and DummyPart, all placed objects
 local function ConstructIgnoreList()
+    Session.IgnoreList = {}
+
     local ignoreList = {self.Player.Character, Session.Model, Session.DummyPart}
     local buildings = Plot.Placements.Building:GetChildren()
     local roads = Plot.Placements.Road:GetChildren()
@@ -107,8 +111,11 @@ local function DisableCollisions()
         part.CanCollide = false
     end
 
+    if (Session.Model:FindFirstChild("Base")) then
+        Session.Model.Base.CanCollide = false
+    end
+
     Session.Model.PrimaryPart.CanCollide = false
-    Session.Model.Base.CanCollide = false
     Session.DummyPart.CanCollide = false
  end
 
@@ -136,23 +143,25 @@ end
 
 
 --//Fires event to signal a placed event
-local function Place()
-    if (not CheckCollisions()) then
+local function Place(roadPositions)
+    if (CheckCollisions() and (not roadPositions)) then return end
+
+    if (not roadPositions) then
         self.ObjectPlaced:Fire(Session.ItemId, Session.ObjectPosition)
+    else
+        self.RoadsPlaced:Fire(roadPositions)
     end
-end
-
-
-local function CheckForSelection()
-
 end
 
 
 --//Updates the model and dummy part
 local function Update()
-    local ray = MouseInputApi:GetRay(100)
-
+    local ray = MouseInputApi:GetRay(250)
     local hitPart, hitPosition = workspace:FindPartOnRayWithIgnoreList(ray, Session.IgnoreList)
+
+    --DevCrut corrected me because i didn't know math.sin was pronounced different from math.sign
+    local hitPositionObjectSpace = Plot.Main.CFrame:PointToObjectSpace(hitPosition)
+--    hitPosition = hitPosition - (Vector3.new(math.sign(hitPositionObjectSpace.X), 0, math.sign(hitPositionObjectSpace.Z)) * Session.GridSize / 2)
 
     --Calculate model size
     local modelSize = CFrame.fromEulerAnglesYXZ(0, Session.Rotation, 0) * Session.Model.PrimaryPart.Size
@@ -172,6 +181,10 @@ local function Update()
 
     --Calculate final CFrame
     local newPosition = Session.PlotCFrame * CFrame.new(x, y, -modelSize.Y / 2) * CFrame.Angles(-math.pi / 2, Session.Rotation, 0)
+
+    if (Session.WorldPosition and (Session.WorldPosition ~= newPosition)) then
+        self.ObjectMoved:Fire(Plot.Main.CFrame:ToObjectSpace(newPosition))
+    end
 
     --Cache position
     Session.WorldPosition = newPosition
@@ -220,6 +233,8 @@ function PlacementApi:StartPlacing(itemId)
     Session.Rotation = 0
     Session.GridSize = 2
     Session.IgnoreList = ConstructIgnoreList()
+    Session.RoadPositions = {}
+    Session.RoadModels = {}
 
     --Grids
     Plot.VisualPart.Grid.Transparency = 0
@@ -238,11 +253,54 @@ function PlacementApi:StartPlacing(itemId)
     Session._Maid:GiveTask(UserInputService.InputBegan:Connect(function(inputObject, gameProcessed)
         if (not gameProcessed) then
             if (inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.KeyCode == Enum.KeyCode.ButtonR2) then
-                Place()
+                if (Session.MetaData.Type == "Road") then
+                    table.insert(Session.RoadPositions, Session.ObjectPosition)
+
+                    --Bind to position changes to cache position to eventaully invoke server
+                    Session.RoadConnection = self.ObjectMoved:Connect(function(objectPosition)
+                        local cachedPosition = table.find(Session.RoadPositions, objectPosition)
+
+                        --Don't add position twice
+                        if (not cachedPosition) then
+                            if (#Session.RoadPositions < 15) then
+                                table.insert(Session.RoadPositions, objectPosition)
+    
+                                --Clone road to visualize placed raods
+                                local dummyRoad = Session.DummyPart:Clone()
+                                dummyRoad.Parent = Camera
+                                dummyRoad.Transparency = 0.5
+                                dummyRoad.Color = DUMMY_ROAD_COLOR
+    
+                                table.insert(Session.RoadModels, dummyRoad)
+                            end
+                        end
+                    end)
+                else
+                    Place()
+                end
             elseif (inputObject.KeyCode == KEYBOARD_ROTATE or (inputObject.KeyCode == GAMEPAD_ROTATE or inputObject.KeyCode == GAMEPAD_ROTATE_ALT)) then
                 Rotate()
             elseif (inputObject.KeyCode == KEYBOARD_CANCEL or inputObject.KeyCode == GAMEPAD_CANCEL) then
                 self:StopPlacing()
+            end
+        end
+    end))
+
+    Session._Maid:GiveTask(UserInputService.InputEnded:Connect(function(inputObject, gameProcessed)
+        if (not gameProcessed) then
+            if (inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.KeyCode == Enum.KeyCode.ButtonR2) then
+                if (Session.RoadConnection) then
+                    Session.RoadConnection:Disconnect()
+
+                    --Fire events
+                    Place(Session.RoadPositions)
+
+                    --Remove all cloned RoadModels
+                    Session.RoadPositions = {}
+                    for _, dummyRoad in pairs(Session.RoadModels) do
+                        dummyRoad:Destroy()
+                    end
+                end
             end
         end
     end))
@@ -258,6 +316,12 @@ function PlacementApi:StopPlacing()
 
     if (Session._Maid) then
         Session._Maid:DoCleaning()
+    end
+
+    --Remove all cloned RoadModels
+    Session.RoadPositions = {}
+    for _, dummyRoad in pairs(Session.RoadModels) do
+        dummyRoad:Destroy()
     end
 
     --Grids
@@ -283,6 +347,7 @@ function PlacementApi:Start()
     self.PlacementEnded = EventApi.new()
     self.ObjectPlaced = EventApi.new()
     self.ObjectMoved = EventApi.new()
+    self.RoadsPlaced = EventApi.new()
 
     --Loaded event
     self.IsLoaded = true
