@@ -52,6 +52,8 @@ function Building.new(pseudoPlayer, itemId, objectPosition, guid, saveData)
         Guid = (guid or HttpService:GenerateGUID(false))
     }, Building)
 
+    self.PlotObject = pseudoPlayer.Plot.Object
+
     self.Object = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":" .. self.Level):Clone()
     self.Object.Name = self.Guid
     self.Object.Parent = pseudoPlayer.Plot.Object.Placements:FindFirstChild(self.MetaData.Type)
@@ -62,12 +64,26 @@ end
 
 
 function Building:Move(objectPosition)
+    self.ObjectPosition = objectPosition
+    self.WorldPosition = self.PlotObject.Main.CFrame:ToWorldSpace(objectPosition)
 
+    self.Object:SetPrimaryPartCFrame(self.WorldPosition)
 end
 
 
-function Building:Upgrade()
-    
+function Building:Upgrade(level, isSolvedRoad)
+    level = (level or math.clamp(self.Level + 1, 1, #self.MetaData.Upgrades))
+
+    --Only upgrade if level is available
+    if (level > self.Level) then
+        self.Level = level
+        self.Object:Destroy()
+
+        self.Object = ReplicatedStorage.Items.Buildings:FindFirstChild(self.ItemId .. ":" .. self.Level):Clone()
+        self.Object.Name = self.Guid
+        self.Object.Parent = self.PlotObject.Placements:FindFirstChild(self.MetaData.Type)
+        self.Object:SetPrimaryPartCFrame(self.WorldPosition)
+    end
 end
 
 
