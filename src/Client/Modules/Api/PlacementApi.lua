@@ -24,7 +24,7 @@
         ObjectPlaced -> Integer itemId, CFrame objectPosition
         ObjectMoved -> CFrame newObjectPosition
         RoadsPlaced -> Array <CFrame> roadPositions
-        
+   
 ]]
 
 local PlacementApi = {}
@@ -35,6 +35,7 @@ self.IsLoaded = false
 local UserInputApi
 local NumberUtil
 local EventApi
+local SnapApi
 local LogApi
 
 --//Services
@@ -67,6 +68,25 @@ local KEYBOARD_CANCEL = Enum.KeyCode.X
 local GAMEPAD_ROTATE = Enum.KeyCode.ButtonR1
 local GAMEPAD_ROTATE_ALT = Enum.KeyCode.ButtonL1
 local GAMEPAD_CANCEL = Enum.KeyCode.ButtonB
+
+
+--//Caches the current position for a raod
+local function CacheRoad(rawPosition)
+    local cachedPosition = table.find(Session.RoadPositions, rawPosition)
+    if (cachedPosition) then return end
+
+    if (#Session.RoadPositions < 15) then
+        table.insert(Session.RoadPositions, rawPosition)
+
+        --Clone road to visualize placed raods
+        local dummyRoad = Session.DummyPart:Clone()
+        dummyRoad.Parent = Camera
+        dummyRoad.Transparency = 0.5
+        dummyRoad.Color = DUMMY_ROAD_COLOR
+
+        table.insert(Session.RoadModels, dummyRoad)
+    end
+end
 
 
 --//Returns a table of models to ignore
@@ -120,34 +140,12 @@ local function DisableCollisions()
  end
 
 
---//Called on RunTime and when the VisualPart changes
---//Calculates the proper Size and CFrame of the plot
-local function CalculatePlotData()
-    local plotSize = Plot.VisualPart.Size
-
-    local back = Vector3.new(0, -1, 0)
-    local top = Vector3.new(0, 0, -1)
-    local right = Vector3.new(-1, 0, 0)
-
-    local plotCFrame = Plot.VisualPart.CFrame * CFrame.fromMatrix(-back * plotSize / 2, right, top, back)
-    local plotSize = Vector2.new((plotSize * right).magnitude, (plotSize * top).magnitude)
-
-    return plotCFrame, plotSize
-end
-
-
---//Updates the Session.Rotation
-local function Rotate()
-    Session.Rotation = Session.Rotation - (math.pi / 2)
-end
-
-
 --//Fires event to signal a placed event
 local function Place(roadPositions)
     if (CheckCollisions() and (not roadPositions)) then return end
 
     if (not roadPositions) then
-        self.ObjectPlaced:Fire(Session.ItemId, Session.ObjectPosition)
+        self.ObjectPlaced:Fire(Session.ItemId, Session.RawPosition, Session.Rotation)
     else
         self.RoadsPlaced:Fire(roadPositions)
     end
@@ -159,44 +157,24 @@ local function Update()
     local ray = MouseInputApi:GetRay(250)
     local hitPart, hitPosition = workspace:FindPartOnRayWithIgnoreList(ray, Session.IgnoreList)
 
-    --DevCrut corrected me because i didn't know math.sin was pronounced different from math.sign
-    local hitPositionObjectSpace = Plot.Main.CFrame:PointToObjectSpace(hitPosition)
---    hitPosition = hitPosition - (Vector3.new(math.sign(hitPositionObjectSpace.X), 0, math.sign(hitPositionObjectSpace.Z)) * Session.GridSize / 2)
+    --Call SnapApi to get a snapped position
+    local worldPosition = SnapApi:SnapVector(Plot, Session.Model, hitPosition, Session.Rotation)
 
-    --Calculate model size
-    local modelSize = CFrame.fromEulerAnglesYXZ(0, Session.Rotation, 0) * Session.Model.PrimaryPart.Size
-    modelSize = Vector3.new(math.abs(NumberUtil.Round(modelSize.X)), math.abs(NumberUtil.Round(modelSize.Y)), math.abs(NumberUtil.Round(modelSize.Z)))
-
-    --Get size and position relative to plot
-    local lpos = Session.PlotCFrame:PointToObjectSpace(hitPosition)
-    local size2 = (Session.PlotSize - Vector2.new(modelSize.X, modelSize.Z)) / 2
-
-    --Constrain model within the bounds of the plot
-    local x = math.clamp(lpos.X, -size2.X, size2.X)
-    local y = math.clamp(lpos.Y, -size2.Y, size2.Y)
-
-    --Snap model to grid
-    x = math.sign(x) * ((math.abs(x) - math.abs(x) % Session.GridSize) + (size2.X % Session.GridSize))
-    y = math.sign(y) * ((math.abs(y) - math.abs(y) % Session.GridSize) + (size2.Y % Session.GridSize))
-
-    --Calculate final CFrame
-    local newPosition = Session.PlotCFrame * CFrame.new(x, y, -modelSize.Y / 2) * CFrame.Angles(-math.pi / 2, Session.Rotation, 0)
-
-    if (Session.WorldPosition and (Session.WorldPosition ~= newPosition)) then
-        self.ObjectMoved:Fire(Plot.Main.CFrame:ToObjectSpace(newPosition))
+    --Fire PositionChanged event
+    if (Session.WorldPosition and (Session.WorldPosition ~= worldPosition)) then
+        self.PositionChanged:Fire(Plot.Main.CFrame:ToObjectSpace(worldPosition))
     end
 
     --Cache position
-    Session.WorldPosition = newPosition
-    Session.ObjectPosition = Plot.Main.CFrame:ToObjectSpace(newPosition)
+    Session.RawPosition = hitPosition
+    Session.WorldPosition = worldPosition
 
     --Move dummyPart to proper location
-    Session.DummyPart.CFrame = newPosition
-    Session.Model.PrimaryPart.CFrame = (not Session.HasRan and newPosition or Session.Model.PrimaryPart.CFrame:Lerp(newPosition, Session.DampeningSpeed))
+    Session.DummyPart.CFrame = worldPosition
+    Session.Model.PrimaryPart.CFrame = (not Session.HasRan and worldPosition or Session.Model.PrimaryPart.CFrame:Lerp(worldPosition, Session.DampeningSpeed))
 
     --Collision detection
     Session.Model.PrimaryPart.Color = (CheckCollisions() and INVALID_PART_COLOR or DEFAULT_PART_COLOR)
-
     Session.HasRan = true
 end
 
@@ -228,7 +206,7 @@ function PlacementApi:StartPlacing(itemId)
     DisableCollisions()
 
     --Setup session
-    Session.PlotCFrame, Session.PlotSize = CalculatePlotData()
+    Session.PlotCFrame, Session.PlotSize =  SnapApi:GetPlotData(Plot)
     Session.DampeningSpeed = 0.25
     Session.Rotation = 0
     Session.GridSize = 2
@@ -249,43 +227,29 @@ function PlacementApi:StartPlacing(itemId)
 
     LogApi:Log("Client | PlacementApi | StartPlacing: Began listening to Input")
 
-    --Input detection
+    --Input detection, handles road placement
     Session._Maid:GiveTask(UserInputService.InputBegan:Connect(function(inputObject, gameProcessed)
         if (not gameProcessed) then
             if (inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.KeyCode == Enum.KeyCode.ButtonR2) then
                 if (Session.MetaData.Type == "Road") then
-                    table.insert(Session.RoadPositions, Session.ObjectPosition)
+                    CacheRoad(Session.RawPosition)
 
                     --Bind to position changes to cache position to eventaully invoke server
-                    Session.RoadConnection = self.ObjectMoved:Connect(function(objectPosition)
-                        local cachedPosition = table.find(Session.RoadPositions, objectPosition)
-
-                        --Don't add position twice
-                        if (not cachedPosition) then
-                            if (#Session.RoadPositions < 15) then
-                                table.insert(Session.RoadPositions, objectPosition)
-    
-                                --Clone road to visualize placed raods
-                                local dummyRoad = Session.DummyPart:Clone()
-                                dummyRoad.Parent = Camera
-                                dummyRoad.Transparency = 0.5
-                                dummyRoad.Color = DUMMY_ROAD_COLOR
-    
-                                table.insert(Session.RoadModels, dummyRoad)
-                            end
-                        end
+                    Session.RoadConnection = self.PositionChanged:Connect(function(rawPosition)
+                        CacheRoad(rawPosition)
                     end)
                 else
                     Place()
                 end
             elseif (inputObject.KeyCode == KEYBOARD_ROTATE or (inputObject.KeyCode == GAMEPAD_ROTATE or inputObject.KeyCode == GAMEPAD_ROTATE_ALT)) then
-                Rotate()
+                Session.Rotation = SnapApi:Rotate(Session.Rotation)
             elseif (inputObject.KeyCode == KEYBOARD_CANCEL or inputObject.KeyCode == GAMEPAD_CANCEL) then
                 self:StopPlacing()
             end
         end
     end))
 
+    --Handles the cleanup when a user is placing roads
     Session._Maid:GiveTask(UserInputService.InputEnded:Connect(function(inputObject, gameProcessed)
         if (not gameProcessed) then
             if (inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.KeyCode == Enum.KeyCode.ButtonR2) then
@@ -343,6 +307,7 @@ function PlacementApi:Start()
     MouseInputApi = UserInputApi:Get("Mouse")
 
     --Register events
+    self.PositionChanged = EventApi.new()
     self.PlacementBegan = EventApi.new()
     self.PlacementEnded = EventApi.new()
     self.ObjectPlaced = EventApi.new()
@@ -359,6 +324,7 @@ end
 
 function PlacementApi:Init()
     --//Api
+    SnapApi = self.Shared.Api.SnapApi
     LogApi = self.Shared.Api.LogApi
     EventApi = self.Shared.Event
     NumberUtil = self.Shared.NumberUtil

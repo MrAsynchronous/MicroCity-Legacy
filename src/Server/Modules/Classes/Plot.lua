@@ -145,13 +145,14 @@ function Plot:SolveMerge(buildingObject, adjacentTiles)
         )
     end	
 
+    --Move and upgrade model
     if (newWorldPosition) then
         buildingObject:Move(self.CFrame:ToObjectSpace(newWorldPosition))
     end
     buildingObject:Upgrade(upgradeLevel, true)
 
+    --Refresh cached versions on BuildingObject
     self:RefreshBuildingObject(buildingObject, true)
-    self:RefreshRoadInNetwork(buildingObject)
 end
 
 
@@ -159,7 +160,7 @@ end
 --//If road is not being loaded, the merge is solved
 function Plot:AddRoadToNetwork(buildingObject, isBeingLoaded)
     if (buildingObject.MetaData.Type ~= "Road") then return end
-
+   
     local gridSpace = self:WorldToGridSpace(buildingObject.WorldPosition)
     self.RoadNetwork[gridSpace.Z][gridSpace.X] = buildingObject
 
@@ -176,11 +177,13 @@ function Plot:AddRoadToNetwork(buildingObject, isBeingLoaded)
 end
 
 
-function Plot:RefreshRoadInNetwork(buildingObject)
-    if (buildingObject.MetaData.Type ~= "Road") then return end
+--//Returns true if a Road is in a valid position
+--//Returns false if a road is not in a valid position
+function Plot:IsRoadValid(objectSpace)
+    local worldPosition = self.CFrame:ToWorldSpace(objectSpace)
 
-    local gridSpace = self:WorldToGridSpace(buildingObject.WorldPosition)
-    self.RoadNetwork[gridSpace.Z][gridSpace.X] = buildingObject    
+    return (worldPosition.X > (self.CFrame - (self.VisualPartSize / 2)).X and worldPosition.X < (self.CFrame + (self.VisualPartSize / 2)).X) and
+        (worldPosition.Z > (self.CFrame - (self.VisualPartSize / 2)).Z and worldPosition.Z < (self.CFrame + (self.VisualPartSize / 2)).Z)
 end
 
 
