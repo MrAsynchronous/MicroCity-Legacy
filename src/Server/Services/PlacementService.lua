@@ -68,19 +68,14 @@ function PlacementService.Client:RequestRoadPlacement(player, roadPositions)
             
             --Return false if item is colliding
             if (IsColliding(pseudoPlayer, adjustedPosition, itemMetaData)) then
-                return {
-                    wasSuccess = false
-                }
+                continue
             end
 
             --Construict buildingObject and cache it
             local buildingObject = BuildingClass.new(pseudoPlayer, 100, adjustedPosition)
             pseudoPlayer.Plot:AddBuildingObject(buildingObject)
 
-            --Merge road if item is a road
-            if (itemMetaData.Type == "Road") then
-                pseudoPlayer.Plot:MergeRoad(buildingObject)
-            end
+            pseudoPlayer.Plot:AddRoadToNetwork(buildingObject)
         end
     end
 end

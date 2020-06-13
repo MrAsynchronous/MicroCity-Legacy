@@ -100,17 +100,16 @@ end
 --//Solves a merge given a building object and their adjacent tiles
 function Plot:SolveMerge(buildingObject, adjacentTiles)
     local newWorldPosition
-    local upgradeLevel
 
     --Four way intersection
     if (adjacentTiles.Top and adjacentTiles.Bottom and adjacentTiles.Left and adjacentTiles.Right) then
-        upgradeLevel = 5
+        buildingObject:Upgrade(5, true)
 
     --Three way intersection
     elseif ((adjacentTiles.Top and adjacentTiles.Bottom and (adjacentTiles.Right or adjacentTiles.Left)) or (adjacentTiles.Right and adjacentTiles.Left and (adjacentTiles.Top or adjacentTiles.Bottom))) then
-        upgradeLevel = 4
+        buildingObject:Upgrade(4, true)
 
-        newWorldPosition = CFrame.new(
+        local newWorldPosition = CFrame.new(
             buildingObject.WorldPosition.Position,
             ((adjacentTiles.Right and adjacentTiles.Left and adjacentTiles.Top) and adjacentTiles.Top.WorldPosition.Position) or
             ((adjacentTiles.Right and adjacentTiles.Left and not adjacentTiles.Top) and adjacentTiles.Bottom.WorldPosition.Position) or
@@ -118,12 +117,14 @@ function Plot:SolveMerge(buildingObject, adjacentTiles)
             ((adjacentTiles.Top and adjacentTiles.Bottom and not  adjacentTiles.Right) and adjacentTiles.Left.WorldPosition.Position)
         )
 
+        buildingObject:Move(self.CFrame:ToObjectSpace(newWorldPosition))
+
 	--Turns
     elseif (adjacentTiles.Top and adjacentTiles.Left or adjacentTiles.Top and adjacentTiles.Right or adjacentTiles.Bottom and adjacentTiles.Right or adjacentTiles.Bottom and adjacentTiles.Left) then
-        upgradeLevel = 3
+        buildingObject:Upgrade(3, true)
 
         --Orientation detection
-        newWorldPosition = CFrame.new(
+        local newWorldPosition = CFrame.new(
             buildingObject.WorldPosition.Position,
             ((adjacentTiles.Top and adjacentTiles.Left) and adjacentTiles.Left.WorldPosition.Position) or
             ((adjacentTiles.Top and adjacentTiles.Right) and adjacentTiles.Top.WorldPosition.Position) or
@@ -131,28 +132,27 @@ function Plot:SolveMerge(buildingObject, adjacentTiles)
             ((adjacentTiles.Bottom and adjacentTiles.Left) and adjacentTiles.Bottom.WorldPosition.Position)
         )
 
+        buildingObject:Move(self.CFrame:ToObjectSpace(newWorldPosition))
+
     --Straight road orientation
     elseif (adjacentTiles.Top or adjacentTiles.Bottom or adjacentTiles.Left or adjacentTiles.Right) then
-        upgradeLevel = 2
+        buildingObject:Upgrade(2, true)
 
         --Orientation detection
-        newWorldPosition = CFrame.new(
+        local newWorldPosition = CFrame.new(
             buildingObject.WorldPosition.Position,
             (adjacentTiles.Top and adjacentTiles.Top.WorldPosition.Position) or 
             (adjacentTiles.Bottom and adjacentTiles.Bottom.WorldPosition.Position) or
             (adjacentTiles.Left and adjacentTiles.Left.WorldPosition.Position) or
             (adjacentTiles.Right and adjacentTiles.Right.WorldPosition.Position)
         )
-    end	
 
-    --Move and upgrade model
-    if (newWorldPosition) then
         buildingObject:Move(self.CFrame:ToObjectSpace(newWorldPosition))
     end
-    buildingObject:Upgrade(upgradeLevel, true)
 
     --Refresh cached versions on BuildingObject
-    self:RefreshBuildingObject(buildingObject, true)
+    self:RefreshBuildingObject(buildingObject)
+    self:RefreshRoadInNetwork(buildingObject)
 end
 
 
@@ -177,13 +177,25 @@ function Plot:AddRoadToNetwork(buildingObject, isBeingLoaded)
 end
 
 
---//Returns true if a Road is in a valid position
---//Returns false if a road is not in a valid position
-function Plot:IsRoadValid(objectSpace)
-    local worldPosition = self.CFrame:ToWorldSpace(objectSpace)
+--//Removes a road from the network
+function Plot:RemoveRoadFromNetwork(buildingObject)
+    local gridSpace = self:WorldToGridSpace(buildingObject.WorldPosition)
+    self.RoadNetwork[gridSpace.Z][gridSpace.X] = nil
 
-    return (worldPosition.X > (self.CFrame - (self.VisualPartSize / 2)).X and worldPosition.X < (self.CFrame + (self.VisualPartSize / 2)).X) and
-        (worldPosition.Z > (self.CFrame - (self.VisualPartSize / 2)).Z and worldPosition.Z < (self.CFrame + (self.VisualPartSize / 2)).Z)
+    --Re-merge adjacent tiles
+    local adjacentTiles = self:GetAdjacentTiles(gridSpace)
+    for _, adjacentTile in pairs(adjacentTiles) do
+        local adjacentGridSpace = self:WorldToGridSpace(adjacentTile.WorldPosition)
+        self:SolveMerge(adjacentTile, self:GetAdjacentTiles(adjacentGridSpace))
+    end
+end
+
+
+--//Updates the buildingObject at a GridSpace
+--//Will overwrite the buildingObject
+function Plot:RefreshRoadInNetwork(buildingObject)
+    local gridSpace = self:WorldToGridSpace(buildingObject.WorldPosition)
+    self.RoadNetwork[gridSpace.Z][gridSpace.X] = buildingObject
 end
 
 
@@ -224,12 +236,6 @@ function Plot:AddBuildingObject(buildingObject)
 end
 
 
---//Pseudo for AddBuildingObject
-function Plot:RefreshBuildingObject(...)
-    return self:AddBuildingObject(...)
-end
-
-
 --//Removes buildingObject from BuildingList
 --//Updates BuildingStore to reflect change
 function Plot:RemoveBuildingObject(buildingObject)
@@ -240,6 +246,12 @@ function Plot:RemoveBuildingObject(buildingObject)
 
         return currentIndex
     end)
+end
+
+
+--//Pseudo for AddBuildingObject
+function Plot:RefreshBuildingObject(...)
+    return self:AddBuildingObject(...)
 end
 
 
