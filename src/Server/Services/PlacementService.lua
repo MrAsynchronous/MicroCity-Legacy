@@ -38,7 +38,7 @@ local BuildingClass
 local Notices
 
 
-local function IsColliding(pseudoPlayer, objectCFrame, itemId, itemMetaData)
+local function IsColliding(pseudoPlayer, objectCFrame, itemMetaData)
     local worldCFrame = pseudoPlayer.Plot.Object.Main.CFrame:ToWorldSpace(objectCFrame)
 
     --If object is a road, use the road network verificatio
@@ -66,9 +66,21 @@ function PlacementService.Client:RequestRoadPlacement(player, roadPositions)
             local temporaryModel = ReplicatedStorage.Items.Buildings:FindFirstChild("100:1"):Clone()
             local adjustedPosition = SnapApi:SnapVector(pseudoPlayer.Plot.Object, temporaryModel, rawVector, 0)
             
+            --Return false if item is colliding
+            if (IsColliding(pseudoPlayer, adjustedPosition, itemMetaData)) then
+                return {
+                    wasSuccess = false
+                }
+            end
+
             --Construict buildingObject and cache it
             local buildingObject = BuildingClass.new(pseudoPlayer, 100, adjustedPosition)
             pseudoPlayer.Plot:AddBuildingObject(buildingObject)
+
+            --Merge road if item is a road
+            if (itemMetaData.Type == "Road") then
+                pseudoPlayer.Plot:MergeRoad(buildingObject)
+            end
         end
     end
 end

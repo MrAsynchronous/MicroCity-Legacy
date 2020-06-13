@@ -213,15 +213,14 @@ end
 
 --//Inserts buildingObject into BuildingList
 --//Updates BuildingStore to reflect change
-function Plot:AddBuildingObject(buildingObject, isBeingLoaded)
+function Plot:AddBuildingObject(buildingObject)
     self.BuildingList[buildingObject.Guid] = buildingObject
+    
     self.BuildingStore:Update(function(currentIndex)
         currentIndex[buildingObject.Guid] = buildingObject:Encode()
 
         return currentIndex
     end)
-
-    self:AddRoadToNetwork(buildingObject, isBeingLoaded)
 end
 
 
