@@ -269,6 +269,7 @@ function PlacementApi:StartPlacing(itemId)
         end
     end))
 
+    self.IsPlacing = true
     self.PlacementBegan:Fire(Session.ItemId)
     
     LogApi:Log("Client | PlacementApi | StartPlacing: Completed")
@@ -292,6 +293,7 @@ function PlacementApi:StopPlacing()
     Plot.VisualPart.Grid.Transparency = 1
     Plot.VisualPart.GridDash.Transparency = 1
 
+    self.IsPlacing = false
     self.PlacementEnded:Fire(Session.ItemId)
 
     LogApi:Log("Client | PlacementApi | StopPlacing: Completed")
@@ -305,14 +307,6 @@ function PlacementApi:Start()
 
     --Setup constants
     MouseInputApi = UserInputApi:Get("Mouse")
-
-    --Register events
-    self.PositionChanged = EventApi.new()
-    self.PlacementBegan = EventApi.new()
-    self.PlacementEnded = EventApi.new()
-    self.ObjectPlaced = EventApi.new()
-    self.ObjectMoved = EventApi.new()
-    self.RoadsPlaced = EventApi.new()
 
     --Loaded event
     self.IsLoaded = true
@@ -340,7 +334,14 @@ function PlacementApi:Init()
     --//Controllers
 
     --//Locals
-
+    self.PositionChanged = EventApi.new()
+    self.PlacementBegan = EventApi.new()
+    self.PlacementEnded = EventApi.new()
+    self.ObjectPlaced = EventApi.new()
+    self.ObjectMoved = EventApi.new()
+    self.RoadsPlaced = EventApi.new()
+    
+    self.IsPlacing = false
     self.Loaded = EventApi.new()
 end
 

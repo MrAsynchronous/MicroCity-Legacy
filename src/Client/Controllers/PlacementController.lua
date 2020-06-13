@@ -7,6 +7,7 @@
 local PlacementController = {}
 
 --//Api
+local SelectionApi
 local PlacementApi
 local LogApi
 
@@ -36,6 +37,14 @@ function PlacementController:Start()
         local actionData = PlacementService:RequestPlacement(...)
     end)
 
+    SelectionApi.BuildingSelectionStarted:Connect(function(building)
+        print("selection began!")
+    end)
+
+    SelectionApi.BuildingSelectionEnded:Connect(function(building)
+        print("selection ended")
+    end)
+
     PlacementApi:StartPlacing(100)
 
     LogApi:Log("Client | PlacementController | Start: Completed")
@@ -44,6 +53,7 @@ end
 
 function PlacementController:Init()
     --//Api
+    SelectionApi = self.Modules.Api.SelectionApi
     PlacementApi = self.Modules.Api.PlacementApi
     LogApi = self.Shared.Api.LogApi
 

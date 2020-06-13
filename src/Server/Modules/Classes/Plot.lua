@@ -99,8 +99,6 @@ end
 
 --//Solves a merge given a building object and their adjacent tiles
 function Plot:SolveMerge(buildingObject, adjacentTiles)
-    local newWorldPosition
-
     --Four way intersection
     if (adjacentTiles.Top and adjacentTiles.Bottom and adjacentTiles.Left and adjacentTiles.Right) then
         buildingObject:Upgrade(5, true)
