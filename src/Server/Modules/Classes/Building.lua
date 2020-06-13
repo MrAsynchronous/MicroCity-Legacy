@@ -25,20 +25,6 @@ local MetaDataService
 --//Locals
 
 
---//Overload constructor for creating buildings based of off persisted data
-function Building.newFromSave(pseudoPlayer, guid, saveData)
-    local decodedData = TableUtil.DecodeJSON(saveData)
-
-    return Building.new(
-        pseudoPlayer, 
-        decodedData.ItemId, 
-        CFrameSerializer:DecodeCFrame(decodedData.Position),
-        guid,
-        decodedData
-    )
-end
-
-
 --//Constructor
 function Building.new(pseudoPlayer, itemId, objectPosition, guid, saveData)
     local self = setmetatable({
@@ -60,6 +46,20 @@ function Building.new(pseudoPlayer, itemId, objectPosition, guid, saveData)
     self.Object:SetPrimaryPartCFrame(pseudoPlayer.Plot.CFrame:ToWorldSpace(objectPosition))
 
     return self
+end
+
+
+--//Overload constructor for creating buildings based of off persisted data
+function Building.newFromSave(pseudoPlayer, guid, saveData)
+    local decodedData = TableUtil.DecodeJSON(saveData)
+
+    return Building.new(
+        pseudoPlayer, 
+        decodedData.ItemId, 
+        CFrameSerializer:DecodeCFrame(decodedData.Position),
+        guid,
+        decodedData
+    )
 end
 
 

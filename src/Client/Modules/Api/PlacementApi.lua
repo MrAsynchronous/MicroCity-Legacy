@@ -162,7 +162,7 @@ local function Update()
 
     --Fire PositionChanged event
     if (Session.WorldPosition and (Session.WorldPosition ~= worldPosition)) then
-        self.PositionChanged:Fire(Plot.Main.CFrame:ToObjectSpace(worldPosition))
+        self.PositionChanged:Fire(hitPosition)
     end
 
     --Cache position

@@ -69,7 +69,7 @@ function PlacementService.Client:RequestRoadPlacement(player, roadPositions)
             --Construict buildingObject and cache it
             local buildingObject = BuildingClass.new(pseudoPlayer, 100, adjustedPosition)
             pseudoPlayer.Plot:AddBuildingObject(buildingObject)
-        end        
+        end
     end
 end
 
