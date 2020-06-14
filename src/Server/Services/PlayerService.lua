@@ -86,6 +86,14 @@ function PlayerService.Client:RequestPlot(player)
 end
 
 
+--//Returns inverse boolean of Plot.Loading
+function PlayerService.Client:PlotLoaded(player)
+    local pseudoPlayer = self.Server:GetPseudoPlayerFromPlayer(player)
+
+    return (not pseudoPlayer.Plot.Loading)
+end
+
+
 function PlayerService:Init()
     --//Api
     Scheduler = self.Shared.Scheduler
@@ -102,6 +110,7 @@ function PlayerService:Init()
 
     --//Locals	
     self:RegisterClientEvent("RequestPlot")
+    self:RegisterClientEvent("PlotHasLoaded")
 
 end
 

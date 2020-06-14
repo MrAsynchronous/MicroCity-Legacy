@@ -18,14 +18,18 @@ Plot.__index = Plot
 local CompressionApi
 local NumberUtil
 local DataStore2
+local TableUtil
 local LogApi
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
+
+local PlayerService
 
 --//Classes
 local BuildingClass
@@ -92,7 +96,7 @@ function Plot.new(pseudoPlayer)
     self.TotalRows = self.MainSize.Z / 2
     for i=1, self.TotalRows do
         table.insert(self.RoadNetwork, {})
-    end
+    end 
 
     return self
 end
@@ -265,7 +269,7 @@ end
 
 --//Loads buildings from a save list
 function Plot:LoadBuildings(pseudoPlayer, buildingList)
-    self.IsLoading = true
+    self.Loading = true
 
     local steppedConnection
     local numericalTable = {}
@@ -288,7 +292,20 @@ function Plot:LoadBuildings(pseudoPlayer, buildingList)
     --Load items when stepped
     steppedConnection = RunService.Stepped:Connect(function()
         local buildInfo = numericalTable[currentIndex]
-        if (not buildInfo) then steppedConnection:Disconnect() return end
+
+        --Run once all buildings are loaded
+        if (not buildInfo) then
+            steppedConnection:Disconnect()
+
+            --Tell client that their plot has finished loading
+            PlayerService:FireClientEvent("PlotHasLoaded", pseudoPlayer.Player)
+
+            --Disconnect failsafe
+            failSafe:Disconnect()
+            self.Loading = false
+
+            return
+        end
 
         local guid = buildInfo[1]
         local jsonData = buildInfo[2]
@@ -302,11 +319,6 @@ function Plot:LoadBuildings(pseudoPlayer, buildingList)
 
         currentIndex += 1
     end)
-
-    --Disconnect failsafe
-    failSafe:Disconnect()
-
-    self.IsLoading = false
 
     return
 end
@@ -344,9 +356,11 @@ function Plot:Init()
     CompressionApi = self.Shared.Api.CompressionApi
     NumberUtil = self.Shared.NumberUtil
     DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
+    TableUtil = self.Shared.TableUtil
     LogApi = self.Shared.Api.LogApi
 
     --//Services
+    PlayerService = self.Services.PlayerService
 
     --//Classes
     BuildingClass = self.Modules.Classes.Building
