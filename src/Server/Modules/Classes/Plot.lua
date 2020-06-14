@@ -25,6 +25,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
 
 --//Classes
 local BuildingClass
@@ -75,7 +76,7 @@ function Plot.new(pseudoPlayer)
         end
 
         return CompressionApi:compress(str)
-    end)    
+    end) 
 
     --Pop last plot and give it to player
     self.Object = table.remove(AvailablePlots, #AvailablePlots)
@@ -101,11 +102,11 @@ end
 function Plot:SolveMerge(buildingObject, adjacentTiles)
     --Four way intersection
     if (adjacentTiles.Top and adjacentTiles.Bottom and adjacentTiles.Left and adjacentTiles.Right) then
-        buildingObject:Upgrade(5, true)
+        buildingObject:Upgrade(6, true)
 
     --Three way intersection
     elseif ((adjacentTiles.Top and adjacentTiles.Bottom and (adjacentTiles.Right or adjacentTiles.Left)) or (adjacentTiles.Right and adjacentTiles.Left and (adjacentTiles.Top or adjacentTiles.Bottom))) then
-        buildingObject:Upgrade(4, true)
+        buildingObject:Upgrade(5, true)
 
         local newWorldPosition = CFrame.new(
             buildingObject.WorldPosition.Position,
@@ -119,7 +120,7 @@ function Plot:SolveMerge(buildingObject, adjacentTiles)
 
 	--Turns
     elseif (adjacentTiles.Top and adjacentTiles.Left or adjacentTiles.Top and adjacentTiles.Right or adjacentTiles.Bottom and adjacentTiles.Right or adjacentTiles.Bottom and adjacentTiles.Left) then
-        buildingObject:Upgrade(3, true)
+        buildingObject:Upgrade(4, true)
 
         --Orientation detection
         local newWorldPosition = CFrame.new(
@@ -132,9 +133,18 @@ function Plot:SolveMerge(buildingObject, adjacentTiles)
 
         buildingObject:Move(self.CFrame:ToObjectSpace(newWorldPosition))
 
+
     --Straight road orientation
     elseif (adjacentTiles.Top or adjacentTiles.Bottom or adjacentTiles.Left or adjacentTiles.Right) then
-        buildingObject:Upgrade(2, true)
+        if ((adjacentTiles.Top and adjacentTiles.Bottom) or (adjacentTiles.Right and adjacentTiles.Left)) then
+            --Straight road no dead-end
+
+            buildingObject:Upgrade(3, true)
+        else
+            --Cul de sac
+
+            buildingObject:Upgrade(2, true)
+        end
 
         --Orientation detection
         local newWorldPosition = CFrame.new(
@@ -255,6 +265,8 @@ end
 
 --//Loads buildings from a save list
 function Plot:LoadBuildings(pseudoPlayer, buildingList)
+    self.IsLoading = true
+
     local steppedConnection
     local numericalTable = {}
     local currentIndex = 1
@@ -263,6 +275,15 @@ function Plot:LoadBuildings(pseudoPlayer, buildingList)
     for guid, JSONData in pairs(buildingList) do
         table.insert(numericalTable, {guid, JSONData})
     end
+
+    --Failsafe to prevent error spam if player leaves while loading
+    local failSafe = Players.PlayerRemoving:Connect(function(player)
+        if (player.Name == pseudoPlayer.Player.Name) then
+            if (steppedConnection) then
+                steppedConnection:Disconnect()
+            end
+        end
+    end)
 
     --Load items when stepped
     steppedConnection = RunService.Stepped:Connect(function()
@@ -273,10 +294,19 @@ function Plot:LoadBuildings(pseudoPlayer, buildingList)
         local jsonData = buildInfo[2]
 
         --Construct a new BuildingObject
-        self:AddBuildingObject(BuildingClass.newFromSave(pseudoPlayer, guid, jsonData), true)
+        local buildingObject = BuildingClass.newFromSave(pseudoPlayer, guid, jsonData)
+        if (not buildingObject) then return end
+
+        self:AddBuildingObject(buildingObject)
+        self:AddRoadToNetwork(buildingObject, true)
 
         currentIndex += 1
     end)
+
+    --Disconnect failsafe
+    failSafe:Disconnect()
+
+    self.IsLoading = false
 
     return
 end

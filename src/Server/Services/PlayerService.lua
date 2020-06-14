@@ -51,7 +51,10 @@ function PlayerService:Start()
         LogApi:Log("Server | PlayerService | PlayerRemoving: " .. player.Name .. " has left the game")
 
         local pseudoPlayer = self:GetPseudoPlayerFromPlayer(player)
-        pseudoPlayer.Plot:Unload()
+        if (not pseudoPlayer) then return end
+
+        pseudoPlayer:Unload()
+        self:RemovePseudoPlayer(player)
     end)
 
     LogApi:Log("Server | PlayerService | Start: Completed")
@@ -63,6 +66,12 @@ function PlayerService:GetPseudoPlayerFromPlayer(player)
     LogApi:Log("Server | PlayerService | GetPseudoPlayerFromPlayer: Fulfilling request for PseudoPlayer associated with " .. player.Name)
     
     return PseudoPlayers[player]
+end
+
+
+function PlayerService:RemovePseudoPlayer(player)
+    PseudoPlayers[player] = nil
+    return true
 end
 
 

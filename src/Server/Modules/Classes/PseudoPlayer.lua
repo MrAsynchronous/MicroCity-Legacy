@@ -53,6 +53,7 @@ function PseudoPlayer.new(player)
     self.ReplicatedDataContainer = Instance.new("Folder")
     self.ReplicatedDataContainer.Parent = ReplicatedStorage.ReplicatedData
     self.ReplicatedDataContainer.Name = player.UserId
+    self._Maid:GiveTask(self.ReplicatedDataContainer)
 
     LogApi:Log("Server | PseudoPlayerClass | Constructor: Generating data replication keys")
 
@@ -88,7 +89,9 @@ end
 
 --//Cleans up object when player leaves
 function PseudoPlayer:Unload()
-    
+    self._Maid:Destroy()
+    self.Plot:Unload()
+    self.Plot = nil
 end
 
 

@@ -51,6 +51,7 @@ local PlayerService
 local MaidClass
 
 --//Controllers
+local UserInputController
 
 --//Locals
 local Plot
@@ -65,9 +66,19 @@ local DUMMY_ROAD_COLOR = Color3.fromRGB(52, 152, 219)
 
 local KEYBOARD_ROTATE = Enum.KeyCode.R
 local KEYBOARD_CANCEL = Enum.KeyCode.X
+local GAMEPAD_PLACE = Enum.KeyCode.ButtonR2
 local GAMEPAD_ROTATE = Enum.KeyCode.ButtonR1
 local GAMEPAD_ROTATE_ALT = Enum.KeyCode.ButtonL1
 local GAMEPAD_CANCEL = Enum.KeyCode.ButtonB
+
+
+local function CleanupRoadCache()
+    Session.RoadPositions = {}
+
+    for _, roadModel in pairs(Session.RoadModels) do
+        roadModel:Destroy()
+    end
+end
 
 
 --//Caches the current position for a raod
@@ -141,13 +152,13 @@ local function DisableCollisions()
 
 
 --//Fires event to signal a placed event
-local function Place(roadPositions)
-    if (CheckCollisions() and (not roadPositions)) then return end
+local function Place()
+    if (CheckCollisions() and (not Session.MetaData.Type == "Road")) then return end
 
-    if (not roadPositions) then
-        self.ObjectPlaced:Fire(Session.ItemId, Session.RawPosition, Session.Rotation)
+    if (Session.MetaData.Type == "Road") then
+        self.RoadsPlaced:Fire(Session.RoadPositions)
     else
-        self.RoadsPlaced:Fire(roadPositions)
+        self.ObjectPlaced:Fire(Session.ItemId, Session.RawPosition, Session.Rotation)
     end
 end
 
@@ -188,7 +199,7 @@ function PlacementApi:StartPlacing(itemId)
     Session.MetaData = MetaDataService:RequestMetaData(itemId)
 
     --Clone the model
-    Session.Model = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":1")
+    Session.Model = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. (Session.MetaData.Type == "Road" and ":0" or ":1"))
         Session.Model.Parent = Camera
         Session.Model.PrimaryPart.Transparency = 0.5
         Session.Model.PrimaryPart.Color = DEFAULT_PART_COLOR
@@ -227,45 +238,61 @@ function PlacementApi:StartPlacing(itemId)
 
     LogApi:Log("Client | PlacementApi | StartPlacing: Began listening to Input")
 
-    --Input detection, handles road placement
-    Session._Maid:GiveTask(UserInputService.InputBegan:Connect(function(inputObject, gameProcessed)
-        if (not gameProcessed) then
-            if (inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.KeyCode == Enum.KeyCode.ButtonR2) then
-                if (Session.MetaData.Type == "Road") then
-                    CacheRoad(Session.RawPosition)
+    local preferredInput = UserInputController:GetPreferred()
+    print(preferredInput)
 
-                    --Bind to position changes to cache position to eventaully invoke server
-                    Session.RoadConnection = self.PositionChanged:Connect(function(rawPosition)
-                        CacheRoad(rawPosition)
-                    end)
-                else
-                    Place()
-                end
-            elseif (inputObject.KeyCode == KEYBOARD_ROTATE or (inputObject.KeyCode == GAMEPAD_ROTATE or inputObject.KeyCode == GAMEPAD_ROTATE_ALT)) then
-                Session.Rotation = SnapApi:Rotate(Session.Rotation)
-            elseif (inputObject.KeyCode == KEYBOARD_CANCEL or inputObject.KeyCode == GAMEPAD_CANCEL) then
+    if (preferredInput == 0 or preferredInput == 1) then
+        local MouseManager = UserInputController:Get("Mouse")
+        local KeyboardManager = UserInputController:Get("Keyboard")
+
+        Session._Maid:GiveTask(KeyboardManager.KeyDown:Connect(function(keyCode)
+            if (keyCode == KEYBOARD_CANCEL) then
                 self:StopPlacing()
+            elseif (keyCode == KEYBOARD_ROTATE) then
+                Session.Rotation = SnapApi:Rotate(Session.Rotation)
             end
-        end
-    end))
+        end))
 
-    --Handles the cleanup when a user is placing roads
-    Session._Maid:GiveTask(UserInputService.InputEnded:Connect(function(inputObject, gameProcessed)
-        if (not gameProcessed) then
-            if (inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.KeyCode == Enum.KeyCode.ButtonR2) then
-                if (Session.RoadConnection) then
-                    Session.RoadConnection:Disconnect()
+        Session._Maid:GiveTask(MouseManager.LeftDown:Connect(function()
+            if (Session.MetaData.Type == "Road") then
+                CacheRoad(Session.RawPosition)
 
-                    --Fire events
-                    Place(Session.RoadPositions)
-
-                    --Remove all cloned RoadModels
-                    Session.RoadPositions = {}
-                    for _, dummyRoad in pairs(Session.RoadModels) do
-                        dummyRoad:Destroy()
-                    end
-                end
+                Session.PlaceRoad = true
             end
+        end))
+
+        Session._Maid:GiveTask(MouseManager.LeftUp:Connect(function()
+            Place()
+
+            Session.PlaceRoad = false
+            CleanupRoadCache()
+        end))
+    elseif (preferredInput == 2) then
+        local GamepadManager = UserInputController:Get("Gamepad")
+
+        Session._Maid:GiveTask(GamepadManager.ButtonDown:Connect(function(keyCode)
+            if (keyCode == GAMEPAD_ROTATE or keyCode == GAMEPAD_ROTATE_ALT) then
+                Session.Rotation = SnapApi:Rotate(Session.Rotation)
+            elseif (keyCode == GAMEPAD_CANCEL) then
+                self:StopPlacing()
+            elseif (keyCode == GAMEPAD_PLACE) then
+                Place()
+
+                Session.PlaceRoad = true
+            end
+        end))
+
+        Session._Maid:GiveTask(GamepadManager.ButtonUp:Connect(function(keyCode)
+            if (keyCode == GAMEPAD_PLACE) then
+                Session.PlaceRoad = false
+                CleanupRoadCache( )
+            end
+        end))
+    end
+
+    Session._Maid:GiveTask(self.PositionChanged:Connect(function(newRawPosition)
+        if (Session.PlaceRoad) then
+            CacheRoad(newRawPosition)
         end
     end))
 
@@ -279,14 +306,10 @@ end
 function PlacementApi:StopPlacing()
     LogApi:Log("Client | PlacementApi | StopPlacing: StopPlacing has been called!")
 
+    CleanupRoadCache()
+
     if (Session._Maid) then
         Session._Maid:DoCleaning()
-    end
-
-    --Remove all cloned RoadModels
-    Session.RoadPositions = {}
-    for _, dummyRoad in pairs(Session.RoadModels) do
-        dummyRoad:Destroy()
     end
 
     --Grids
@@ -332,6 +355,7 @@ function PlacementApi:Init()
     MaidClass = self.Shared.Maid
 
     --//Controllers
+    UserInputController = self.Controllers.UserInput
 
     --//Locals
     self.PositionChanged = EventApi.new()

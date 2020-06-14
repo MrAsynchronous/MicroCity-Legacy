@@ -27,6 +27,8 @@ local MetaDataService
 
 --//Constructor
 function Building.new(pseudoPlayer, itemId, objectPosition, guid, saveData)
+    if (not pseudoPlayer or not pseudoPlayer.Plot or not pseudoPlayer.Plot.Object) then return end
+
     local self = setmetatable({
         Player = pseudoPlayer.Player,
         ItemId = itemId,
@@ -79,6 +81,13 @@ function Building:Upgrade(level, isSolvedRoad)
         self.Level = level
         self.Object:Destroy()
 
+        --Clean up potential duplicates
+        local objectClone = self.PlotObject.Placements:FindFirstChild(self.Guid, true) 
+        if (objectClone) then
+            objectClone:Destroy()
+        end
+
+        --Clone new model
         self.Object = ReplicatedStorage.Items.Buildings:FindFirstChild(self.ItemId .. ":" .. self.Level):Clone()
         self.Object.Name = self.Guid
         self.Object.Parent = self.PlotObject.Placements:FindFirstChild(self.MetaData.Type)
