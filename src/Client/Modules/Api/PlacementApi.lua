@@ -239,7 +239,6 @@ function PlacementApi:StartPlacing(itemId)
     LogApi:Log("Client | PlacementApi | StartPlacing: Began listening to Input")
 
     local preferredInput = UserInputController:GetPreferred()
-    print(preferredInput)
 
     if (preferredInput == 0 or preferredInput == 1) then
         local MouseManager = UserInputController:Get("Mouse")

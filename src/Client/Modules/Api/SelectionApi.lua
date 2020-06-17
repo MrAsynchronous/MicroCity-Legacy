@@ -89,18 +89,13 @@ function SelectionApi:Start()
 
     --Detect input, validate input
     UserInputService.InputBegan:Connect(function(inputObject, gameProcessed)
-        if (gameProcessed) then return end
+        if (gameProcessed or PlacementApi.IsPlacing) then return end
 
         if (inputObject.KeyCode == Enum.KeyCode.ButtonR2 or inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.UserInputType == Enum.UserInputType.Touch) then
             local building = GetModelFromRayPart()
 
             if (building) then
-                if (selectedBuilding and (selectedBuilding.Name ~= building.Name)) then
-                    self.BuildingSelectionEnded:Fire(selectedBuilding)
-                    self.BuildingSelectionStarted:Fire(building)
-                elseif (not selectedBuilding) then
-                    self.BuildingSelectionStarted:Fire(building)
-                end
+                self.BuildingSelectionStarted:Fire(building)
 
                 selectedBuilding = building
             else

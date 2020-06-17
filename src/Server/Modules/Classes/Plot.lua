@@ -18,7 +18,6 @@ Plot.__index = Plot
 local CompressionApi
 local NumberUtil
 local DataStore2
-local TableUtil
 local LogApi
 
 --//Services
@@ -356,7 +355,6 @@ function Plot:Init()
     CompressionApi = self.Shared.Api.CompressionApi
     NumberUtil = self.Shared.NumberUtil
     DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
-    TableUtil = self.Shared.TableUtil
     LogApi = self.Shared.Api.LogApi
 
     --//Services
