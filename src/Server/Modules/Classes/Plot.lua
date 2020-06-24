@@ -234,6 +234,13 @@ function Plot:GetAdjacentTiles(gridSpace)
 end
 
 
+--//Returns the object at index GUID
+--//May return nil
+function Plot:GetBuildingObject(guid)
+    return self.BuildingList[guid]
+end
+
+
 --//Inserts buildingObject into BuildingList
 --//Updates BuildingStore to reflect change
 function Plot:AddBuildingObject(buildingObject)

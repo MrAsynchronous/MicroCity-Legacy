@@ -19,6 +19,7 @@ local HttpService = game:GetService("HttpService")
 local MetaDataService
 
 --//Classes
+local MaidClass
 
 --//Controllers
 
@@ -37,7 +38,9 @@ function Building.new(pseudoPlayer, itemId, objectPosition, guid, saveData)
         MetaData = MetaDataService:GetMetaData(itemId),
 
         Level = ((saveData and saveData.Level) or 1),
-        Guid = (guid or HttpService:GenerateGUID(false))
+        Guid = (guid or HttpService:GenerateGUID(false)),
+
+        _Maid = MaidClass.new()
     }, Building)
 
     self.PlotObject = pseudoPlayer.Plot.Object
@@ -46,6 +49,8 @@ function Building.new(pseudoPlayer, itemId, objectPosition, guid, saveData)
     self.Object.Name = self.Guid
     self.Object.Parent = pseudoPlayer.Plot.Object.Placements:FindFirstChild(self.MetaData.Type)
     self.Object:SetPrimaryPartCFrame(pseudoPlayer.Plot.CFrame:ToWorldSpace(objectPosition))
+
+    self._Maid:GiveTask(self.Object)
 
     return self
 end
@@ -79,7 +84,7 @@ function Building:Upgrade(level, isSolvedRoad)
     --Only upgrade if level is available
     if (level > self.Level) then
         self.Level = level
-        self.Object:Destroy()
+        self._Maid:DoCleaning()
 
         --Clean up potential duplicates
         local objectClone = self.PlotObject.Placements:FindFirstChild(self.Guid, true) 
@@ -92,7 +97,15 @@ function Building:Upgrade(level, isSolvedRoad)
         self.Object.Name = self.Guid
         self.Object.Parent = self.PlotObject.Placements:FindFirstChild(self.MetaData.Type)
         self.Object:SetPrimaryPartCFrame(self.WorldPosition)
+
+        self._Maid:GiveTaks(self.Object)
     end
+end
+
+
+--//Removes building from existance.  Thanos snap
+function Building:Destroy()
+    self._Maid:Destroy()
 end
 
 
@@ -115,6 +128,7 @@ function Building:Init()
     MetaDataService = self.Services.MetaDataService
 
     --//Classes
+    MaidClass = self.Shared.Maid
 
     --//Controllers
 

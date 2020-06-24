@@ -40,9 +40,6 @@ local Vehicles = {}
 local RoadIndex = {}
 local RoadNetwork = {}
 
-local Visualizer
-local VisualizerIndex = {}
-
 
 local function WorldToGridSpace(worldSpace)
     local cornerSpace = PlotCorner:ToObjectSpace(worldSpace)
@@ -99,7 +96,6 @@ local function AddRoadToNetwork(buildingObject)
     RoadIndex[buildingObject.Name] = gridSpace
 
     RoadNetwork[gridSpace.Z][gridSpace.X] = buildingObject
-    VisualizerIndex[gridSpace.Z][gridSpace.X].BackgroundColor3 = Color3.fromRGB(0, 0, 255)
 end
 
 local function RemoveRoadFromNetwork(buildingObject)
@@ -107,7 +103,6 @@ local function RemoveRoadFromNetwork(buildingObject)
     if (not gridSpace) then return end
 
     RoadNetwork[gridSpace.Z][gridSpace.X] = nil
-    VisualizerIndex[gridSpace.Z][gridSpace.X].BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     RoadIndex[buildingObject.Name] = nil
 end
 
@@ -119,19 +114,8 @@ local function RoadInit()
 
     --Calculate all possible rows, setup RoadNetwork
     TotalRows = PlotSize.Z / 2
-    Visualizer.Container.UIGridLayout.CellSize = UDim2.new(0, 250 / TotalRows, 0, 250 / TotalRows)
-    Visualizer.Container.UIGridLayout.FillDirectionMaxCells = TotalRows
     for i=1, TotalRows do
-        table.insert(VisualizerIndex, {})
         table.insert(RoadNetwork, {})
-
-        for v=1, TotalRows do
-            local Frame = Instance.new("Frame")
-            Frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-            Frame.Parent = Visualizer.Container
-
-            VisualizerIndex[i][v] = Frame
-        end
     end
 
     --Make connections to listen for road and building changes
@@ -199,7 +183,6 @@ local function SpawnVehicle()
 end
 
 function TrafficController:Start()
-    Visualizer = self.Player.PlayerGui:WaitForChild("Visualizer")
     VehicleIndex = ReplicatedStorage.Items.Vehicles:GetChildren()
 
     --Yield for both the plot object, and for the plot to load, setup roads

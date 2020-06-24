@@ -11,6 +11,7 @@ local SelectionApi
 local PlacementApi
 
 --//Services
+local PlacementService
 
 --//Classes
 local GuiClass
@@ -22,6 +23,7 @@ local UserInputController
 local PlayerGui
 local PlacementGui
 local SelectionGui
+local SelectedBuiding
 
 local visibleGui
 local GUI_SIZE = UDim2.new(0.625, 0, 0.112, 0)
@@ -37,14 +39,21 @@ function PlacementGuiController:Start()
     local SelectionGuiObject = GuiClass.new(SelectionGui.Container, true)
     
     SelectionGuiObject:BindButton(SelectionGui.Container.Sell, function()
+        if (not SelectedBuiding) then return end
+        
+        local response = PlacementService:RequestSell(SelectedBuiding.Name)
         print("Selling!")
     end)
     
     SelectionGuiObject:BindButton(SelectionGui.Container.Upgrade, function()
+        if (not SelectedBuiding) then return end
+
         print("Upgrading")
     end)
 
     SelectionGuiObject:BindButton(SelectionGui.Container.Move, function()
+        if (not SelectedBuiding) then return end
+
         print("Moving")
     end)
 
@@ -61,12 +70,16 @@ function PlacementGuiController:Start()
         SelectionGui.Adornee = buildingObject.PrimaryPart
         SelectionGui.Enabled = true
         SelectionGui.Container:TweenSize(SELECTION_GUI_SIZE, "Out", "Quint", 0.25, true)
+
+        SelectedBuiding = buildingObject
     end)
 
     SelectionApi.BuildingSelectionEnded:Connect(function(buildingObject)
         SelectionGui.Container:TweenSize(UDim2.new(0, 0, 0, 0), "Out", "Quint", 0.25, true, function()
             SelectionGui.Enabled = false
             SelectionGui.Adornee = nil
+
+            SelectedBuiding = nil
         end)
     end)
 
@@ -97,6 +110,7 @@ function PlacementGuiController:Init()
     PlacementApi = self.Modules.Api.PlacementApi
 
     --//Services
+    PlacementService = self.Services.PlacementService
 
     --//Classes
     GuiClass = self.Modules.Classes.GuiClass
