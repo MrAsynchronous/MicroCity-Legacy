@@ -33,6 +33,8 @@ function MetaDataService:GetMetaData(itemId)
     LogApi:Log("Server | MetaDataService | GetMetaData: Fulfilling MetaData request for " .. itemId)
 
     if (typeof(itemId) == "string") then
+        print(typeof(MiscMetaData[itemId]))
+
         return MiscMetaData[itemId]
     elseif (typeof(itemId) == "number") then
         return IndexableMetaData[itemId]
@@ -55,7 +57,6 @@ function MetaDataService:Start()
 
     for _, metaDataModule in pairs(MetaDataContainer:GetChildren()) do
         if (not metaDataModule:IsA("ModuleScript")) then continue end
-
         MiscMetaData[metaDataModule.Name] = require(metaDataModule)
     end
 

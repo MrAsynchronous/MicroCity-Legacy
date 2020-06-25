@@ -3,7 +3,7 @@ return {
 	ItemId = 1,
 	Name = script.Name,
 	
-	Upgrades ={	
+	Levels ={	
 		{
 			Name = "Wooden Shack with Porch",
 			Cost = 50,
@@ -16,14 +16,14 @@ return {
 			Cost = 150,
 			CostType = "Cash",
 
-			Population = 1,
+			Population = 3,
 		},
 		{
 			Name = "Wooden House",
 			Cost = 300,
 			CostType = "Exp",
 
-			Population = 1,
+			Population = 5,
 		}
 	},
 	

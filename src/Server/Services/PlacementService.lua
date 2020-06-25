@@ -33,7 +33,7 @@ local PlayerService
 local BuildingClass
 
 --//Controllers
-
+    
 --//Local
 local Notices
 
@@ -58,11 +58,25 @@ end
 --//Handles the selling process
 function PlacementService.Client:RequestSell(player, buildingGuid)
     if (not player) then return end
-    if (not buildingGuid or (buildingGuid and type(buildingGuid) ~= "string")) then return end
+    if (not buildingGuid or (buildingGuid and typeof(buildingGuid) ~= "string")) then return end
 
+    --Localize
     local pseudoPlayer = PlayerService:GetPseudoPlayerFromPlayer(player)
     local buildingObject = pseudoPlayer.Plot:GetBuildingObject(buildingGuid)
         if (not buildingObject) then return { wasSuccess = false } end
+
+    --Calculate amount of cash to return to player
+    local returnValues = {}
+    for i = 1, buildingObject.Level do
+        local levelData = buildingObject.MetaData.Levels[i]
+
+        returnValues[levelData.CostType] = (returnValues[levelData.CostType] == nil and (levelData.Cost * 0.4) or  returnValues[levelData.CostType] + (levelData.Cost * 0.4))
+    end
+
+    --Add reward to players funds
+    for coreType, amount in pairs(returnValues) do
+        pseudoPlayer[coreType]:Increment(amount)
+    end
 
     --Remove road from index
     pseudoPlayer.Plot:RemoveBuildingObject(buildingObject)
@@ -74,17 +88,21 @@ function PlacementService.Client:RequestSell(player, buildingGuid)
 
     --Totally remove buildingObject
     buildingObject:Destroy()
+
+    return true, {
+        code = Notices.buildingSoldSuccess
+    }
 end
 
 
 --//Handles the placement of roads
 function PlacementService.Client:RequestRoadPlacement(player, roadPositions)
     if (not player) then return end
-    if (not roadPositions or (roadPositions and type(roadPositions) ~= "table")) then return end
+    if (not roadPositions or (roadPositions and typeof(roadPositions) ~= "table")) then return end
 
     local pseudoPlayer = PlayerService:GetPseudoPlayerFromPlayer(player)
     local itemMetaData = MetaDataService:GetMetaData(100)
-    local level1MetaData = itemMetaData.Upgrades[1]
+    local level1MetaData = itemMetaData.Levels[1]
 
     --Iterate through all vectors
     for _, rawVector in pairs(roadPositions) do
@@ -110,9 +128,9 @@ end
 --//Handles the placement of non road buildings
 function PlacementService.Client:RequestPlacement(player, itemId, rawVector, rotation)
     if (not player) then return end
-    if (not itemId or (itemId and type(itemId) ~= "number"))then return end
-    if (not rawVector or (rawVector and type(rawVector) ~= "Vector3")) then return end
-    if (not rotation or (rotation and type(rotation) ~= "number")) then return end
+    if (not itemId or (itemId and typeof(itemId) ~= "number"))then return end
+    if (not rawVector or (rawVector and typeof(rawVector) ~= "Vector3")) then return end
+    if (not rotation or (rotation and typeof(rotation) ~= "number")) then return end
 
     local pseudoPlayer = PlayerService:GetPseudoPlayerFromPlayer(player)
     local itemMetaData = MetaDataService:GetMetaData(itemId)
@@ -120,7 +138,7 @@ function PlacementService.Client:RequestPlacement(player, itemId, rawVector, rot
             return {wasSuccess = false}
         end
 
-    local level1MetaData = itemMetaData.Upgrades[1]
+    local level1MetaData = itemMetaData.Levels[1]
 
     if (pseudoPlayer.Cash:Get(0) >= level1MetaData.Cost) then
         local temporaryModel = ReplicatedStorage.Items.Buildings:FindFirstChild(itemId .. ":1"):Clone()
@@ -135,6 +153,7 @@ end
 
 function PlacementService:Start()
     Notices = MetaDataService:GetMetaData("Notices")
+    print(typeof(Notices))
 end
 
 

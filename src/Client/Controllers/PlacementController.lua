@@ -36,7 +36,7 @@ function PlacementController:Start()
         local actionData = PlacementService:RequestPlacement(...)
     end)
 
-    PlacementApi:StartPlacing(3)
+    PlacementApi:StartPlacing(1)
 
     LogApi:Log("Client | PlacementController | Start: Completed")
 end
