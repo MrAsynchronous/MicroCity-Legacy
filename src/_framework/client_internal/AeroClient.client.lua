@@ -73,7 +73,7 @@ end
 local function LoadService(serviceFolder, servicesTbl)
 	local service = {}
 	servicesTbl[serviceFolder.Name] = service
-	for _,v in pairs(serviceFolder:GetChildren()) do
+	for _,v in ipairs(serviceFolder:GetChildren()) do
 		if (v:IsA("RemoteEvent")) then
 			local event = Aero.Shared.Event.new()
 			local fireEvent = event.Fire
@@ -100,7 +100,7 @@ local function LoadService(serviceFolder, servicesTbl)
 					elseif (cache == NO_CACHE or (cacheTTL > 0 and (now - lastCacheTime) > cacheTTL)) then
 						lastCacheTime = now
 						local args = table.pack(...)
-						fetchingPromise = Promise.Async(function(resolve, reject)
+						fetchingPromise = Promise.Async(function(resolve, _reject)
 							resolve(table.pack(v:InvokeServer(table.unpack(args))))
 						end)
 						local success, _cache = fetchingPromise:Await()
@@ -126,7 +126,7 @@ end
 local function LoadServices()
 	local remoteServices = game:GetService("ReplicatedStorage"):WaitForChild("Aero"):WaitForChild("AeroRemoteServices")
 	local function LoadAllServices(folder, servicesTbl)
-		for _,serviceFolder in pairs(folder:GetChildren()) do
+		for _,serviceFolder in ipairs(folder:GetChildren()) do
 			if (serviceFolder:IsA("Folder")) then
 				local service = LoadService(serviceFolder, servicesTbl)
 				if (next(service) == nil) then
@@ -148,7 +148,11 @@ local function LazyLoadSetup(tbl, folder)
 				local obj = require(child)
 				rawset(t, i, obj)
 				if (type(obj) == "table") then
-					Aero:WrapModule(obj)
+					-- only wrap module if it's actually a table, and not a table disguised as a function
+					local objMetatable = getmetatable(obj)
+					if (not (objMetatable and objMetatable.__call)) then
+						Aero:WrapModule(obj)
+					end
 				end
 				return obj
 			elseif (child:IsA("Folder")) then
@@ -190,7 +194,7 @@ local function Init()
 	
 	-- Load controllers:
 	local function LoadAllControllers(parent, controllersTbl)
-		for _,child in pairs(parent:GetChildren()) do
+		for _,child in ipairs(parent:GetChildren()) do
 			if (child:IsA("ModuleScript")) then
 				LoadController(child, controllersTbl)
 			elseif (child:IsA("Folder")) then

@@ -1,22 +1,6 @@
 {
-    "files.exclude": {
-        "src/_framework/": true,
-        ".vscode": true
-    },
-    "Lua.diagnostics.globals": [
-        "Vector3",
-        "wait",
-        "game",
-        "Enum",
-        "Color3",
-        "Vector2",
-        "CFrame",
-        "Random",
-        "Instance",
-        "workspace",
-        "UDim2",
-        "TweenInfo",
-        "script",
-        "continue"
-    ]
+  "files.exclude": {
+    "src/_framework/": true,
+    ".vscode": true
+  }
 }
