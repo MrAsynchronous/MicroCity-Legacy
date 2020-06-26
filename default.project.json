@@ -15,6 +15,9 @@
       "$className": "ReplicatedFirst",
       "Aero": {
         "$path": "src/_framework/rep_first"
+      },
+      "MetaData": {
+        "$path": "src/MetaData"
       }
     },
     "ServerStorage": {
