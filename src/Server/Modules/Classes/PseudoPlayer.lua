@@ -24,7 +24,6 @@ local PlotClass
 function PseudoPlayer.new(player)
     local self = setmetatable({
         Player = player,
-        
 
         JoinTime = os.time(),
 
@@ -39,8 +38,10 @@ function PseudoPlayer.new(player)
 end
 
 
-function PseudoPlayer:Start()
-
+--//Unload's and cleans up PseudoPlayer
+function PseudoPlayer:Unload()
+    self._Maid:Destroy()
+    self.Plot:Unload()
 end
 
 

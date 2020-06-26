@@ -225,8 +225,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#methods" class="md-nav__link">
-    Methods
+  <a href="#server-methods" class="md-nav__link">
+    Server Methods
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-methods" class="md-nav__link">
+    Client Methods
   </a>
   
 </li>
@@ -317,8 +324,15 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#methods" class="md-nav__link">
-    Methods
+  <a href="#server-methods" class="md-nav__link">
+    Server Methods
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client-methods" class="md-nav__link">
+    Client Methods
   </a>
   
 </li>
@@ -341,7 +355,7 @@
                 
                 <h1 id="playerservice">PlayerService</h1>
 <p>Listens for PlayerAdded and PlayerRemoving events.  Constructs a PseudoPlayer for each Player as well as handles Client HTTP Requests.</p>
-<h3 id="methods">Methods</h3>
+<h3 id="server-methods">Server Methods</h3>
 <table>
 <thead>
 <tr>
@@ -353,6 +367,21 @@
 <tr>
 <td><code>PseudoPlayer</code></td>
 <td><code>PlayerService:GetPseudoPlayer(Player player)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="client-methods">Client Methods</h3>
+<table>
+<thead>
+<tr>
+<th>Returns</th>
+<th>Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Model</code></td>
+<td><code>PlayerService.Client:RequestPlot(Player player)</code></td>
 </tr>
 </tbody>
 </table>

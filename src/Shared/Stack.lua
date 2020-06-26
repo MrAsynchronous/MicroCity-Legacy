@@ -1,34 +1,30 @@
-local StackTemplate = {}
-
-function StackTemplate:Push(value)
-	table.insert(self.queue, value)
-end
-
-function StackTemplate:Pop()
-	return table.remove(self.queue, self:Length())
-end
-
-function StackTemplate:Front()
-	return self.queue[#self.queue]
-end
-
-function StackTemplate:Back()
-	return self.queue[1]
-end
-
-function StackTemplate:Length()
-	return #self.queue
-end
-
-local StackMetatable = {}
-StackMetatable.__index = StackMetatable
-
 local Stack = {}
+Stack.__index = Stack
 
-Stack.new = function(list)
+function Stack:Push(value)
+	table.insert(self.stack, value)
+end
+
+function Stack:Pop()
+	return table.remove(self.stack)
+end
+
+function Stack:Front()
+	return self.stack[self:Length()]
+end
+
+function Stack:Back()
+	return self.stack[1]
+end
+
+function Stack:Length()
+	return #self.stack
+end
+
+function Stack.new(list)
 	return setmetatable({
 		stack = list or {}
-	}, StackMetatable)
+	}, Stack)
 end
 
 return Stack

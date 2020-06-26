@@ -12,6 +12,8 @@ Plot.__index = Plot
 --//Services
 local Workspace = game:GetService("Workspace")
 
+local PlayerService
+
 --//Classes
 local StackClass
 local MaidClass
@@ -32,13 +34,31 @@ function Plot.new(pseudoPlayer)
         _Maid = MaidClass.new()
     }, Plot)
 
+    --Sterilization
+    if (not self.Object) then
+        warn(self.Player.Name, "was not given a plot!")
+
+        self.Object = LandStack:Pop()
+        if (not self.Object) then
+            self.Player:Kick("We're sorry, something went wrong.  Please rejoin!")
+        end
+    end
 
     return self
 end
 
 
-function Plot:LoadData()
+--//Loads data for player
+function Plot:Load()
+    PlayerService:FireClient("PlotRequest", self.Player, self.Object)
+end
 
+
+--//Unloads and cleans up PlotOnject
+function Plot:Unload()
+    self._Maid:DoCleaning()
+
+    LandStack:Push(self.Object)
 end
 
 
@@ -51,6 +71,7 @@ function Plot:Init()
     --//Api
     
     --//Services
+    PlayerService = self.Services.PlayerService
     
     --//Classes
     StackClass = self.Shared.Stack

@@ -27,10 +27,19 @@ function PlayerService:Start()
 
         local pseudoPlayer = PseudoPlayerClass.new(player)
         PseudoPlayerIndex[player] = pseudoPlayer
+
+        wait(1)
+
+        pseudoPlayer.Plot:Load()
     end)
 
     Players.PlayerRemoving:Connect(function(player)
          print(player.Name, "has left the game!")
+
+         local pseudoPlayer = self:RemovePseudoPlayer(player)
+         if (not pseudoPlayer) then return end
+
+         pseudoPlayer:Unload()
     end)
 end
 
@@ -41,6 +50,16 @@ function PlayerService:GetPseudoPlayer(player)
 end
 
 
+--//Removes and returns PseudoPlayer associated with player
+function PlayerService:RemovePseudoPlayer(player)
+    local pseudoPlayer = self:GetPseudoPlayer(player)
+    PseudoPlayerIndex[player] = nil
+
+    return pseudoPlayer
+end
+
+
+--//Returns the plot model, or nil if plot isn't loaded
 function PlayerService.Client:RequestPlot(player)
     local pseudoPlayer = self.Server:GetPseudoPlayer(player)
     if (not pseudoPlayer) then return false end
@@ -63,7 +82,7 @@ function PlayerService:Init()
     --//Controllers
 
     --//Locals
-    self.GetPlot = EventClass.new()
+    self:RegisterClientEvent("PlotRequest")
 end
 
 
