@@ -28,8 +28,7 @@ function PlayerService:Start()
         local pseudoPlayer = PseudoPlayerClass.new(player)
         PseudoPlayerIndex[player] = pseudoPlayer
 
-        wait(1)
-
+        if (not player.Character) then player.CharacterAdded:Wait() end
         pseudoPlayer.Plot:Load()
     end)
 

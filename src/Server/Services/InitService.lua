@@ -31,7 +31,7 @@ function InitService:Start()
         local primaryPart = Instance.new("Part")
         primaryPart.Parent = model
         primaryPart.Size = size + Vector3.new(0.01, 0.01, 0.01)
-        primaryPart.CFrame = orientation
+        primaryPart.CFrame = orientation - Vector3.new(0, 0.01, 0)
         primaryPart.Transparency = 1
         primaryPart.Anchored = true
         primaryPart.CanCollide = false

@@ -47,7 +47,7 @@ function SnapApi:SnapVector(Plot, model, vector, rotation)
 
     --Calculate model size
     local modelSize = CFrame.fromEulerAnglesYXZ(0, rotation, 0) * model.PrimaryPart.Size
-    modelSize = Vector3.new(math.abs(NumberUtil.Round(modelSize.X)), math.abs(NumberUtil.Round(modelSize.Y)), math.abs(NumberUtil.Round(modelSize.Z)))
+    modelSize = Vector3.new(math.abs(NumberUtil.Round(modelSize.X)), math.abs(modelSize.Y), math.abs(NumberUtil.Round(modelSize.Z)))
 
     --Get size and position relative to plot
     local lpos = PlotCFrame:PointToObjectSpace(vector)
