@@ -54,6 +54,7 @@ function InitService:Start()
     end
 
     Workspace.Items.Parent = ReplicatedStorage
+    Workspace.Particles.Parent = ReplicatedStorage
 end
 
 

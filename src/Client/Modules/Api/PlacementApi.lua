@@ -157,13 +157,13 @@ local function DisableCollisions()
 
 --//Fires event to signal a placed event
 local function Place()
-    if (CheckCollisions() and (not Session.MetaData.Type == "Road")) then return end
+--    if (CheckCollisions() and (not Session.MetaData.Type == "Road")) then return end
 
-    if (Session.MetaData.Type == "Road") then
-        self.RoadsPlaced:Fire(Session.RoadPositions)
-    else
+--    if (Session.MetaData.Type == "Road") then
+--        self.RoadsPlaced:Fire(Session.RoadPositions)
+--    else
         self.ObjectPlaced:Fire(Session.ItemId, Session.RawPosition, Session.Rotation)
-    end
+--    end
 end
 
 
@@ -195,15 +195,14 @@ end
 
 
 function PlacementApi:StartPlacing(itemId)
-    print("Placing!")
-
     Session._Maid = MaidClass.new()
     
     Session.ItemId = itemId
     Session.MetaData = MetaDataService:RequestMetaData(itemId)
+    print(Session.MetaData)
 
     --Clone the model
-    Session.Model = ReplicatedStorage.Items:FindFirstChild(itemId)
+    Session.Model = ReplicatedStorage.Items:FindFirstChild(itemId):Clone()
         Session.Model.Parent = Camera
         Session.Model.PrimaryPart.Transparency = 0.5
         Session.Model.PrimaryPart.Color = DEFAULT_PART_COLOR
@@ -252,13 +251,13 @@ function PlacementApi:StartPlacing(itemId)
             end
         end))
 
-        Session._Maid:GiveTask(MouseManager.LeftDown:Connect(function()
-            if (Session.MetaData.Type == "Road") then
-                CacheRoad(Session.RawPosition)
+        -- Session._Maid:GiveTask(MouseManager.LeftDown:Connect(function()
+        --     if (Session.MetaData.Type == "Road") then
+        --         CacheRoad(Session.RawPosition)
 
-                Session.PlaceRoad = true
-            end
-        end))
+        --         Session.PlaceRoad = true
+        --     end
+        -- end))
 
         Session._Maid:GiveTask(MouseManager.LeftUp:Connect(function()
             Place()

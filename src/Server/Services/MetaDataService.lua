@@ -23,7 +23,7 @@ local DataIndex = {}
 
 --//Returns MetaData / Data for a given ItemId / StringId
 function MetaDataService:GetMetaData(itemId, player)
-    if (not (typeof(itemId) == "number" or typeof(itemId) == "string")) then return end
+    if (not typeof(itemId) == "number" or not typeof(itemId) == "string") then return end
 
     local data = (typeof(itemId == "number") and ItemDataIndex or DataIndex)[itemId]
     if (not data) then return false end

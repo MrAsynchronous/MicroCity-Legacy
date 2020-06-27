@@ -10,6 +10,7 @@ local PlacementController = {}
 local PlacementApi
 
 --//Services
+local PlacementService
 local PlayerService
 
 --//Classes
@@ -23,6 +24,10 @@ local Plot
 function PlacementController:Start()
     Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
 
+    PlacementApi.ObjectPlaced:Connect(function(...)
+        local response = PlacementService:RequestItemPlacement(...)
+    end)
+
     wait(5)
     
     PlacementApi:StartPlacing(1)
@@ -34,6 +39,7 @@ function PlacementController:Init()
     PlacementApi = self.Modules.Api.PlacementApi
     
     --//Services
+    PlacementService = self.Services.PlacementService
     PlayerService = self.Services.PlayerService
     
     --//Classes
