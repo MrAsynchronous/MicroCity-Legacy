@@ -44,6 +44,10 @@ function Plot.new(pseudoPlayer)
         end
     end
 
+    local placementsFolder = Instance.new("Folder")
+    placementsFolder.Name = "Placements"
+    placementsFolder.Parent = self.Object
+
     return self
 end
 

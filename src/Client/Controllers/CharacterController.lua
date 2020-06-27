@@ -21,6 +21,8 @@ local Plot
 
 --//Positions player's character in front of their plot
 local function MoveCharacterToPlot(character)
+    while (not character.PrimaryPart) do wait() end
+
     character:SetPrimaryPartCFrame(Plot.PrimaryPart.CFrame + ((Plot.PrimaryPart.Size * Plot.PrimaryPart.CFrame.LookVector) / 2) + Vector3.new(0, 10, 0))
 end
 
