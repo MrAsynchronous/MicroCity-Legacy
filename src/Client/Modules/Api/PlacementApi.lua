@@ -21,7 +21,7 @@
     Events
         PlacementBegan -> Integer itemId
         PlacementEnded -> Integer itemId
-        ObjectPlaced -> Integer itemId, CFrame objectPosition
+        ObjectPlaced -> BasePart canvas, Integer itemId, Vector3 vector, Integer rotation
         ObjectMoved -> CFrame newObjectPosition
         RoadsPlaced -> Array <CFrame> roadPositions
    
@@ -53,6 +53,7 @@ local MaidClass
 local UserInputController
 
 --//Locals
+local Canvases
 local Plot
 local MouseInputApi
 
@@ -69,15 +70,6 @@ local GAMEPAD_PLACE = Enum.KeyCode.ButtonR2
 local GAMEPAD_ROTATE = Enum.KeyCode.ButtonR1
 local GAMEPAD_ROTATE_ALT = Enum.KeyCode.ButtonL1
 local GAMEPAD_CANCEL = Enum.KeyCode.ButtonB
-
-
-local function CleanupRoadCache()
-    Session.RoadPositions = {}
-
-    for _, roadModel in pairs(Session.RoadModels) do
-        roadModel:Destroy()
-    end
-end
 
 
 --//Caches the current position for a raod
@@ -162,7 +154,7 @@ local function Place()
 --    if (Session.MetaData.Type == "Road") then
 --        self.RoadsPlaced:Fire(Session.RoadPositions)
 --    else
-        self.ObjectPlaced:Fire(Session.ItemId, Session.RawPosition, Session.Rotation)
+        self.ObjectPlaced:Fire(Session.CurrentCanvas, Session.ItemId, Session.RawPosition, Session.Rotation)
 --    end
 end
 
@@ -170,10 +162,15 @@ end
 --//Updates the model and dummy part
 local function Update()
     local ray = MouseInputApi:GetRay(250)
-    local hitPart, hitPosition = workspace:FindPartOnRayWithIgnoreList(ray, Session.IgnoreList)
+    local hitPart, hitPosition = workspace:FindPartOnRayWithWhitelist(ray, Plot.Canvases:GetChildren())
+
+    --Update current canvas is mouse is hovering over proper cnvas
+    if (hitPart and (hitPart and hitPart:IsDescendantOf(Plot.Canvases))) then
+        Session.CurrentCanvas = hitPart
+    end
 
     --Call SnapApi to get a snapped position
-    local worldPosition = SnapApi:SnapVector(Plot, Session.Model, hitPosition, Session.Rotation)
+    local worldPosition = SnapApi:SnapVector(Plot, Session.CurrentCanvas, Session.Model, hitPosition, Session.Rotation)
 
     --Fire PositionChanged event
     if (Session.WorldPosition and (Session.WorldPosition ~= worldPosition)) then
@@ -199,7 +196,6 @@ function PlacementApi:StartPlacing(itemId)
     
     Session.ItemId = itemId
     Session.MetaData = MetaDataService:RequestMetaData(itemId)
-    print(Session.MetaData)
 
     --Clone the model
     Session.Model = ReplicatedStorage.Items:FindFirstChild(itemId):Clone()
@@ -220,17 +216,13 @@ function PlacementApi:StartPlacing(itemId)
     DisableCollisions()
 
     --Setup session
-    Session.PlotCFrame, Session.PlotSize =  SnapApi:GetPlotData(Plot)
+    Session.CurrentCanvas = Plot.Canvases:FindFirstChild(0)
     Session.DampeningSpeed = 0.25
     Session.Rotation = 0
     Session.GridSize = 1
     Session.IgnoreList = ConstructIgnoreList()
     Session.RoadPositions = {}
     Session.RoadModels = {}
-
-    --Grids
-    Plot.PrimaryPart.Grid.Transparency = 0
-    Plot.PrimaryPart.GridDash.Transparency = 0
 
     --Begin updating
     Session._Maid:GiveTask(RunService.Heartbeat:Connect(function()
@@ -263,7 +255,6 @@ function PlacementApi:StartPlacing(itemId)
             Place()
 
             Session.PlaceRoad = false
-            CleanupRoadCache()
         end))
     elseif (preferredInput == 2) then
         local GamepadManager = UserInputController:Get("Gamepad")
@@ -300,15 +291,15 @@ end
 
 
 function PlacementApi:StopPlacing()
-    CleanupRoadCache()
-
     if (Session._Maid) then
         Session._Maid:DoCleaning()
     end
 
     --Grids
-    Plot.PrimaryPart.Grid.Transparency = 1
-    Plot.PrimaryPart.GridDash.Transparency = 1
+    for _, canvas in pairs(Plot.Canvases:GetChildren()) do
+        canvas.Grid.Transparency = 1
+        canvas.GridDash.Transparency = 1 
+    end
 
     self.IsPlacing = false
     self.PlacementEnded:Fire(Session.ItemId)

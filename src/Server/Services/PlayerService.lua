@@ -29,6 +29,8 @@ function PlayerService:Start()
         PseudoPlayerIndex[player] = pseudoPlayer
 
         if (not player.Character) then player.CharacterAdded:Wait() end
+
+        wait(3)
         pseudoPlayer.Plot:Load()
     end)
 

@@ -27,10 +27,6 @@ function PlacementController:Start()
     PlacementApi.ObjectPlaced:Connect(function(...)
         local response = PlacementService:RequestItemPlacement(...)
     end)
-
-    wait(5)
-    
-    PlacementApi:StartPlacing(1)
 end
 
 

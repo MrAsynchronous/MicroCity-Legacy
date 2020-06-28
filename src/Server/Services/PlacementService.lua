@@ -21,10 +21,10 @@ local PlayerService
 --//Locals
 
 
-function PlacementService.Client:RequestItemPlacement(player, itemId, rawVector, orientation)
+function PlacementService.Client:RequestItemPlacement(player, canvas, itemId, rawVector, orientation)
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
 
-    local adjustedCFrame = SnapApi:SnapVector(pseudoPlayer.Plot.Object, ReplicatedStorage.Items:FindFirstChild(itemId):Clone(), rawVector, orientation)
+    local adjustedCFrame = SnapApi:SnapVector(pseudoPlayer.Plot.Object, canvas, ReplicatedStorage.Items:FindFirstChild(itemId):Clone(), rawVector, orientation)
 
     local model = ReplicatedStorage.Items:FindFirstChild(itemId):Clone()
     model.Parent = pseudoPlayer.Plot.Object.Placements
