@@ -24,12 +24,20 @@ local ExplorationButton
 
 local IsExploring = true
 
+local VALUES = {
+    "BodyDepthScale",
+    "BodyHeightScale",
+    "BodyWidthScale",
+    "HeadScale"
+}
+
 function Exploration:Start()
     if (not BuildMode.IsLoaded) then BuildMode.Loaded:Wait() end
 
     FadeController:SetBackgroundColor(Color3.fromRGB(255, 255, 255))
 
     ExplorationButton.Button.MouseButton1Click:Connect(function()
+        local character = self.Player.Character or self.Player.CharacterAdded:Wait()
         IsExploring = not IsExploring
 
         if (IsExploring) then
@@ -37,6 +45,10 @@ function Exploration:Start()
 
             BuildMode:StopBuilding()
             PlacementApi:StopPlacing()
+
+            for _, value in pairs(VALUES) do
+                character.Humanoid:FindFirstChild(value).Value = 0.1
+            end
 
             FadeController:In(0.25)
         else

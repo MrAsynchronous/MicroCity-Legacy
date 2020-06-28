@@ -77,7 +77,7 @@ local function UpdateFocalPoint(focalDelta)
         math.clamp(focalPoint.Z + focalDelta.Z, PlotMin.Z, PlotMax.Z)
     )
 
-    focalPoint = sterilizedFocalDelta
+    focalPoint = focalPoint + focalDelta
 end
 
 
@@ -172,7 +172,8 @@ function BuildMode:Start()
     PlotMin = PlotPosition - (PlotSize / 2)
     PlotMax = PlotPosition + (PlotSize / 2)
 
-    focalPoint = PlotPosition + (PlotCFrame.LookVector * (PlotSize / 2)) + Vector3.new(0, 5, 0)
+    focalPoint = PlotPosition + Vector3.new(0, 5, 0)
+    zDistance = CAMERA_SETTINGS.MaxZ / 2
 
     _Maid = MaidClass.new()
 

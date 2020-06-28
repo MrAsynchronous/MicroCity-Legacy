@@ -224,6 +224,12 @@ function PlacementApi:StartPlacing(itemId)
     Session.RoadPositions = {}
     Session.RoadModels = {}
 
+    --Setup grids
+    for _, canvas in pairs(Plot.Canvases:GetChildren()) do
+        canvas.Grid.Transparency = 0
+        canvas.GridDash.Transparency = 0
+    end
+
     --Begin updating
     Session._Maid:GiveTask(RunService.Heartbeat:Connect(function()
         Update()
