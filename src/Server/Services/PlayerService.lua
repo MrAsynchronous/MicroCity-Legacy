@@ -1,161 +1,89 @@
 -- Player Service
 -- MrAsync
--- March 16, 2020
+-- June 26, 2020
 
-
---[[
-
-    Handles the initialization of incoming players and the cleanup of outgoing players
-
-    Methods
-        public PlayerObject GetPlayerObject(Player player)
-        public void RemovePlayerObject(Player player)
-
-]]
 
 
 local PlayerService = {Client = {}}
 
-
 --//Api
-local PlayerDataApi
 
 --//Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
---//Controllers
+local Players = game:GetService("Players")
 
 --//Classes
 local PseudoPlayerClass
-local PlotClass
+local EventClass
+
+--//Controllers
 
 --//Locals
-local pseudoPlayers
+local PseudoPlayerIndex = {}
 
 
 function PlayerService:Start()
-    game.Players.PlayerAdded:Connect(function(newPlayer)
-        --Create pseudoPlayer
-        local pseudoPlayer = PseudoPlayerClass.new(newPlayer)
-        pseudoPlayer.PlotObject = PlotClass.new(pseudoPlayer)
+    Players.PlayerAdded:Connect(function(player)
+        print(player.Name, "has joined the game!")
 
-        --Load placements, tell client plot has been loaded
-        pseudoPlayer.PlotObject:LoadPlacements(pseudoPlayer)
+        local pseudoPlayer = PseudoPlayerClass.new(player)
+        PseudoPlayerIndex[player] = pseudoPlayer
 
-        --Create plotValue
-        local plotValue = Instance.new("ObjectValue")
-        plotValue.Name = "PlotObject"
-        plotValue.Parent = newPlayer
-        plotValue.Value = pseudoPlayer.PlotObject.Object
+        if (not player.Character) then player.CharacterAdded:Wait() end
 
-        --Create leaderstats
-        local leaderstats = Instance.new("Folder")
-        leaderstats.Name = "leaderstats"
-        leaderstats.Parent = newPlayer
-
-        local cashValue = Instance.new("NumberValue")
-        cashValue.Name = "Cash"
-        cashValue.Value = pseudoPlayer.Cash:Get(0)
-        cashValue.Parent = leaderstats
-
-        pseudoPlayer._Maid.CashUpdate = pseudoPlayer.Cash:OnUpdate(function(newValue)
-            cashValue.Value = newValue
-        end)
-
-        local populationValue = Instance.new("NumberValue")
-        populationValue.Name = "Population"
-        populationValue.Value = pseudoPlayer.Population:Get(0)
-        populationValue.Parent = leaderstats
-
-        pseudoPlayer._Maid.PopulationUpdate = pseudoPlayer.Population:OnUpdate(function(newValue)
-            populationValue.Value = newValue
-        end)
-
-        --Cache playerObject
-        pseudoPlayers[newPlayer] = pseudoPlayer
+        wait(3)
+        pseudoPlayer.Plot:Load()
     end)
 
-    game.Players.PlayerRemoving:Connect(function(oldPlayer)
-        local pseudoPlayer = self:GetPseudoPlayer(oldPlayer)
-        pseudoPlayer:Destroy()
+    Players.PlayerRemoving:Connect(function(player)
+         print(player.Name, "has left the game!")
 
-        self:RemovePseudoPlayer(oldPlayer)
+         local pseudoPlayer = self:RemovePseudoPlayer(player)
+         if (not pseudoPlayer) then return end
+
+         pseudoPlayer:Unload()
     end)
-
 end
 
 
---//Client patch for GetItemIdFromGuid
-function PlayerService.Client:GetItemIdFromGuid(...)
-    return self.Server:GetItemIdFromGuid(...)
-end
-
-
---//Client patch for GetLevelFromGuid
-function PlayerService.Client:GetLevelFromGuid(...)
-    return self.Server:GetLevelFromGuid(...)
-end
-
-
---//Client patch for GetSettings
-function PlayerService.Client:GetSettings(...)
-    return self.Server:GetSettings(...)
-end
-
-
---//Returns the current level for a given guid
-function PlayerService:GetLevelFromGuid(player, guid)
-    local pseudoPlayer = self:GetPseudoPlayer(player)
-    return pseudoPlayer.PlotObject:GetPlacementObject(guid).Level
-end
-
-
---//Returns the current settings array for given player
-function PlayerService:GetSettings(player)
-    local pseudoPlayer = self:GetPseudoPlayer(player)
-    return pseudoPlayer.Settings:Get(PlayerDataApi.Settings)
-end
-
-
---//Returns the ItemId from the given guid
-function PlayerService:GetItemIdFromGuid(player, guid)
-    local pseudoPlayer = self:GetPseudoPlayer(player)
-    return pseudoPlayer.PlotObject:GetPlacementObject(guid).ItemId
-end
-
-
---//Returns the PlayerObject associated with Player
+--//Returns PseudoPlayer associated with player
 function PlayerService:GetPseudoPlayer(player)
-    return pseudoPlayers[player]
+    return PseudoPlayerIndex[player]
 end
 
 
---//Removes PlayerObject from PlayerObjects array
---//WILL DELETE PLAYER OBJECT
---//ONLY CALL AFTER DATA HAS BEEN SAVED
+--//Removes and returns PseudoPlayer associated with player
 function PlayerService:RemovePseudoPlayer(player)
-    pseudoPlayers[player] = nil
+    local pseudoPlayer = self:GetPseudoPlayer(player)
+    PseudoPlayerIndex[player] = nil
+
+    return pseudoPlayer
+end
+
+
+--//Returns the plot model, or nil if plot isn't loaded
+function PlayerService.Client:RequestPlot(player)
+    local pseudoPlayer = self.Server:GetPseudoPlayer(player)
+    if (not pseudoPlayer) then return false end
+    if (not pseudoPlayer.Plot) then return false end
+    if (not pseudoPlayer.Plot.Loaded) then return false end
+
+    return pseudoPlayer.Plot.Object
 end
 
 
 function PlayerService:Init()
-    --//Api
-    PlayerDataApi = require(ReplicatedStorage.MetaData.Player)
+	--//Api
 
     --//Services
-    
-    --//Controllers
-    
+
     --//Classes
-    PseudoPlayerClass = self.Modules.Classes.PseudoPlayerClass
-    PlotClass = self.Modules.Classes.PlotClass
+    PseudoPlayerClass = self.Modules.Classes.PseudoPlayer
+    EventClass = self.Shared.Event
+
+    --//Controllers
 
     --//Locals
-    pseudoPlayers = {}
-
-    self:RegisterClientEvent("PlotSizeChanged")
-    self:RegisterClientEvent("PlotLoadCompleted")
-    self:RegisterClientEvent("GameSettingsLoaded")
+    self:RegisterClientEvent("PlotRequest")
 end
 
 

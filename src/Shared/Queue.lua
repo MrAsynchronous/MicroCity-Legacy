@@ -1,38 +1,34 @@
--- Queue
--- MrAsync
--- April 15, 2020
+local QueueTemplate = {}
 
+function QueueTemplate:Enqueue(value)
+	table.insert(self.queue, 1, value)
+end
 
---[[
+function QueueTemplate:Dequeue()
+	return table.remove(self.queue)
+end
 
-		Super simple queue class
+function QueueTemplate:Front()
+	return self.queue[#self.queue]
+end
 
-]]
+function QueueTemplate:Back()
+	return self.queue[1]
+end
 
+function QueueTemplate:Length()
+	return #self.queue
+end
+
+local QueueMetatable = {}
+QueueMetatable.__index = QueueTemplate
 
 local Queue = {}
-Queue.__index = Queue
 
---Queue object constructor
-function Queue.new()
-	local self = setmetatable({
-		List = {} 
-	}, Queue)
-
-	return self
+Queue.new = function(list)
+	return setmetatable({
+		queue = list or {}
+	}, QueueMetatable)
 end
-
-
---Queues data at beginning of queue
-function Queue:Enqueue(data)
-	table.insert(self.List, 1, data)
-end
-
-
---Removes and returns data at end of queue
-function Queue:Dequeue()
-	return table.remove(self.List, #self.List)
-end
-
 
 return Queue

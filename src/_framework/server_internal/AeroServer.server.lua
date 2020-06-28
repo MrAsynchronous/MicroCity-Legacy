@@ -53,28 +53,52 @@ function AeroServer:RegisterClientEvent(eventName)
 end
 
 
-function AeroServer:FireEvent(eventName, ...)
+function AeroServer:Fire(eventName, ...)
 	self._events[eventName]:Fire(...)
 end
 
 
-function AeroServer:FireClientEvent(eventName, client, ...)
+function AeroServer:FireEvent(eventName, ...)
+	warn("FireEvent has been deprecated in favor of Fire")
+	self:Fire(eventName, ...)
+end
+
+
+function AeroServer:FireClient(eventName, client, ...)
 	self._clientEvents[eventName]:FireClient(client, ...)
 end
 
 
-function AeroServer:FireAllClientsEvent(eventName, ...)
+function AeroServer:FireClientEvent(eventName, client, ...)
+	warn("FireClientEvent has been deprecated in favor of FireClient")
+	self:FireClient(eventName, client, ...)
+end
+
+
+function AeroServer:FireAllClients(eventName, ...)
 	self._clientEvents[eventName]:FireAllClients(...)
 end
 
 
-function AeroServer:FireAllClientsEventExcept(eventName, client, ...)
+function AeroServer:FireAllClientsEvent(eventName, ...)
+	warn("FireAllClientsEvent has been deprecated in favor of FireAllClients")
+	self:FireAllClients(eventName, ...)
+end
+
+
+function AeroServer:FireOtherClients(eventName, clientIgnore, ...)
 	local event = self._clientEvents[eventName]
-	for _,player in pairs(players) do
-		if (player ~= client) then
+	for _,player in ipairs(players) do
+		if (player ~= clientIgnore) then
 			event:FireClient(player, ...)
 		end
 	end
+end
+
+
+function AeroServer:FireAllClientsEventExcept(eventName, client, ...)
+	warn("FireAllClientsEventExcept has been deprecated in favor of FireOtherClients")
+	self:FireOtherClients(eventName, client, ...)
 end
 
 
@@ -151,7 +175,11 @@ local function LazyLoadSetup(tbl, folder)
 				local obj = require(child)
 				rawset(t, i, obj)
 				if (type(obj) == "table") then
-					AeroServer:WrapModule(obj)
+					-- Only wrap module if it's actually a table, and not a table disguised as a function:
+					local objMetatable = getmetatable(obj)
+					if (not (objMetatable and objMetatable.__call)) then
+						AeroServer:WrapModule(obj)
+					end
 				end
 				return obj
 			elseif (child:IsA("Folder")) then
@@ -241,7 +269,7 @@ local function Init()
 	
 	-- Load service modules:
 	local function LoadAllServices(parent, servicesTbl, parentFolder)
-		for _,child in pairs(parent:GetChildren()) do
+		for _,child in ipairs(parent:GetChildren()) do
 			if (child:IsA("ModuleScript")) then
 				LoadService(child, servicesTbl, parentFolder)
 			elseif (child:IsA("Folder")) then
@@ -283,7 +311,7 @@ local function Init()
 
 	-- Remove unused folders:
 	local function ScanRemoteFoldersForEmpty(parent)
-		for _,child in pairs(parent:GetChildren()) do
+		for _,child in ipairs(parent:GetChildren()) do
 			if (child:IsA("Folder")) then
 				local remoteFunction = child:FindFirstChildWhichIsA("RemoteFunction", true)
 				local remoteEvent = child:FindFirstChildWhichIsA("RemoteEvent", true)

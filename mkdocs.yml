@@ -1,0 +1,10 @@
+site_name: MicroCity Documentation
+theme: material
+nav:
+    - Home: index.md
+    - Server:
+      - PlayerService: playerservice.md
+      - DataStore2: datastore2.md
+    - Client: client.md
+    - Shared: shared.md
+    - About: about.md

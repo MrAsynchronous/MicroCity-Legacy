@@ -1,8 +1,0 @@
-return {
-    ItemId = 1002,
-    Speed = 0.06,
-    SoundId = "rbxassetid://4873981098",
-
-    Name = script.Name,
-    Type = "Vehicle"
-}

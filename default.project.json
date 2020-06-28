@@ -9,15 +9,15 @@
         "Shared": {
           "$path": "src/Shared"
         }
-      },
-      "MetaData": {
-        "$path": "src/MetaData"
       }
     },
     "ReplicatedFirst": {
       "$className": "ReplicatedFirst",
       "Aero": {
         "$path": "src/_framework/rep_first"
+      },
+      "MetaData": {
+        "$path": "src/MetaData"
       }
     },
     "ServerStorage": {

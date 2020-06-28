@@ -1,10 +1,5 @@
-std = "roblox"
+std = "roblox+std"
 
 [rules]
-parenthese_conditions = "allow"
-unused_variable = "allow"
 shadowing = "allow"
-
-[config]
-empty_if = { comments_count = false }
-unused_variable = { allow_unused_self = true }
+parenthese_conditions = false
