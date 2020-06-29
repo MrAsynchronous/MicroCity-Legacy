@@ -4,7 +4,6 @@
 
 
 --[[
-
     Handles the static management of placing an item
 
     Methods

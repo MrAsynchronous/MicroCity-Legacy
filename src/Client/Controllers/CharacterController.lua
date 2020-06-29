@@ -35,9 +35,6 @@ function CharacterController:Start()
     Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
     
     SetupCharacter(self.Player.Character or self.Player.CharacterAdded:Wait())
-    self.Player.CharacterAdded:Connect(function(character)
-        SetupCharacter(character)
-    end)
 end
 
 
