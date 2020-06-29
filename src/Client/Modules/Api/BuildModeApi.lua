@@ -3,6 +3,20 @@
 -- June 27, 2020
 
 
+--[[
+
+    Used for putting players into building mode
+
+    Methods:
+        BuildModeApi:Enter()
+        BuildModeApi:Exit(Boolean isFormality)
+
+    Events:
+        Entered => Void
+        Exited => Void
+
+]]--
+
 
 local BuildModeApi = {}
 BuildModeApi.IsLoaded = false
@@ -147,6 +161,8 @@ function BuildModeApi:Enter()
         UpdateFocalPoint(focalDelta)
         UpdateCamera()
     end))
+
+    self.Entered:Fire()
 end
 
 
@@ -165,6 +181,8 @@ function BuildModeApi:Exit(isFormality)
     --Reset character
     character:SetPrimaryPartCFrame(originalCharacterCFrame or PlotCFrame + Vector3.new(0, 10, 0))
     character.PrimaryPart.Anchored = false
+
+    self.Exited:FireW()
 end
 
 
@@ -203,6 +221,8 @@ function BuildModeApi:Init()
     Camera = Workspace.CurrentCamera
     
     self.Loaded = EventClass.new()
+    self.Entered = EventClass.new()
+    self.Exited = EventClass.new()
 end
 
 

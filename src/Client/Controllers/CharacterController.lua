@@ -27,13 +27,7 @@ local function SetupCharacter(character)
     while (not character.PrimaryPart) do wait() end
     BuildModeApi:Enter()
 
-    character.Humanoid.Died:Connect(function()
-        self.Player.CharacterAdded:Wait()
-        BuildModeApi:Enter()
-    end)
-
-    character:SetPrimaryPartCFrame(
-        Plot.PrimaryPart.CFrame + ((Plot.PrimaryPart.Size * Plot.PrimaryPart.CFrame.LookVector) / 2) - Vector3.new(0, 25, 0))
+    character:SetPrimaryPartCFrame(Plot.PrimaryPart.CFrame - Vector3.new(0, 25, 0))
 end
 
 
@@ -41,7 +35,6 @@ function CharacterController:Start()
     Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
     
     SetupCharacter(self.Player.Character or self.Player.CharacterAdded:Wait())
-
     self.Player.CharacterAdded:Connect(function(character)
         SetupCharacter(character)
     end)
