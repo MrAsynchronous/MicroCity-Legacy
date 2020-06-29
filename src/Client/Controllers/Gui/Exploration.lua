@@ -8,6 +8,7 @@ local Exploration = {}
 
 --//Api
 local PlacementApi
+local BuildModeApi
 
 --//Services
 local PlayerGui
@@ -16,7 +17,6 @@ local PlayerGui
 
 --//Controllers
 local FadeController
-local BuildMode
 
 --//Locals
 local CoreGui
@@ -32,7 +32,7 @@ local VALUES = {
 }
 
 function Exploration:Start()
-    if (not BuildMode.IsLoaded) then BuildMode.Loaded:Wait() end
+    if (not BuildModeApi.IsLoaded) then BuildModeApi.Loaded:Wait() end
 
     FadeController:SetBackgroundColor(Color3.fromRGB(255, 255, 255))
 
@@ -43,7 +43,6 @@ function Exploration:Start()
         if (IsExploring) then
             FadeController:Out(0.25)
 
-            BuildMode:StopBuilding()
             PlacementApi:StopPlacing()
 
             for _, value in pairs(VALUES) do
@@ -54,7 +53,6 @@ function Exploration:Start()
         else
             FadeController:Out(0.5)
 
-            BuildMode:StartBuilding()
             PlacementApi:StartPlacing(1)
 
             FadeController:In(0.25)
@@ -74,7 +72,7 @@ function Exploration:Init()
     
     --//Controllers
     FadeController = self.Controllers.Fade
-    BuildMode = self.Controllers.Core.BuildMode
+    BuildModeApi = self.Modules.Api.BuildModeApi
     
     --//Locals
     CoreGui = PlayerGui:WaitForChild("CoreGui")

@@ -1,5 +1,5 @@
 {
-  "name": "aerogameframework",
+  "name": "MicroCity",
   "servePort": 8000,
   "partitions": {
     "ClientControllers": {

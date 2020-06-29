@@ -82,7 +82,9 @@ end
 
 
 --//Puts player's camera into build mode
-function BuildModeApi:StartBuilding()
+function BuildModeApi:Enter()
+    BuildModeApi:Exit(true)
+
     --Localize character, yield until character is ready
     local character = self.Player.Character or self.Player.CharacterAdded:Wait()
     while (not character.PrimaryPart) do wait() end
@@ -149,15 +151,18 @@ end
 
 
 --//Cleans up, moves player to original place, resets camera
-function BuildModeApi:StopBuilding()
+function BuildModeApi:Exit(isFormality)
     _Maid:DoCleaning()
+    if (isFormality) then return end
 
     local character = self.Player.Character or self.Player.CharacterAdded:Wait()
 
+    --Fix camera
     Camera.CameraSubject = character.Humanoid
     Camera.CFrame = originalCameraCFrame or character.Head.CFrame
     Camera.CameraType = Enum.CameraType.Custom
 
+    --Reset character
     character:SetPrimaryPartCFrame(originalCharacterCFrame or PlotCFrame + Vector3.new(0, 10, 0))
     character.PrimaryPart.Anchored = false
 end
