@@ -1,2 +1,0 @@
-[tools]
-remodel = { source = "rojo-rbx/remodel", version = "0.6.1" }
