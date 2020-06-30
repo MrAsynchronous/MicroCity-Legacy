@@ -22,7 +22,14 @@ local PlayerService
 
 
 function PlacementService.Client:RequestItemPlacement(player, canvas, itemId, rawVector, orientation)
+    if (not orientation or (orientation and not typeof(orientation) == "nunmber")) then return end
+    if (not rawVector or (rawVector and not typeof(rawVector) == "Vector3")) then return end
+    if (not itemId or (itemId and not typeof(itemId) == "number")) then return end
+    if (not canvas or (canvas and not canvas:IsA("Instance"))) then return end
+    if (not player) then return end
+
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
+    if (not pseudoPlayer) then return end
 
     local adjustedCFrame = SnapApi:SnapVector(pseudoPlayer.Plot.Object, canvas, ReplicatedStorage.Items:FindFirstChild(itemId):Clone(), rawVector, orientation)
 
