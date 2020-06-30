@@ -31,6 +31,8 @@ function PlacementService.Client:RequestItemPlacement(player, canvas, itemId, ra
     local pseudoPlayer = PlayerService:GetPseudoPlayer(player)
     if (not pseudoPlayer) then return end
 
+    local model 
+
     local adjustedCFrame = SnapApi:SnapVector(pseudoPlayer.Plot.Object, canvas, ReplicatedStorage.Items:FindFirstChild(itemId):Clone(), rawVector, orientation)
 
     local model = ReplicatedStorage.Items:FindFirstChild(itemId):Clone()
