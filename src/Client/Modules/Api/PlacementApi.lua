@@ -196,6 +196,8 @@ function PlacementApi:StartPlacing(itemId)
     Session.ItemId = itemId
     Session.MetaData = MetaDataService:RequestMetaData(itemId)
 
+    --if (not Session.MetaData) then return self:StopPlacing() end
+
     --Clone the model
     Session.Model = ReplicatedStorage.Items:FindFirstChild(itemId):Clone()
         Session.Model.Parent = Camera
@@ -218,7 +220,6 @@ function PlacementApi:StartPlacing(itemId)
     Session.CurrentCanvas = Plot.Canvases:FindFirstChild(0)
     Session.DampeningSpeed = 0.25
     Session.Rotation = 0
-    Session.GridSize = 1
     Session.IgnoreList = ConstructIgnoreList()
     Session.RoadPositions = {}
     Session.RoadModels = {}

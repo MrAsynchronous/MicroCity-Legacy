@@ -26,7 +26,7 @@ local AABB
 local RunService = game:GetService("RunService")
 
 --//Locals
-local GRID_SIZE = 2
+local GRID_SIZE = 1
 local ROTATION_INCREMENT = math.pi / 2
 
 

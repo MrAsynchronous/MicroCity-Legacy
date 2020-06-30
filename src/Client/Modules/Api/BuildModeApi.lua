@@ -55,12 +55,13 @@ local focalPoint
 local zDistance = 10
 local yAngle = 30
 
+
 local CAMERA_SETTINGS = {
     YSensitivity = 0.25,
-    Angle1 = 45,
-    Angle2 = 10,
-    TransZ = 25,
-    MaxZ = 75,
+    Angle1 = 50,
+    Angle2 = 5,
+    TransZ = 15,
+    MaxZ = 100,
     MinZ = 2,
 
     PanSpeed = 2,

@@ -1,6 +1,15 @@
 {
-  "files.exclude": {
-    "src/_framework/": true,
-    ".vscode": true
-  }
+    "files.exclude": {
+        "src/_framework/": true,
+        ".vscode": true
+    },
+    "Lua.diagnostics.globals": [
+        "continue",
+        "Instance",
+        "Vector3",
+        "CFrame",
+        "Enum",
+        "game",
+        "Color3"
+    ]
 }
