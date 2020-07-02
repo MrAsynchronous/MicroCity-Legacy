@@ -21,7 +21,11 @@ local SaveSelectorGui
 
 function SaveSelect:Start()
 
-    
+    for _, saveButton in pairs(SaveSelectorGui.Container:GetChildren()) do
+        saveButton.Button.MouseButton1Click:Connect(function()
+            PlayerService:RequestSaveSelect(tonumber(saveButton.Name))
+        end)
+    end
 
 end
 
@@ -38,7 +42,7 @@ function SaveSelect:Init()
     --//Controllers
     
     --//Locals
-    CoreGui = PlayerGui:WaitForChild("PlayerGui")
+    CoreGui = PlayerGui:WaitForChild("CoreGui")
     SaveSelectorGui = CoreGui:WaitForChild("SaveSelector")
 
 end

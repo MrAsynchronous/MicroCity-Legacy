@@ -10,6 +10,8 @@
         "CFrame",
         "Enum",
         "game",
-        "Color3"
+        "Color3",
+        "UDim2",
+        "Vector2"
     ]
 }

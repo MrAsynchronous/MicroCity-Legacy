@@ -54,14 +54,15 @@ local focalPoint
 
 local zDistance = 10
 local yAngle = 30
+local zAngle = 0
 
 
 local CAMERA_SETTINGS = {
     YSensitivity = 0.25,
-    Angle1 = 50,
-    Angle2 = 5,
-    TransZ = 15,
-    MaxZ = 100,
+    Angle1 = 45,
+    Angle2 = 0,
+    TransZ = 30,
+    MaxZ = 150,
     MinZ = 2,
 
     PanSpeed = 2,
@@ -80,7 +81,7 @@ local function UpdateCamera()
         finalAngle = CAMERA_SETTINGS.Angle2 + (CAMERA_SETTINGS.Angle1 - CAMERA_SETTINGS.Angle2) * alpha
     end
 
-    Camera.CFrame = CFrame.new(focalPoint) * CFrame.Angles(0, math.rad(yAngle), 0) * CFrame.Angles(math.rad(-finalAngle), 0, 0) * CFrame.new(0, 0, zDistance)
+    Camera.CFrame = CFrame.new(focalPoint) * CFrame.Angles(0, math.rad(yAngle), 0) * CFrame.Angles(math.rad(-finalAngle), 0, 0) * CFrame.new(0, 0, zDistance) * CFrame.Angles(0, 0, math.rad(zAngle))
 end
 
 
@@ -147,10 +148,11 @@ function BuildModeApi:Enter()
         local focalDelta = Vector3.new(0, 0, 0)
         local nv = Vector3.new()
         local angleDelta = 0
-        
-        focalDelta = focalDelta + (UserInputService:IsKeyDown(Enum.KeyCode.W) and Vector3.new(0, 1, 0):Cross(Camera.CFrame.RightVector) or nv)
+        local projFrontVec = Vector3.new(math.sin(math.rad(yAngle)), 0, math.cos(math.rad(yAngle)))
+
+        focalDelta = focalDelta + (UserInputService:IsKeyDown(Enum.KeyCode.W) and -projFrontVec or nv)
         focalDelta = focalDelta + (UserInputService:IsKeyDown(Enum.KeyCode.A) and -Camera.CFrame.RightVector or nv)
-        focalDelta = focalDelta + (UserInputService:IsKeyDown(Enum.KeyCode.S) and -(Vector3.new(0, 1, 0):Cross(Camera.CFrame.RightVector)) or nv)
+        focalDelta = focalDelta + (UserInputService:IsKeyDown(Enum.KeyCode.S) and projFrontVec or nv)
         focalDelta = focalDelta + (UserInputService:IsKeyDown(Enum.KeyCode.D) and Camera.CFrame.RightVector or nv)
         angleDelta = angleDelta + (UserInputService:IsKeyDown(Enum.KeyCode.Q) and CAMERA_SETTINGS.PanSpeed or 0)
         angleDelta = angleDelta + (UserInputService:IsKeyDown(Enum.KeyCode.E) and -CAMERA_SETTINGS.PanSpeed or 0)

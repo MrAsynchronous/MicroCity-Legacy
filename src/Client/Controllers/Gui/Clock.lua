@@ -10,6 +10,7 @@ local Clock = {}
 
 --//Services
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 
 local PlayerGui
@@ -24,18 +25,20 @@ local ClockGui
 
 
 function Clock:Start()
-    Lighting:GetPropertyChangedSignal("TimeOfDay"):Connect(function()
-        local timeTable = string.split(Lighting.TimeOfDay, ":")
-        local hour, minute = tonumber(timeTable[1]), tonumber(timeTable[2])
+    RunService.RenderStepped:Connect(function()
+        local hour, minutes = math.modf(Lighting.ClockTime)
+        hour = Lighting.ClockTime
+        minutes = (minutes * 60)
+
+        --Hour modifiers
+        hour = (hour == 0 and 12 or hour)
         hour = (hour > 12 and hour - 12 or hour)
-
-
-        local minuteRotation = ((360 / 60) * minute) % 360
-        local hourRotation = ((360 / 12) * hour) % 360
         
-
-        ClockGui.Minute.Rotation = minuteRotation
-        ClockGui.Hour.Rotation = hourRotation
+        --Grab stringified time | to Text
+        local timeTable = string.split(Lighting.TimeOfDay, ":")
+        ClockGui.Digital.Text = timeTable[1] .. ":" .. timeTable[2] .. (hour == 12 and "pm" or "am")
+        ClockGui.Hour.Rotation = (hour / 12) * 360
+        ClockGui.Minute.Rotation = (minutes / 60) * 360
     end)
 end
 
