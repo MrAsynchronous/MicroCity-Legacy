@@ -12,6 +12,7 @@
         "game",
         "Color3",
         "UDim2",
-        "Vector2"
+        "Vector2",
+        "script"
     ]
 }
