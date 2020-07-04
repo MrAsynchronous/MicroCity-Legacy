@@ -122,7 +122,7 @@ local function CheckCollisions()
     for _, part in pairs(touchingParts) do
         local parentModel = part:FindFirstAncestorOfClass("Model")
 
-        if (parentModel and (parentModel.PrimaryPart == part and parentModel.PrimaryPart ~= Session.Model.PrimaryPart)) then
+        if (parentModel and (parentModel.PrimaryPart == part and parentModel.PrimaryPart ~= Session.Model.PrimaryPart) and (not parentModel:IsDescendantOf(Plot.Islands))) then
             return true
         end
     end
@@ -158,18 +158,44 @@ local function Place()
 end
 
 
+local function Raycast()
+    local isValid = true
+
+    local topLeft = CFrame.new(Session.WorldPosition.Position + Vector3.new(-Session.ModelSize.X / 2, -Session.ModelSize.Y / 2, Session.ModelSize.Z / 2)) * Session.WorldPosition
+    local topRight = CFrame.new(Session.WorldPosition.Position + Vector3.new(Session.ModelSize.X / 2, -Session.ModelSize.Y / 2, Session.ModelSize.Z / 2)) * Session.WorldPosition
+    local bottomLeft = CFrame.new(Session.WorldPosition.Position + Vector3.new(-Session.ModelSize.X / 2, -Session.ModelSize.Y / 2, -Session.ModelSize.Z / 2)) * Session.WorldPosition
+    local bottomRight = CFrame.new(Session.WorldPosition.Position + Vector3.new(Session.ModelSize.X / 2, -Session.ModelSize.Y / 2, -Session.ModelSize.Z / 2)) * Session.WorldPosition
+
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Whitelist
+    params.FilterDescendantsInstances = Plot.Islands:GetChildren()
+
+    local rayCasts = {
+        Workspace:Raycast(topLeft.Position, Vector3.new(0, -10, 0), params),
+        Workspace:Raycast(topRight.Position, Vector3.new(0, -10, 0), params),
+        Workspace:Raycast(bottomLeft.Position, Vector3.new(0, -10, 0), params),
+        Workspace:Raycast(bottomRight.Position, Vector3.new(0, -10, 0), params)
+    }
+
+    for _, result in pairs(rayCasts) do
+        if (not result) then return end
+
+        if (result.Normal:Dot(0, 1, 0).Y < .999) then
+            isValid = false
+        end
+    end
+
+    return isValid
+end
+
+
 --//Updates the model and dummy part
 local function Update()
     local ray = MouseInputApi:GetRay(250)
-    local hitPart, hitPosition = workspace:FindPartOnRayWithWhitelist(ray, Plot.Canvases:GetChildren())
-
-    --Update current canvas is mouse is hovering over proper cnvas
-    if (hitPart and (hitPart and hitPart:IsDescendantOf(Plot.Canvases))) then
-        Session.CurrentCanvas = hitPart
-    end
+    local hitPart, hitPosition = workspace:FindPartOnRayWithWhitelist(ray, Plot.Islands:GetChildren())
 
     --Call SnapApi to get a snapped position
-    local worldPosition = SnapApi:SnapVector(Plot, Session.CurrentCanvas, Session.Model, hitPosition, Session.Rotation)
+    local worldPosition = SnapApi:SnapVector(Plot, Session.Model, hitPosition, Session.Rotation)
 
     --Fire PositionChanged event
     if (Session.WorldPosition and (Session.WorldPosition ~= worldPosition)) then
@@ -180,12 +206,15 @@ local function Update()
     Session.RawPosition = hitPosition
     Session.WorldPosition = worldPosition
 
+    -- Raycast
+    local isColliding = CheckCollisions()
+
     --Move dummyPart to proper location
     Session.DummyPart.CFrame = worldPosition
     Session.Model.PrimaryPart.CFrame = (not Session.HasRan and worldPosition or Session.Model.PrimaryPart.CFrame:Lerp(worldPosition, Session.DampeningSpeed))
 
     --Collision detection
-    Session.Model.PrimaryPart.Color = (CheckCollisions() and INVALID_PART_COLOR or DEFAULT_PART_COLOR)
+    Session.Model.PrimaryPart.Color = (isColliding and INVALID_PART_COLOR or DEFAULT_PART_COLOR)
     Session.HasRan = true
 end
 
@@ -205,6 +234,8 @@ function PlacementApi:StartPlacing(itemId)
         Session.Model.PrimaryPart.Color = DEFAULT_PART_COLOR
         Session._Maid:GiveTask(Session.Model)
 
+        Session.ModelSize = Session.Model.PrimaryPart.Size
+
     --Clone the dummyPart
     Session.DummyPart = Session.Model.PrimaryPart:Clone()
         Session.DummyPart.Parent = Camera
@@ -217,18 +248,10 @@ function PlacementApi:StartPlacing(itemId)
     DisableCollisions()
 
     --Setup session
-    Session.CurrentCanvas = Plot.Canvases:FindFirstChild(0)
+    -- Session.CurrentCanvas = Plot.Canvases:FindFirstChild(0)
     Session.DampeningSpeed = 0.25
     Session.Rotation = 0
     Session.IgnoreList = ConstructIgnoreList()
-    Session.RoadPositions = {}
-    Session.RoadModels = {}
-
-    --Setup grids
-    for _, canvas in pairs(Plot.Canvases:GetChildren()) do
-        canvas.Grid.Transparency = 0
-        canvas.GridDash.Transparency = 0
-    end
 
     --Begin updating
     Session._Maid:GiveTask(RunService.Heartbeat:Connect(function()
@@ -299,12 +322,6 @@ end
 function PlacementApi:StopPlacing()
     if (Session._Maid) then
         Session._Maid:DoCleaning()
-    end
-
-    --Grids
-    for _, canvas in pairs(Plot.Canvases:GetChildren()) do
-        canvas.Grid.Transparency = 1
-        canvas.GridDash.Transparency = 1 
     end
 
     self.IsPlacing = false

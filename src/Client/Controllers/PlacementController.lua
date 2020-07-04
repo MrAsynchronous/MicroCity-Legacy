@@ -27,6 +27,14 @@ function PlacementController:Start()
     PlacementApi.ObjectPlaced:Connect(function(...)
         local response = PlacementService:RequestItemPlacement(...)
     end)
+
+    game:GetService("UserInputService").InputBegan:Connect(function(inputObject, gameProcessed)
+        if (gameProcessed) then return end
+
+        if (inputObject.KeyCode == Enum.KeyCode.One) then
+            PlacementApi:StartPlacing(1)  
+        end
+    end)
 end
 
 
