@@ -24,17 +24,23 @@ local Plot
 
 --//Positions player's character in front of their plot
 local function SetupCharacter(character)
-    while (not character.PrimaryPart) do wait() end
     BuildModeApi:Enter()
-
-    character:SetPrimaryPartCFrame(Plot.PrimaryPart.CFrame - Vector3.new(0, 25, 0))
 end
 
 
 function CharacterController:Start()
     Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
+    BuildModeApi:Enter()
     
     SetupCharacter(self.Player.Character or self.Player.CharacterAdded:Wait())
+    self.Player.CharacterAdded:Connect(function(character)
+        SetupCharacter(character)
+
+        character.Humanoid.Died:Connect(function()
+            character.PrimaryPart.Anchored = false
+            character:SetPrimaryPartCFrame(Plot.PrimaryPart.Position - Plot.PrimaryPart.Size)
+        end)
+    end)
 end
 
 

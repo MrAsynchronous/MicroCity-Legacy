@@ -47,6 +47,7 @@ local PlotCFrame
 local PlotSize
 local PlotMin
 local PlotMax
+local FocalMin
 
 local originalCharacterCFrame
 local originalCameraCFrame
@@ -56,8 +57,10 @@ local zDistance = 10
 local yAngle = 30
 local zAngle = 0
 
+local RAYCAST_PARAMS = RaycastParams.new()
 
 local CAMERA_SETTINGS = {
+    VerticleOffset = 5,
     YSensitivity = 0.25,
     Angle1 = 45,
     Angle2 = 0,
@@ -87,19 +90,16 @@ end
 
 --//Updates the focal point based on the focusDelta
 local function UpdateFocalPoint(focalDelta)
-    local sterilizedFocalDelta = Vector3.new(
-        math.clamp(focalPoint.X + focalDelta.X, PlotMin.X, PlotMax.X),
-        focalPoint.Y + focalDelta.Y,
-        math.clamp(focalPoint.Z + focalDelta.Z, PlotMin.Z, PlotMax.Z)
-    )
-
-    focalPoint = focalPoint + focalDelta
+    local rayResults = Workspace:Raycast(Camera.CFrame.Position, Vector3.new(0, -500, 0), RAYCAST_PARAMS)
+    local x, y, z = math.clamp(focalPoint.X + focalDelta.X, PlotMin.X, PlotMax.X), FocalMin, math.clamp(focalPoint.Z + focalDelta.Z, PlotMin.Z, PlotMax.Z)
+    
+    focalPoint = Vector3.new(x, y, z)
 end
 
 
 --//Puts player's camera into build mode
 function BuildModeApi:Enter()
-    BuildModeApi:Exit(true)
+    BuildModeApi:Exit(true) 
 
     --Localize character, yield until character is ready
     local character = self.Player.Character or self.Player.CharacterAdded:Wait()
@@ -112,7 +112,7 @@ function BuildModeApi:Enter()
     --Set's up camera, moves character
     Camera.CameraType = Enum.CameraType.Scriptable
     character.PrimaryPart.Anchored = true
-    character:SetPrimaryPartCFrame(PlotCFrame - Vector3.new(0, 25, 0))
+    character:SetPrimaryPartCFrame(PlotCFrame - PlotSize)
 
     --Create dummy value for tweening zDistance
     local zTweenValue = Instance.new("NumberValue")
@@ -185,7 +185,7 @@ function BuildModeApi:Exit(isFormality)
     character:SetPrimaryPartCFrame(originalCharacterCFrame or PlotCFrame + Vector3.new(0, 10, 0))
     character.PrimaryPart.Anchored = false
 
-    self.Exited:FireW()
+    self.Exited:Fire()
 end
 
 
@@ -197,8 +197,12 @@ function BuildModeApi:Start()
     PlotSize = Plot.PrimaryPart.Size
     PlotMin = PlotPosition - (PlotSize / 2)
     PlotMax = PlotPosition + (PlotSize / 2)
+    FocalMin = Plot.FocalMin.Position.Y
 
-    focalPoint = PlotPosition + Vector3.new(0, 5, 0)
+    RAYCAST_PARAMS.FilterType = Enum.RaycastFilterType.Whitelist
+    RAYCAST_PARAMS.FilterDescendantsInstances = Plot.Islands:GetChildren()
+
+    focalPoint = Vector3.new(PlotPosition.X, FocalMin + CAMERA_SETTINGS.VerticleOffset, PlotPosition.Z)
     zDistance = CAMERA_SETTINGS.MaxZ / 2
 
     _Maid = MaidClass.new()
