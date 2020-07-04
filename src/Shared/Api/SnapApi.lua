@@ -24,6 +24,7 @@ local AABB
 
 --//Services
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 --//Locals
 local GRID_SIZE = 1
@@ -35,6 +36,38 @@ function SnapApi:Rotate(currentRotation)
     currentRotation -= ROTATION_INCREMENT
     
     return currentRotation
+end
+
+
+function SnapApi:CheckForValidity(Plot, worldPosition, dummyPart)
+    local modelSize = dummyPart.Size
+
+    -- Create rayCast params object
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Whitelist
+    raycastParams.FilterDescendantsInstances = {Plot.Islands}
+
+    -- Localize half sizes
+    local halfX, halfY, halfZ = modelSize.X / 2, modelSize.Y / 2, modelSize.Z / 2
+
+    -- Calculate corners
+    local corners = {
+        topRight = worldPosition * Vector3.new(halfX, halfY, halfZ),
+        bottomRight = worldPosition * Vector3.new(halfX, halfY, -halfZ),
+        bottomLeft = worldPosition * Vector3.new(-halfX, halfY, halfZ),
+        topLeft = worldPosition * Vector3.new(-halfX, halfY, -halfZ)
+    }
+
+    -- Raycast
+    for _, origin in pairs(corners) do
+        local result = Workspace:Raycast(origin, Vector3.new(0, -(halfY * 4), 0), raycastParams)
+
+        if (not result or (result and result.Normal:Dot(Vector3.new(0, 1, 0)) < 0.999)) then
+            return false
+        end
+    end
+
+    return true
 end
 
 
