@@ -61,6 +61,9 @@ function SnapApi:CheckForValidity(Plot, worldPosition, dummyPart)
     -- Raycast
     for _, origin in pairs(corners) do
         local result = Workspace:Raycast(origin, Vector3.new(0, -(halfY * 4), 0), raycastParams)
+        if (result) then
+            print(result.Instance.Name)
+        end
 
         if (not result or (result and result.Normal:Dot(Vector3.new(0, 1, 0)) < 0.999)) then
             return false
