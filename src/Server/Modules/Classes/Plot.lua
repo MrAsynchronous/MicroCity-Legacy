@@ -44,9 +44,18 @@ function Plot.new(pseudoPlayer)
         end
     end
 
-    local placementsFolder = Instance.new("Folder")
-    placementsFolder.Name = "Placements"
-    placementsFolder.Parent = self.Object
+    --Plate loading
+    for _, ownedPlate in pairs(pseudoPlayer.OwnedPlates:Get({1, 2, 3, 4, 5, 6, 7})) do
+        local decor = self.Object.Locked.Decor:FindFirstChild(tostring(ownedPlate))
+        local plate = self.Object.Locked.Plates:FindFirstChild(tostring(ownedPlate))
+
+        decor.Parent = self.Object.Decor
+        plate.Parent = self.Object.Plates
+
+        decor.Transparency = 0
+        plate.Grid.Transparency = 1
+        plate.GridDash.Transparency = 1
+    end
 
     return self
 end

@@ -8,7 +8,7 @@ local CharacterController = {}
 local self = CharacterController
 
 --//Api
-local BuildModeApi
+local FreeCamApi
 
 --//Services
 local PlayerService
@@ -25,7 +25,7 @@ local Plot
 --//Positions player's character in front of their plot
 local function SetupCharacter(character)
     while (not character.PrimaryPart) do wait() end
-    BuildModeApi:Enter()
+    FreeCamApi:Enter()
 
     character:SetPrimaryPartCFrame(Plot.PrimaryPart.CFrame - Vector3.new(0, 25, 0))
 end
@@ -40,7 +40,7 @@ end
 
 function CharacterController:Init()
     --//Api
-    BuildModeApi = self.Modules.Api.BuildModeApi
+    FreeCamApi = self.Modules.Api.FreeCamApi
     
     --//Services
     PlayerService = self.Services.PlayerService

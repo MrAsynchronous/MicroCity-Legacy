@@ -20,27 +20,33 @@ local Workspace = game:GetService("Workspace")
 
 --//Locals
 
+
+local function WeldParts(parent, primaryPart)
+    for _, part in pairs(parent:GetChildren()) do
+        if (part:IsA("Model") or part:IsA("Folder")) then
+            WeldParts(part, primaryPart)
+        else
+            if (part.Name == "PrimaryPart") then continue end
+
+            local weld = Instance.new("WeldConstraint")
+            weld.Part0 = primaryPart
+            weld.Part1 = part
+            weld.Parent = part
+    
+            part.Anchored = false
+        end
+    end
+end
+
+
 function InitService:Start()
     for _, model in pairs(Workspace.Items:GetChildren()) do
         if (not model:IsA("Model")) then continue end
 
-        local weld = Instance.new("WeldConstraint")
-        weld.Part0 = model.PrimaryPart
-        weld.Part1 = model.Plate
-        weld.Parent = model.Plate
-
-        model.Plate.CanCollide = false
-        model.Plate.Anchored = false       
-
-        for _, part in pairs(model.Decor:GetChildren()) do
-            local weld = Instance.new("WeldConstraint")
-            weld.Part0 = model.PrimaryPart
-            weld.Part1 = part
-            weld.Parent = part
-
-            part.CanCollide = false
-            part.Anchored = false
-        end
+        model.PrimaryPart.CanCollide = false
+        model.PrimaryPart.Transparency = 1
+        
+        WeldParts(model, model.PrimaryPart)
     end
 
     Workspace.Items.Parent = ReplicatedStorage

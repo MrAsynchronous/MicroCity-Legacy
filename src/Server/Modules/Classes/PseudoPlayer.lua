@@ -34,17 +34,16 @@ function PseudoPlayer.new(player)
         _Maid = MaidClass.new()
     }, PseudoPlayer)
 
-
-    --Construct a new plotObject
-    self.Plot = PlotClass.new(self)
-
-    
     -- Begin loading data
     for key, value in pairs(DefaultPlayerData) do
         self[key] = DataStore2(key, player)
 
         print(key, self[key]:Get(value))
     end
+
+    --Construct a new plotObject
+    self.Plot = PlotClass.new(self)
+
 
     return self
 end

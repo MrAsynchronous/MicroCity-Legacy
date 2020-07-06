@@ -90,31 +90,6 @@ local function CacheRoad(rawPosition)
 end
 
 
---//Returns a table of models to ignore
---//Character, Model and DummyPart, all placed objects
-local function ConstructIgnoreList()
-    Session.IgnoreList = {}
-
-    local ignoreList = {self.Player.Character, Session.Model, Session.DummyPart}
-
-    local placements = Plot.Placements:GetChildren()
-    -- local buildings = Plot.Placements.Building:GetChildren()
-    -- local roads = Plot.Placements.Road:GetChildren()
-    
-    for _, model in pairs(placements) do
-        table.insert(Session.IgnoreList, model)
-    end
-    -- for _, model in pairs(buildings) do
-    --     table.insert(Session.IgnoreList, model)
-    -- end
-    -- for _, model in pairs(roads) do
-    --     table.insert(Session.IgnoreList, model)
-    -- end
-
-    return ignoreList
-end
-
-
 --//Returns true if DummyPart is colliding with another object
 local function CheckCollisions()
     local touchingParts = Session.DummyPart:GetTouchingParts()
@@ -132,17 +107,16 @@ end
 
 
 --//Disables collisions for all parts of Session.Model
-local function DisableCollisions()
-    for _, part in pairs(Session.Model.Decor:GetChildren()) do
-        part.CanCollide = false
+local function DisableCollisions(parent)
+    for _, child in pairs(parent:GetChildren()) do
+        if (child:IsA("Model") or child:IsA("Folder")) then 
+            DisableCollisions(child) 
+        else
+            if (child.CanCollide ~= nil) then
+                child.CanCollide = false
+            end
+        end
     end
-
-    if (Session.Model:FindFirstChild("Base")) then
-        Session.Model.Base.CanCollide = false
-    end
-
-    Session.Model.PrimaryPart.CanCollide = false
-    Session.DummyPart.CanCollide = false
  end
 
 
@@ -214,13 +188,12 @@ function PlacementApi:StartPlacing(itemId)
         Session._Maid:GiveTask(Session.DummyPart.Touched:Connect(function() end))
 
     --Disable collisions
-    DisableCollisions()
+    DisableCollisions(Session.Model)
 
     --Setup session
     Session.CurrentPlate = Plot.Plates:FindFirstChild(0)
     Session.DampeningSpeed = 0.25
     Session.Rotation = 0
-    Session.IgnoreList = ConstructIgnoreList()
     Session.RoadPositions = {}
     Session.RoadModels = {}
 

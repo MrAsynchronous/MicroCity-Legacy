@@ -14,5 +14,6 @@
         "UDim2",
         "Vector2",
         "script"
-    ]
+    ],
+    "discord.enabled": true
 }
