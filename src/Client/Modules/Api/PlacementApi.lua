@@ -153,7 +153,7 @@ local function Place()
 --    if (Session.MetaData.Type == "Road") then
 --        self.RoadsPlaced:Fire(Session.RoadPositions)
 --    else
-        self.ObjectPlaced:Fire(Session.CurrentCanvas, Session.ItemId, Session.RawPosition, Session.Rotation)
+        self.ObjectPlaced:Fire(Session.CurrentPlate, Session.ItemId, Session.RawPosition, Session.Rotation)
 --    end
 end
 
@@ -161,15 +161,15 @@ end
 --//Updates the model and dummy part
 local function Update()
     local ray = MouseInputApi:GetRay(250)
-    local hitPart, hitPosition = workspace:FindPartOnRayWithWhitelist(ray, Plot.Canvases:GetChildren())
+    local hitPart, hitPosition = workspace:FindPartOnRayWithWhitelist(ray, Plot.Plates:GetChildren())
 
     --Update current canvas is mouse is hovering over proper cnvas
-    if (hitPart and (hitPart and hitPart:IsDescendantOf(Plot.Canvases))) then
-        Session.CurrentCanvas = hitPart
+    if (hitPart and (hitPart and hitPart:IsDescendantOf(Plot.Plates))) then
+        Session.CurrentPlate = hitPart
     end
 
     --Call SnapApi to get a snapped position
-    local worldPosition = SnapApi:SnapVector(Plot, Session.CurrentCanvas, Session.Model, hitPosition, Session.Rotation)
+    local worldPosition = SnapApi:SnapVector(Plot, Session.CurrentPlate, Session.Model, hitPosition, Session.Rotation)
 
     --Fire PositionChanged event
     if (Session.WorldPosition and (Session.WorldPosition ~= worldPosition)) then
@@ -217,7 +217,7 @@ function PlacementApi:StartPlacing(itemId)
     DisableCollisions()
 
     --Setup session
-    Session.CurrentCanvas = Plot.Canvases:FindFirstChild(0)
+    Session.CurrentPlate = Plot.Plates:FindFirstChild(0)
     Session.DampeningSpeed = 0.25
     Session.Rotation = 0
     Session.IgnoreList = ConstructIgnoreList()
@@ -225,9 +225,9 @@ function PlacementApi:StartPlacing(itemId)
     Session.RoadModels = {}
 
     --Setup grids
-    for _, canvas in pairs(Plot.Canvases:GetChildren()) do
-        canvas.Grid.Transparency = 0
-        canvas.GridDash.Transparency = 0
+    for _, plate in pairs(Plot.Plates:GetChildren()) do
+        plate.Grid.Transparency = 0
+        plate.GridDash.Transparency = 0
     end
 
     --Begin updating
@@ -302,9 +302,9 @@ function PlacementApi:StopPlacing()
     end
 
     --Grids
-    for _, canvas in pairs(Plot.Canvases:GetChildren()) do
-        canvas.Grid.Transparency = 1
-        canvas.GridDash.Transparency = 1 
+    for _, plate in pairs(Plot.Plates:GetChildren()) do
+        plate.Grid.Transparency = 1
+        plate.GridDash.Transparency = 1 
     end
 
     self.IsPlacing = false

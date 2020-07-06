@@ -39,8 +39,8 @@ end
 
 
 --//Snaps a vector to the proper plot size
-function SnapApi:SnapVector(Plot, canvas, model, vector, rotation)
-    local PlotCFrame, PlotSize = self:GetCanvasData(canvas)
+function SnapApi:SnapVector(Plot, plate, model, vector, rotation)
+    local PlotCFrame, PlotSize = self:GetPlateData(plate)
 
     --Sterilize rotation (thanks crut)
     local int, rest = math.modf(rotation / ROTATION_INCREMENT)
@@ -50,10 +50,10 @@ function SnapApi:SnapVector(Plot, canvas, model, vector, rotation)
     local modelSize = AABB.worldBoundingBox(CFrame.Angles(0, rotation, 0), model.PrimaryPart.Size)
     modelSize = Vector3.new(math.abs(NumberUtil.Round(modelSize.X)), math.abs(modelSize.Y), math.abs(NumberUtil.Round(modelSize.Z)))
 
-    --Use AABB to validate that model has no area on other canvases
+    --Use AABB to validate that model has no area on other plates
     local sum = 0
-    for _, canvas in pairs(Plot.Canvases:GetChildren()) do
-        local cf, size = self:GetCanvasData(canvas)
+    for _, plate in pairs(Plot.Plates:GetChildren()) do
+        local cf, size = self:GetPlateData(plate)
 
         local volume = AABB.overlap(
             CFrame.new(vector) * (cf - cf.Position), Vector3.new(modelSize.X, modelSize.Z, 1),
@@ -95,8 +95,8 @@ end
 
 --//Called on RunTime and when the VisualPart changes
 --//Calculates the proper Size and CFrame of the plot
-function SnapApi:GetCanvasData(canvas)
-    local plotSize = canvas.Size
+function SnapApi:GetPlateData(plate)
+    local plotSize = plate.Size
 
     local up = Vector3.new(0, 1, 0)
     local back = -Vector3.FromNormalId(Enum.NormalId.Top)
@@ -107,10 +107,10 @@ function SnapApi:GetCanvasData(canvas)
     local right = CFrame.fromAxisAngle(axis, math.pi / 2) * back
     local top = back:Cross(right).Unit
 
-    local plotCFrame = canvas.CFrame * CFrame.fromMatrix(-back * plotSize / 2, right, top, back)
-    local plotSize = Vector2.new((plotSize * right).Magnitude, (plotSize * top).Magnitude)
+    local plateCFrame = plate.CFrame * CFrame.fromMatrix(-back * plotSize / 2, right, top, back)
+    local plateSize = Vector2.new((plotSize * right).Magnitude, (plotSize * top).Magnitude)
 
-    return plotCFrame, plotSize
+    return plateCFrame, plateSize
 end
 
 
