@@ -68,6 +68,34 @@ end
 
 function Plot:Start()
     LandStack = StackClass.new(Workspace.Land:GetChildren())
+
+    -- Initiate land
+    for _, landObject in pairs(Workspace.Land:GetChildren()) do
+        for i = 1, #landObject.Plates:GetChildren() - 1 do
+            local plate = landObject.Plates:FindFirstChild(tostring(i))
+            local decor = landObject.Decor:FindFirstChild(tostring(i))
+
+            plate.Grid.Transparency = 1
+            plate.GridDash.Transparency = 1
+            decor.Transparency = 1
+
+            local adjacentPlatePosition = landObject.PrimaryPart.CFrame:ToObjectSpace(plate.CFrame)
+            local adjacentDecorPosition = landObject.PrimaryPart.CFrame:ToObjectSpace(decor.CFrame)
+
+            local plateCFrame = Instance.new("CFrameValue")
+            plateCFrame.Name = "Origin"
+            plateCFrame.Value = adjacentPlatePosition
+            plateCFrame.Parent = plate
+
+            local decorCFrame = Instance.new("CFrameValue")
+            decorCFrame.Name = "Origin"
+            decorCFrame.Value = adjacentDecorPosition
+            decorCFrame.Parent = decor
+
+            plate.Parent = landObject.Locked.Plates
+            decor.Parent = landObject.Locked.Decor
+        end
+    end
 end
 
 

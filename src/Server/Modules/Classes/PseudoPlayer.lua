@@ -8,9 +8,12 @@ local PseudoPlayer = {}
 PseudoPlayer.__index = PseudoPlayer
 
 --//Api
+local DataStore2
 
 --//Services
-local DataStore2
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local MetaDataService
 
 --//Classes
 local MaidClass
@@ -19,6 +22,7 @@ local PlotClass
 --//Controllers
 
 --//Locals
+local DefaultPlayerData
 
 
 function PseudoPlayer.new(player)
@@ -34,6 +38,14 @@ function PseudoPlayer.new(player)
     --Construct a new plotObject
     self.Plot = PlotClass.new(self)
 
+    
+    -- Begin loading data
+    for key, value in pairs(DefaultPlayerData) do
+        self[key] = DataStore2(key, player)
+
+        print(key, self[key]:Get(value))
+    end
+
     return self
 end
 
@@ -45,11 +57,18 @@ function PseudoPlayer:Unload()
 end
 
 
+function PseudoPlayer:Start()
+    DefaultPlayerData = MetaDataService:GetMetaData("DefaultPlayerData")
+
+end
+
+
 function PseudoPlayer:Init()
     --//Api
-    
+    DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
+
     --//Services
-    DataStore2 = self.Services.DataStore2
+    MetaDataService = self.Services.MetaDataService
     
     --//Classes
     MaidClass = self.Shared.Maid

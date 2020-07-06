@@ -17,18 +17,17 @@ local ReplicatedFirst = game:GetService("ReplicatedFirst")
 --//Controllers
 
 --//Locals
-local ItemDataIndex = {}
-local DataIndex = {}
-
+local ItemDataIndex
+local DataIndex
 
 --//Returns MetaData / Data for a given ItemId / StringId
 function MetaDataService:GetMetaData(itemId, player)
     if (not typeof(itemId) == "number" or not typeof(itemId) == "string") then return end
 
-    local data = (typeof(itemId == "number") and ItemDataIndex or DataIndex)[itemId]
-    if (not data) then return false end
+    local metaData = (typeof(itemId) == "number" and ItemDataIndex[itemId] or DataIndex[itemId])
+    if (not metaData) then return false end
 
-    return (player and data or TableUtil.Copy(data))
+    return (player and metaData or TableUtil.Copy(metaData))
 end
 
 
@@ -46,7 +45,9 @@ function MetaDataService:Start()
             DataIndex[dataModule.Name] = require(dataModule)
         else
             for _, itemDataModule in pairs(dataModule:GetChildren()) do
-                ItemDataIndex[dataModule.Name] = require(itemDataModule)
+                local metaData = require(itemDataModule)
+
+                ItemDataIndex[metaData.Id] = metaData
             end
         end
     end
@@ -64,7 +65,8 @@ function MetaDataService:Init()
     --//Controllers
     
     --//Locals
-    
+    ItemDataIndex = {}
+    DataIndex = {}    
 end
 
 

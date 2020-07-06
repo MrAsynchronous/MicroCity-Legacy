@@ -1,6 +1,9 @@
 return {
 
-    Visits = 0;
-    PlayTime = 0;
+    Cash = 0,
+    OwnedPlates = {},
+
+    Visits = 0,
+    PlayTime = 0,
 
 }
