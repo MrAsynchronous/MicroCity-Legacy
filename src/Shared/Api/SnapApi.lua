@@ -38,6 +38,11 @@ function SnapApi:Rotate(currentRotation)
 end
 
 
+function SnapApi:IsColliding(Plot, model)
+    
+end
+
+
 --//Snaps a vector to the proper plot size
 function SnapApi:SnapVector(Plot, plate, model, vector, rotation)
     local PlotCFrame, PlotSize = self:GetPlateData(plate)

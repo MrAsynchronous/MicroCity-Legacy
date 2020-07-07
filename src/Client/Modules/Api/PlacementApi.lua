@@ -122,13 +122,9 @@ local function DisableCollisions(parent)
 
 --//Fires event to signal a placed event
 local function Place()
---    if (CheckCollisions() and (not Session.MetaData.Type == "Road")) then return end
+    if (CheckCollisions()) then return end
 
---    if (Session.MetaData.Type == "Road") then
---        self.RoadsPlaced:Fire(Session.RoadPositions)
---    else
-        self.ObjectPlaced:Fire(Session.CurrentPlate, Session.ItemId, Session.RawPosition, Session.Rotation)
---    end
+    self.ObjectPlaced:Fire(Session.CurrentPlate, Session.ItemId, Session.RawPosition, Session.Rotation)
 end
 
 
