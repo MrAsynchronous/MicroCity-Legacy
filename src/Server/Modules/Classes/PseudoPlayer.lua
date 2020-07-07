@@ -30,20 +30,23 @@ function PseudoPlayer.new(player)
         Player = player,
 
         JoinTime = os.time(),
+        BuildingCache = {},
+        BuildingStore = DataStore2("Placements", player),
 
         _Maid = MaidClass.new()
     }, PseudoPlayer)
 
+    
+
     -- Begin loading data
     for key, value in pairs(DefaultPlayerData) do
         self[key] = DataStore2(key, player)
-
+    
         print(key, self[key]:Get(value))
     end
 
     --Construct a new plotObject
     self.Plot = PlotClass.new(self)
-
 
     return self
 end
@@ -59,6 +62,9 @@ end
 function PseudoPlayer:Start()
     DefaultPlayerData = MetaDataService:GetMetaData("DefaultPlayerData")
 
+    for key, value in pairs(DefaultPlayerData) do
+        DataStore2.Combine("PlayerData", key)
+    end
 end
 
 

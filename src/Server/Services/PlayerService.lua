@@ -31,7 +31,8 @@ function PlayerService:Start()
         if (not player.Character) then player.CharacterAdded:Wait() end
 
         wait(3)
-        pseudoPlayer.Plot:Load()
+
+        pseudoPlayer.Plot:LoadBuildings(pseudoPlayer)
     end)
 
     Players.PlayerRemoving:Connect(function(player)

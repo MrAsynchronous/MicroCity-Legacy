@@ -46,8 +46,12 @@ function SnapApi:SnapVector(Plot, plate, model, vector, rotation)
     local int, rest = math.modf(rotation / ROTATION_INCREMENT)
     rotation = int * ROTATION_INCREMENT
 
+    if (not RunService:IsServer()) then
+        model = model.PrimaryPart.Size
+    end
+
     --Calculate model size
-    local modelSize = AABB.worldBoundingBox(CFrame.Angles(0, rotation, 0), model.PrimaryPart.Size)
+    local modelSize = AABB.worldBoundingBox(CFrame.Angles(0, rotation, 0), model)
     modelSize = Vector3.new(math.abs(NumberUtil.Round(modelSize.X)), math.abs(modelSize.Y), math.abs(NumberUtil.Round(modelSize.Z)))
 
     --Use AABB to validate that model has no area on other plates
@@ -84,9 +88,7 @@ function SnapApi:SnapVector(Plot, plate, model, vector, rotation)
 
     --Destroy temp model, return a localSpcae cframe
     if (RunService:IsServer()) then
-        model:Destroy()
-
-        return Plot.PrimaryPart.CFrame:ToObjectSpace(worldSpace)
+        return worldSpace, Plot.PrimaryPart.CFrame:ToObjectSpace(worldSpace)
     end
 
     return worldSpace
