@@ -24,6 +24,7 @@ local AABB
 
 --//Services
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 --//Locals
 local GRID_SIZE = 1
@@ -38,8 +39,14 @@ function SnapApi:Rotate(currentRotation)
 end
 
 
-function SnapApi:IsColliding(Plot, model)
-    
+--//Returns true if model is colliding with other models
+function SnapApi:IsColliding(Plot, vector, rotation, modelSize)
+    local rotatedModelSize = AABB.worldBoundingBox(CFrame.Angles(0, rotation, 0), modelSize)
+    rotatedModelSize = Vector3.new(math.abs(NumberUtil.Round(rotatedModelSize.X)), math.abs(rotatedModelSize.Y), math.abs(NumberUtil.Round(rotatedModelSize.Z)))
+
+    local region3 = Region3.new((vector - (rotatedModelSize / 2)) + Vector3.new(0.5, 0.5, 0.5), (vector + (rotatedModelSize / 2)) - Vector3.new(0.5, 0.5, 0.5))
+
+    return #Workspace:FindPartsInRegion3WithWhiteList(region3, Plot.Placements:GetChildren(), -1) > 0
 end
 
 

@@ -13,7 +13,19 @@
         "Color3",
         "UDim2",
         "Vector2",
-        "script"
+        "script",
+        "UDim",
+        "TweenInfo",
+        "wait",
+        "typeof",
+        "tick",
+        "UserSettings",
+        "Random",
+        "unpack",
+        "warn",
+        "bit32",
+        "Ray",
+        "workspace"
     ],
     "discord.enabled": true
 }

@@ -34,7 +34,7 @@ function PlacementController:Start()
     end)
 
     StateGui.PlacementMode.MouseButton1Click:Connect(function()
-        PlacementApi:StartPlacing(1)
+        PlacementApi:StartPlacing(2)
     end)
 
     StateGui.PlatePurchaseMode.MouseButton1Click:Connect(function()

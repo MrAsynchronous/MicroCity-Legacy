@@ -131,7 +131,7 @@ end
 --//Updates the model and dummy part
 local function Update()
     local ray = MouseInputApi:GetRay(250)
-    local hitPart, hitPosition = workspace:FindPartOnRayWithWhitelist(ray, Plot.Plates:GetChildren())
+    local hitPart, hitPosition = Workspace:FindPartOnRayWithWhitelist(ray, Plot.Plates:GetChildren())
 
     --Update current canvas is mouse is hovering over proper cnvas
     if (hitPart and (hitPart and hitPart:IsDescendantOf(Plot.Plates))) then
@@ -155,7 +155,7 @@ local function Update()
     Session.Model.PrimaryPart.CFrame = (not Session.HasRan and worldPosition or Session.Model.PrimaryPart.CFrame:Lerp(worldPosition, Session.DampeningSpeed))
 
     --Collision detection
-    Session.Model.PrimaryPart.Color = (CheckCollisions() and INVALID_PART_COLOR or DEFAULT_PART_COLOR)
+    Session.Model.PrimaryPart.Color = (SnapApi:IsColliding(Plot, worldPosition.Position, Session.Rotation, Session.DummyPart.Size) and INVALID_PART_COLOR or DEFAULT_PART_COLOR)
     Session.HasRan = true
 end
 
@@ -249,7 +249,6 @@ function PlacementApi:StartPlacing(itemId)
         Session._Maid:GiveTask(GamepadManager.ButtonUp:Connect(function(keyCode)
             if (keyCode == GAMEPAD_PLACE) then
                 Session.PlaceRoad = false
-                CleanupRoadCache( )
             end
         end))
     end
