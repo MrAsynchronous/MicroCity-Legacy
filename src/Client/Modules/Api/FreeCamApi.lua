@@ -53,8 +53,6 @@ local originalCharacterCFrame
 local originalCameraCFrame
 local focalPoint
 
-local isPurchasingPlates = false
-
 local zDistance = 10
 local yAngle = 30
 local zAngle = 0
@@ -84,12 +82,6 @@ local function UpdateCamera()
         finalAngle = CAMERA_SETTINGS.Angle2 + (CAMERA_SETTINGS.Angle1 - CAMERA_SETTINGS.Angle2) * alpha
     end
 
-    if (isPurchasingPlates) then
-        yAngle = -Plot.PrimaryPart.Orientation.Y
-        finalAngle = 90
-        zDistance = 350
-    end
-
     Camera.CFrame = CFrame.new(focalPoint) * CFrame.Angles(0, math.rad(yAngle), 0) * CFrame.Angles(math.rad(-finalAngle), 0, 0) * CFrame.new(0, 0, zDistance) * CFrame.Angles(0, 0, math.rad(zAngle))
 end
 
@@ -102,19 +94,19 @@ local function UpdateFocalPoint(focalDelta)
         math.clamp(focalPoint.Z + focalDelta.Z, PlotMin.Z, PlotMax.Z)
     )
 
-    if (isPurchasingPlates) then
-        focalPoint = (Plot.PrimaryPart.CFrame + -(Plot.PrimaryPart.CFrame.LookVector * Plot.PrimaryPart.Size)).Position
-    else
-        focalPoint = focalPoint + focalDelta
-    end
+    focalPoint = focalPoint + focalDelta
 end
 
 
-function FreeCamApi:EnterPlatePurchaseMode()
-    PlacementApi:StopPlacing()
+function FreeCamApi:EnterAsMenu()
+    _Maid:GiveTask(RunService.RenderStepped:Connect(function(t)
+        yAngle = yAngle - (0.125 * (t * 60))
 
-    isPurchasingPlates = true
+        focalPoint = Vector3.new(-7.604, 8.44, 491.829)
+        UpdateCamera()
+    end))
 end
+
 
 --//Puts player's camera into build mode
 function FreeCamApi:Enter()
@@ -164,13 +156,6 @@ function FreeCamApi:Enter()
     end))
 
     _Maid:GiveTask(RunService.RenderStepped:Connect(function(t)
-        if (isPurchasingPlates) then
-            UpdateFocalPoint(Vector3.new(0, 0, 0))
-            UpdateCamera()
-
-            return
-        end
-
         local focalDelta = Vector3.new(0, 0, 0)
         local nv = Vector3.new()
         local angleDelta = 0
@@ -197,8 +182,6 @@ end
 
 --//Cleans up, moves player to original place, resets camera
 function FreeCamApi:Exit(isFormality)
-    isPurchasingPlates = false
-
     _Maid:DoCleaning()
     if (isFormality) then return end
 

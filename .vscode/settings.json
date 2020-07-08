@@ -27,5 +27,6 @@
         "Ray",
         "workspace"
     ],
+    "discord.workspaceElapsedTime": true,
     "discord.enabled": true
 }

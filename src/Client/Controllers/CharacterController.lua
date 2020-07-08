@@ -25,7 +25,6 @@ local Plot
 --//Positions player's character in front of their plot
 local function SetupCharacter(character)
     while (not character.PrimaryPart) do wait() end
-    FreeCamApi:Enter()
 
     character:SetPrimaryPartCFrame(Plot.PrimaryPart.CFrame - Vector3.new(0, 25, 0))
 end
