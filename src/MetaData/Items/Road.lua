@@ -1,5 +1,7 @@
 return {
-    Id = 1,
+    Id = 2,
+
+    Cost = 100,
 
     Type = "Building",
     Name = script.Name

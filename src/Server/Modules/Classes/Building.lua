@@ -23,6 +23,7 @@ local MaidClass
 --//Locals
 
 
+--//Sub-constructor for building a BuildingObject from a save
 function Building.newFromSave(pseudoPlayer, guid, saveData)
     local decodedData = TableUtil.DecodeJSON(saveData)
     local decodedCFrame = CFrameSerializer:DecodeCFrame(decodedData.Position)
@@ -37,6 +38,7 @@ function Building.newFromSave(pseudoPlayer, guid, saveData)
 end
 
 
+--//Constructor for building class
 function Building.new(pseudoPlayer, itemId, worldCFrame, objectCFrame, guid)
     local self = setmetatable({
         Player = pseudoPlayer.Player,
@@ -60,6 +62,7 @@ function Building.new(pseudoPlayer, itemId, worldCFrame, objectCFrame, guid)
 end
 
 
+--//Encodes Building data into JSON format
 function Building:Encode()
     return TableUtil.EncodeJSON({
         Position = CFrameSerializer:EncodeCFrame(self.ObjectPosition),

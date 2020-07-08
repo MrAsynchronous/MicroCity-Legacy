@@ -52,6 +52,22 @@ function PseudoPlayer.new(player)
 end
 
 
+--//Overload methods for data handling
+function PseudoPlayer:Get(key)
+    return self[key]:Get(DefaultPlayerData[key])
+end
+
+
+function PseudoPlayer:Set(key, value)
+    return self[key]:Set(value)
+end
+
+
+function PseudoPlayer:Update(key, callback)
+    return self[key]:Update(callback)
+end
+
+
 --//Unload's and cleans up PseudoPlayer
 function PseudoPlayer:Unload()
     self._Maid:Destroy()
