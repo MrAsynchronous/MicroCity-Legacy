@@ -25,6 +25,7 @@ local CoreGui
 
 function SaveSelection:Start()
     _Maid = MaidClass.new()
+
     local MainMenu = GuiClass.new(CoreGui.MainMenu)
     local RobuxShop = GuiClass.new(CoreGui.RobuxShop)
     local SaveLoad = GuiClass.new(CoreGui.SaveLoadDialog)
@@ -32,13 +33,46 @@ function SaveSelection:Start()
     local Confirmation = GuiClass.new(CoreGui.ConfirmationDialog)
 
     MainMenu:Show()
+    MainMenu:BindButton(MainMenu.Object.ButtonContainer.Play, function()
+        MainMenu:Hide()
 
+        SaveLoad:Show()
+    end)
+
+    MainMenu:BindButton(MainMenu.Object.ButtonContainer.Shop, function()
+        MainMenu:Hide()
+
+        RobuxShop:Show()
+    end)
+
+    SaveLoad:BindButton(SaveLoad.Object.ButtonContainer.CreateSave, function()
+        SaveLoad:Hide()
+
+        NewSave:Show()
+    end)
+
+    NewSave:BindButton(NewSave.Object.ButtonContainer.Create, function()
+        NewSave:Hide()
+
+        Confirmation:Show()
+    end)
+
+    Confirmation:BindButton(Confirmation.Object.ButtonContainer.Yes, function()
+        Confirmation:Hide()
+    end)
+
+    Confirmation:BindButton(Confirmation.Object.ButtonContainer.No, function()
+        Confirmation:Hide()
+
+        NewSave:Show()
+    end)
+    
     local blurEffect = Instance.new("BlurEffect")
     blurEffect.Parent = Camera
     blurEffect.Size = 12
 
     repeat wait() until FreeCamApi.IsLoaded
-FreeCamApi:EnterAsMenu()
+    FreeCamApi:EnterAsMenu()
 end
 
 
@@ -59,11 +93,6 @@ function SaveSelection:Init()
     Camera = Workspace.CurrentCamera
 
     CoreGui = PlayerGui:WaitForChild("CoreGui")
-    MainMenu = CoreGui.MainMenu
-    RobuxShop = CoreGui.RobuxShop
-    SaveLoad = CoreGui.SaveLoadDialog
-    NewSave = CoreGui.NewSaveDialog
-    ConfirmationBox = CoreGui.ConfirmationDialog
     
 end
 
