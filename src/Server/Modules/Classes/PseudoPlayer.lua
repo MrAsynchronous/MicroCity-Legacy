@@ -8,13 +8,14 @@ local PseudoPlayer = {}
 PseudoPlayer.__index = PseudoPlayer
 
 --//Api
+local DataStore2
+local DataApi
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local MetaDataService
 local PlayerService
-local DataService
 
 --//Classes
 local MaidClass
@@ -31,6 +32,7 @@ function PseudoPlayer.new(player)
         Player = player,
 
         JoinTime = os.time(),
+        SaveIndex = DataStore2("SaveIndex", player),
 
         _Maid = MaidClass.new()
     }, PseudoPlayer)
@@ -42,10 +44,8 @@ function PseudoPlayer.new(player)
 end
 
 
-function PseudoPlayer:Setup(saveName)
-    self.DataContainer = DataService.new(self.Player.UserId, saveName)  
+function PseudoPlayer:LoadSave(saveName)
 
-    self.Plot:Load(self.DataContainer)
 end
 
 
@@ -59,25 +59,30 @@ end
 function PseudoPlayer:Start()
     DefaultPlayerData = MetaDataService:GetMetaData("DefaultPlayerData")
 
+    for key, value in pairs(DefaultPlayerData) do
+        DataStore2.Combine("PlayerData", key)
+    end
 end
 
 
 function PseudoPlayer:Init()
     --//Api
+    DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
+    DataApi = self.Modules.Data
 
     --//Services
     MetaDataService = self.Services.MetaDataService
     PlayerService = self.Services.PlayerService
-    DataService = self.Services.DataService
-    
+
+
     --//Classes
     MaidClass = self.Shared.Maid
     PlotClass = self.Modules.Classes.Plot
 
     --//Controllers
-    
+
     --//Locals
-    
+
 end
 
 

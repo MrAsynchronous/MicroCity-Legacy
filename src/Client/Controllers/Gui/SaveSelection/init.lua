@@ -33,6 +33,15 @@ function SaveSelection:Start()
     local SaveLoad = GuiClass.new(CoreGui.SaveLoadDialog)
     local NewSave = GuiClass.new(CoreGui.NewSaveDialog)
 
+    -- Update savelist when server sends info
+    local saveIndex = PlayerService:RequestSaveIndex()
+    for _, saveId in pairs(saveIndex) do
+        local ui = SaveLoad.Object.Template:Clone()
+        ui.Parent = SaveLoad.Object.SaveContainer
+        ui.Visible = true
+        ui.Text = saveId
+    end
+
     MainMenu:Show()
     MainMenu:BindButton(MainMenu.ButtonContainer.Play, function()
         MainMenu:Hide()
@@ -66,17 +75,17 @@ function SaveSelection:Start()
 
     NewSave:BindButton(NewSave.ButtonContainer.Create, function()
         NewSave:Hide()
-        
+
         local Confirmation = ConfirmationDialogClass.new(true)
         Confirmation:BindButton(Confirmation.ButtonContainer.Yes, function()
-            local reponse = PlayerService:RequestSaveCreation(NewSave.SaveName.Text)
+            local reponse = PlayerService:RequestSave(NewSave.Object.NameInput.Text)
         end)
         Confirmation:BindButton(Confirmation.ButtonContainer.No, function()
             Confirmation:Destroy()
             NewSave:Show()
         end)
     end)
-    
+
     local blurEffect = Instance.new("BlurEffect")
     blurEffect.Parent = Camera
     blurEffect.Size = 12
@@ -89,7 +98,7 @@ end
 function SaveSelection:Init()
     --//Api
     FreeCamApi = self.Modules.Api.FreeCamApi
-    
+
     --//Services
     PlayerService = self.Services.PlayerService
     PlayerGui = self.Player:WaitForChild("PlayerGui")
@@ -100,12 +109,12 @@ function SaveSelection:Init()
     GuiClass = self.Modules.Classes.Gui
 
     --//Controllers
-    
+
     --//Locals
     Camera = Workspace.CurrentCamera
 
     CoreGui = PlayerGui:WaitForChild("CoreGui")
-    
+
 end
 
 

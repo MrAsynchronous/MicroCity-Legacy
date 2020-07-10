@@ -17,6 +17,7 @@ local Players = game:GetService("Players")
 local PseudoPlayerClass
 local EventClass
 
+
 --//Controllers
 
 --//Locals
@@ -44,24 +45,45 @@ function PlayerService:Start()
 end
 
 
-function PlayerService.Client:RequestSaveCreation(player, saveName)
+--//Handles incoming requests for retrieving a save
+function PlayerService.Client:RequestSave(player, saveId)
     local pseudoPlayer = self.Server:GetPseudoPlayer(player)
     if (not pseudoPlayer) then return end
 
-    --Add new save into save index
-    pseudoPlayer.SaveIndex:Update(function(currentIndex)
-        table.insert(currentIndex, saveName)
+    -- Grab current index
+    local saveIndex = self.Client:RequestSaveIndex(player)
 
-        return currentIndex
-    end)
+    -- If save does not exist, create new save
+    if (not table.find(saveIndex, saveId)) then
+        pseudoPlayer.SaveIndex:Update(function(currentIndex)
+            table.insert(currentIndex, saveId)
 
-    --Being setting up client
-    pseudoPlayer:Setup(saveName)
+            return currentIndex
+        end)
+
+    end
+
+    pseudoPlayer:LoadSave(saveId)
 end
 
 
-function PlayerService.Client:RequestSave(player, saveId)
+--//Handles requests for SaveIndex
+function PlayerService.Client:RequestSaveIndex(player)
+    local pseudoPlayer = self.Server:GetPseudoPlayer(player)
+    if (not pseudoPlayer) then return end
 
+    return pseudoPlayer.SaveIndex:Get({})
+end
+
+
+--//Returns the plot model, or nil if plot isn't loaded
+function PlayerService.Client:RequestPlot(player)
+    local pseudoPlayer = self.Server:GetPseudoPlayer(player)
+    if (not pseudoPlayer) then return false end
+    if (not pseudoPlayer.Plot) then return false end
+    if (not pseudoPlayer.Plot.Loaded) then return false end
+
+    return pseudoPlayer.Plot.Object
 end
 
 
@@ -80,17 +102,6 @@ function PlayerService:RemovePseudoPlayer(player)
 end
 
 
---//Returns the plot model, or nil if plot isn't loaded
-function PlayerService.Client:RequestPlot(player)
-    local pseudoPlayer = self.Server:GetPseudoPlayer(player)
-    if (not pseudoPlayer) then return false end
-    if (not pseudoPlayer.Plot) then return false end
-    if (not pseudoPlayer.Plot.Loaded) then return false end
-
-    return pseudoPlayer.Plot.Object
-end
-
-
 function PlayerService:Init()
     --//Api
     DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
@@ -105,7 +116,6 @@ function PlayerService:Init()
 
     --//Locals
     self:RegisterClientEvent("PlotRequest")
-    self:RegisterClientEvent("SaveIndex")
 end
 
 

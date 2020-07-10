@@ -9,7 +9,7 @@ Plot.__index = Plot
 
 --//Api
 local CompressionApi
-local DataService
+local DataApi
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -55,26 +55,87 @@ end
 
 
 function Plot:Setup(dataContainer)
-    local rawBuildData = dataContainer:Get("Placements", {})
-    local buildData = self:DeserializedData(rawBuildData)
+    self.DataContainer = dataContainer
 
-    --Plate loading
-    for _, ownedPlate in pairs(pseudoPlayer.OwnedPlates:Get({1, 2, 3, 4, 5, 6, 7})) do
-        local decor = self.Object.Locked.Decor:FindFirstChild(tostring(ownedPlate))
-        local plate = self.Object.Locked.Plates:FindFirstChild(tostring(ownedPlate))
+    self.DataContainer:Get("Placements", {}):Then(
+        function(data)
+            print("Success")
 
-        decor.Parent = self.Object.Decor
-        plate.Parent = self.Object.Plates
+            local buildData = self:DeserializeData(rawBuildData)
 
-        decor.Transparency = 0
-        plate.Grid.Transparency = 1
-        plate.GridDash.Transparency = 1
-    end    
+                --Plate loading
+            for _, ownedPlate in pairs(pseudoPlayer.OwnedPlates:Get({1, 2, 3, 4, 5, 6, 7})) do
+                local decor = self.Object.Locked.Decor:FindFirstChild(tostring(ownedPlate))
+                local plate = self.Object.Locked.Plates:FindFirstChild(tostring(ownedPlate))
+
+                decor.Parent = self.Object.Decor
+                plate.Parent = self.Object.Plates
+
+                decor.Transparency = 0
+                plate.Grid.Transparency = 1
+                plate.GridDash.Transparency = 1
+            end
+
+            --Load Data
+            self.Loading = true
+
+            local steppedConnection
+            local numericalTable = {}
+            local currentIndex = 1
+
+            --Temporarily store all items in a sub-table in numericalTable
+            for guid, JSONData in pairs(buildData) do
+                table.insert(numericalTable, {guid, JSONData})
+            end
+
+            --Failsafe to prevent error spam if player leaves while loading
+            local failSafe = Players.PlayerRemoving:Connect(function(player)
+                if (player.Name == pseudoPlayer.Player.Name) then
+                    if (steppedConnection) then
+                        steppedConnection:Disconnect()
+                    end
+                end
+            end)
+
+            --Load items when stepped
+            steppedConnection = RunService.Stepped:Connect(function()
+                local buildInfo = numericalTable[currentIndex]
+
+                --Run once all buildings are loaded
+                if (not buildInfo) then
+                    steppedConnection:Disconnect()
+
+                    --Tell client that their plot has finished loading
+                    PlayerService:FireClient("PlotRequest", self.Player, self.Object)
+
+                    --Disconnect failsafe
+                    failSafe:Disconnect()
+                    self.Loading = false
+
+                    return
+                end
+
+                local guid = buildInfo[1]
+                local jsonData = buildInfo[2]
+
+                --Construct a new BuildingObject
+                local buildingObject = BuildingClass.newFromSave(pseudoPlayer, guid, jsonData)
+                if (not buildingObject) then return end
+
+                self:AddBuildingObject(buildingObject)
+
+                currentIndex += 1
+            end)
+        end,
+        function(error)
+            print("Error")
+        end
+    )
 end
 
 
 --//Returns data at index guid
-function Plot:GetBuildingObjcet(guid)
+function Plot:GetBuildingObject(guid)
     return self.BuildingList[guid]
 end
 
@@ -83,23 +144,25 @@ end
 function Plot:AddBuildingObject(buildingObject)
     self.BuildingList[buildingObject.Guid] = buildingObject
 
-    self.BuildingStore:Update(function(currentIndex)
-        currentIndex[buildingObject.Guid] = buildingObject:Encode()
-
-        return currentIndex
-    end)
+    local currentIndex = self.DataContainer:Get("Placements")
+    currentIndex[buildingObject.Guid] = buildingObject:Encode()
+    self.DataContainer:Set("Placements", currentIndex)
 end
 
 
 --//Removes traces of buildingObject from buildingList and building store
 function Plot:RemoveBuildingObject(buildingObject)
     self.BuildingList[buildingObject.Guid] = nil
-    
+
     self.BuildingStore:Update(function(currentIndex)
         currentIndex[buildingObject.Guid] = nil
 
         return currentIndex
     end)
+
+    for i=1, 10 do
+        continue
+    end
 end
 
 
@@ -109,61 +172,7 @@ function Plot:RefreshBuildingObject(...)
 end
 
 
---//Loads data for player
-function Plot:LoadBuildings(pseudoPlayer)
-    self.Loading = true
-
-    local steppedConnection
-    local numericalTable = {}
-    local currentIndex = 1
-
-    --Temporarily store all items in a sub-table in numericalTable
-    for guid, JSONData in pairs(self.BuildingStore:Get({})) do
-        table.insert(numericalTable, {guid, JSONData})
-    end
-
-    --Failsafe to prevent error spam if player leaves while loading
-    local failSafe = Players.PlayerRemoving:Connect(function(player)
-        if (player.Name == pseudoPlayer.Player.Name) then
-            if (steppedConnection) then
-                steppedConnection:Disconnect()
-            end
-        end
-    end)
-
-    --Load items when stepped
-    steppedConnection = RunService.Stepped:Connect(function()
-        local buildInfo = numericalTable[currentIndex]
-
-        --Run once all buildings are loaded
-        if (not buildInfo) then
-            steppedConnection:Disconnect()
-
-            --Tell client that their plot has finished loading
-            PlayerService:FireClient("PlotRequest", self.Player, self.Object)
-
-            --Disconnect failsafe
-            failSafe:Disconnect()
-            self.Loading = false
-
-            return
-        end
-
-        local guid = buildInfo[1]
-        local jsonData = buildInfo[2]
-
-        --Construct a new BuildingObject
-        local buildingObject = BuildingClass.newFromSave(pseudoPlayer, guid, jsonData)
-        if (not buildingObject) then return end
-
-        self:AddBuildingObject(buildingObject)
-
-        currentIndex += 1
-    end)
-end
-
-
-function Plot:DeserializedData(serialized)
+function Plot:DeserializeData(serialized)
     local decompressedData = CompressionApi:decompress(serialized)
     local buildingData = string.split(decompressedData, "|")
     serialized = {}
@@ -229,8 +238,6 @@ function Plot:Start()
 
             plate.Parent = landObject.Locked.Plates
             decor.Parent = landObject.Locked.Decor
-
-            
         end
     end
 end
@@ -239,20 +246,20 @@ end
 function Plot:Init()
     --//Api
     CompressionApi = self.Shared.Api.CompressionApi
+    DataApi = self.Modules.Data
 
     --//Services
     PlayerService = self.Services.PlayerService
-    DataService = self.Services.DataService
-    
+
     --//Classes
     BuildingClass = self.Modules.Classes.Building
     StackClass = self.Shared.Stack
     MaidClass = self.Shared.Maid
-    
+
     --//Controllers
-    
+
     --//Locals
-    
+
 end
 
 
