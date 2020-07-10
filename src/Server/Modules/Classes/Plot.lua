@@ -9,7 +9,7 @@ Plot.__index = Plot
 
 --//Api
 local CompressionApi
-local DataStore2
+local DataService
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
@@ -36,9 +36,6 @@ function Plot.new(pseudoPlayer)
         Player = pseudoPlayer.Player,
         Object = LandStack:Pop(),
 
-        BuildingList = {},
-        BuildingStore = DataStore2("Placements", pseudoPlayer.Player),
-
         Loaded = false,
         _Maid = MaidClass.new()
     }, Plot)
@@ -53,33 +50,13 @@ function Plot.new(pseudoPlayer)
         end
     end
 
-    self.BuildingStore:BeforeInitialGet(function(serialized)
-        local decompressedData = CompressionApi:decompress(serialized)
-        local buildingData = string.split(decompressedData, "|")
-        serialized = {}
+    return self
+end
 
-        --Iterate through all split strings, insert them into table
-        for _, JSONData in pairs(buildingData) do
-            serialized[HttpService:GenerateGUID(false)] = JSONData
-        end
 
-        return serialized
-    end)
-
-    self.BuildingStore:BeforeSave(function(deserialized)
-        local str = ""
-
-        --Iterate through all placements, combine JSONData
-        for guid, jsonArray in pairs(deserialized) do
-            if (str == "") then
-                str = jsonArray
-            else
-                str = str .. "|" .. jsonArray
-            end
-        end
-
-        return CompressionApi:compress(str)
-    end)
+function Plot:Setup(dataContainer)
+    local rawBuildData = dataContainer:Get("Placements", {})
+    local buildData = self:DeserializedData(rawBuildData)
 
     --Plate loading
     for _, ownedPlate in pairs(pseudoPlayer.OwnedPlates:Get({1, 2, 3, 4, 5, 6, 7})) do
@@ -92,9 +69,7 @@ function Plot.new(pseudoPlayer)
         decor.Transparency = 0
         plate.Grid.Transparency = 1
         plate.GridDash.Transparency = 1
-    end
-
-    return self
+    end    
 end
 
 
@@ -188,6 +163,36 @@ function Plot:LoadBuildings(pseudoPlayer)
 end
 
 
+function Plot:DeserializedData(serialized)
+    local decompressedData = CompressionApi:decompress(serialized)
+    local buildingData = string.split(decompressedData, "|")
+    serialized = {}
+
+    --Iterate through all split strings, insert them into table
+    for _, JSONData in pairs(buildingData) do
+        serialized[HttpService:GenerateGUID(false)] = JSONData
+    end
+
+    return serialized
+end
+
+
+function Plot:SerializeData(deserialized)
+    local str = ""
+
+    --Iterate through all placements, combine JSONData
+    for guid, jsonArray in pairs(deserialized) do
+        if (str == "") then
+            str = jsonArray
+        else
+            str = str .. "|" .. jsonArray
+        end
+    end
+
+    return CompressionApi:compress(str)
+end
+
+
 --//Unloads and cleans up PlotOnject
 function Plot:Unload()
     self._Maid:DoCleaning()
@@ -224,6 +229,8 @@ function Plot:Start()
 
             plate.Parent = landObject.Locked.Plates
             decor.Parent = landObject.Locked.Decor
+
+            
         end
     end
 end
@@ -232,10 +239,10 @@ end
 function Plot:Init()
     --//Api
     CompressionApi = self.Shared.Api.CompressionApi
-    DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
-    
+
     --//Services
     PlayerService = self.Services.PlayerService
+    DataService = self.Services.DataService
     
     --//Classes
     BuildingClass = self.Modules.Classes.Building

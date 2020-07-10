@@ -8,12 +8,13 @@ local PseudoPlayer = {}
 PseudoPlayer.__index = PseudoPlayer
 
 --//Api
-local DataStore2
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local MetaDataService
+local PlayerService
+local DataService
 
 --//Classes
 local MaidClass
@@ -30,20 +31,9 @@ function PseudoPlayer.new(player)
         Player = player,
 
         JoinTime = os.time(),
-        BuildingCache = {},
-        BuildingStore = DataStore2("Placements", player),
 
         _Maid = MaidClass.new()
     }, PseudoPlayer)
-
-    
-
-    -- Begin loading data
-    for key, value in pairs(DefaultPlayerData) do
-        self[key] = DataStore2(key, player)
-    
-        print(key, self[key]:Get(value))
-    end
 
     --Construct a new plotObject
     self.Plot = PlotClass.new(self)
@@ -52,19 +42,10 @@ function PseudoPlayer.new(player)
 end
 
 
---//Overload methods for data handling
-function PseudoPlayer:Get(key)
-    return self[key]:Get(DefaultPlayerData[key])
-end
+function PseudoPlayer:Setup(saveName)
+    self.DataContainer = DataService.new(self.Player.UserId, saveName)  
 
-
-function PseudoPlayer:Set(key, value)
-    return self[key]:Set(value)
-end
-
-
-function PseudoPlayer:Update(key, callback)
-    return self[key]:Update(callback)
+    self.Plot:Load(self.DataContainer)
 end
 
 
@@ -78,18 +59,16 @@ end
 function PseudoPlayer:Start()
     DefaultPlayerData = MetaDataService:GetMetaData("DefaultPlayerData")
 
-    for key, value in pairs(DefaultPlayerData) do
-        DataStore2.Combine("PlayerData", key)
-    end
 end
 
 
 function PseudoPlayer:Init()
     --//Api
-    DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
 
     --//Services
     MetaDataService = self.Services.MetaDataService
+    PlayerService = self.Services.PlayerService
+    DataService = self.Services.DataService
     
     --//Classes
     MaidClass = self.Shared.Maid

@@ -165,7 +165,7 @@ Data._onCloseHandlers = {}
 -- Static fields; customize as needed:
 Data.AutoSaveInterval = 60
 Data.PlayerLeftSaveInterval = 10
-Data.SaveInStudio = false
+Data.SaveInStudio = true
 Data.Log = false
 
 -- Constants based on internal Roblox DataStore; DO NOT CHANGE:

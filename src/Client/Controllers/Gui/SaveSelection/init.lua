@@ -69,7 +69,7 @@ function SaveSelection:Start()
         
         local Confirmation = ConfirmationDialogClass.new(true)
         Confirmation:BindButton(Confirmation.ButtonContainer.Yes, function()
-            local reponse = PlayerService:CreateSave(NewSave.SaveName.Text)
+            local reponse = PlayerService:RequestSaveCreation(NewSave.SaveName.Text)
         end)
         Confirmation:BindButton(Confirmation.ButtonContainer.No, function()
             Confirmation:Destroy()

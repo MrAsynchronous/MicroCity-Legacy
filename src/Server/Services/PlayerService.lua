@@ -7,8 +7,10 @@
 local PlayerService = {Client = {}}
 
 --//Api
+local DataStore2
 
 --//Services
+local ServerScriptService = game:GetService("ServerScriptService")
 local Players = game:GetService("Players")
 
 --//Classes
@@ -29,10 +31,6 @@ function PlayerService:Start()
         PseudoPlayerIndex[player] = pseudoPlayer
 
         if (not player.Character) then player.CharacterAdded:Wait() end
-
-        wait(3)
-
-        pseudoPlayer.Plot:LoadBuildings(pseudoPlayer)
     end)
 
     Players.PlayerRemoving:Connect(function(player)
@@ -46,9 +44,26 @@ function PlayerService:Start()
 end
 
 
-function PlayerService.Client:CreateSave(player, saveName)
-    
+function PlayerService.Client:RequestSaveCreation(player, saveName)
+    local pseudoPlayer = self.Server:GetPseudoPlayer(player)
+    if (not pseudoPlayer) then return end
+
+    --Add new save into save index
+    pseudoPlayer.SaveIndex:Update(function(currentIndex)
+        table.insert(currentIndex, saveName)
+
+        return currentIndex
+    end)
+
+    --Being setting up client
+    pseudoPlayer:Setup(saveName)
 end
+
+
+function PlayerService.Client:RequestSave(player, saveId)
+
+end
+
 
 --//Returns PseudoPlayer associated with player
 function PlayerService:GetPseudoPlayer(player)
@@ -77,7 +92,8 @@ end
 
 
 function PlayerService:Init()
-	--//Api
+    --//Api
+    DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
 
     --//Services
 
@@ -89,6 +105,7 @@ function PlayerService:Init()
 
     --//Locals
     self:RegisterClientEvent("PlotRequest")
+    self:RegisterClientEvent("SaveIndex")
 end
 
 
