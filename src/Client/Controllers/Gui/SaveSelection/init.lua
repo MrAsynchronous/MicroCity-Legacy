@@ -10,9 +10,11 @@ local FreeCamApi
 --//Services
 local Workspace = game:GetService("Workspace")
 
+local PlayerService
 local PlayerGui
 
 --//Classes
+local ConfirmationDialogClass
 local MaidClass
 local GuiClass
 
@@ -30,41 +32,49 @@ function SaveSelection:Start()
     local RobuxShop = GuiClass.new(CoreGui.RobuxShop)
     local SaveLoad = GuiClass.new(CoreGui.SaveLoadDialog)
     local NewSave = GuiClass.new(CoreGui.NewSaveDialog)
-    local Confirmation = GuiClass.new(CoreGui.ConfirmationDialog)
 
     MainMenu:Show()
-    MainMenu:BindButton(MainMenu.Object.ButtonContainer.Play, function()
+    MainMenu:BindButton(MainMenu.ButtonContainer.Play, function()
         MainMenu:Hide()
-
         SaveLoad:Show()
     end)
 
-    MainMenu:BindButton(MainMenu.Object.ButtonContainer.Shop, function()
+    MainMenu:BindButton(MainMenu.ButtonContainer.Shop, function()
         MainMenu:Hide()
-
         RobuxShop:Show()
     end)
 
-    SaveLoad:BindButton(SaveLoad.Object.ButtonContainer.CreateSave, function()
+    RobuxShop:BindButton(RobuxShop.ButtonContainer.Back, function()
+        RobuxShop:Hide()
+        MainMenu:Show()
+    end)
+
+    SaveLoad:BindButton(SaveLoad.ButtonContainer.Back, function()
         SaveLoad:Hide()
+        MainMenu:Show()
+    end)
 
+    SaveLoad:BindButton(SaveLoad.ButtonContainer.CreateSave, function()
+        SaveLoad:Hide()
         NewSave:Show()
     end)
 
-    NewSave:BindButton(NewSave.Object.ButtonContainer.Create, function()
+    NewSave:BindButton(NewSave.ButtonContainer.Back, function()
         NewSave:Hide()
-
-        Confirmation:Show()
+        SaveLoad:Show()
     end)
 
-    Confirmation:BindButton(Confirmation.Object.ButtonContainer.Yes, function()
-        Confirmation:Hide()
-    end)
-
-    Confirmation:BindButton(Confirmation.Object.ButtonContainer.No, function()
-        Confirmation:Hide()
-
-        NewSave:Show()
+    NewSave:BindButton(NewSave.ButtonContainer.Create, function()
+        NewSave:Hide()
+        
+        local Confirmation = ConfirmationDialogClass.new(true)
+        Confirmation:BindButton(Confirmation.ButtonContainer.Yes, function()
+            local reponse = PlayerService:CreateSave(NewSave.SaveName.Text)
+        end)
+        Confirmation:BindButton(Confirmation.ButtonContainer.No, function()
+            Confirmation:Destroy()
+            NewSave:Show()
+        end)
     end)
     
     local blurEffect = Instance.new("BlurEffect")
@@ -81,9 +91,11 @@ function SaveSelection:Init()
     FreeCamApi = self.Modules.Api.FreeCamApi
     
     --//Services
+    PlayerService = self.Services.PlayerService
     PlayerGui = self.Player:WaitForChild("PlayerGui")
 
     --//Classes
+    ConfirmationDialogClass = self.Modules.Classes.ConfirmationDialog
     MaidClass = self.Shared.Maid
     GuiClass = self.Modules.Classes.Gui
 

@@ -29,6 +29,7 @@ function Gui.new(Frame)
         Visible = false,
 
         Binds = {},
+        ButtonContainer = Frame:FindFirstChild("ButtonContainer"),
 
         _Maid = MaidClass.new()
     }, Gui)
@@ -46,10 +47,14 @@ function Gui:Show()
 end
 
 
-function Gui:Hide()
+function Gui:Hide(callback)
     self.Object:TweenPosition(STOWED_POSITION, "Out", "Quint", 0.35, true, function()
         self.Object.Visible = false
         self.Visible = false
+
+        if (callback) then
+            coroutine.wrap(callback)()
+        end
     end)
 end
 
@@ -66,6 +71,7 @@ function Gui:UnbindButton(button)
     if (not self.Binds[button]) then return end
 
     self.Binds[button]:Destroy()
+    self.Binds[button] = nil
 end
 
 

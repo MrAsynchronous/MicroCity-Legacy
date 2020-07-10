@@ -46,6 +46,10 @@ function PlayerService:Start()
 end
 
 
+function PlayerService.Client:CreateSave(player, saveName)
+    
+end
+
 --//Returns PseudoPlayer associated with player
 function PlayerService:GetPseudoPlayer(player)
     return PseudoPlayerIndex[player]
