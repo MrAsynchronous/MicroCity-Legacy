@@ -7,6 +7,7 @@
 local PlayerService = {Client = {}}
 
 --//Api
+local DataApi
 local DataStore2
 
 --//Services
@@ -35,12 +36,21 @@ function PlayerService:Start()
     end)
 
     Players.PlayerRemoving:Connect(function(player)
-         print(player.Name, "has left the game!")
+        print(player.Name, "has left the game!")
 
-         local pseudoPlayer = self:RemovePseudoPlayer(player)
-         if (not pseudoPlayer) then return end
+        local pseudoPlayer = self:RemovePseudoPlayer(player)
+        if (not pseudoPlayer) then return end
 
-         pseudoPlayer:Unload()
+        --Save data
+        pseudoPlayer.SaveIndex:SaveAll():Then(function()
+            if (not pseudoPlayer.Data) then return end
+
+            pseudoPlayer.Data:SaveAll():Catch(function(err)
+                warn(err)
+            end)
+        end):Finally(function()
+            pseudoPlayer:Unload()
+        end)
     end)
 end
 
@@ -50,20 +60,24 @@ function PlayerService.Client:RequestSave(player, saveId)
     local pseudoPlayer = self.Server:GetPseudoPlayer(player)
     if (not pseudoPlayer) then return end
 
-    -- Grab current index
-    local saveIndex = self.Client:RequestSaveIndex(player)
+    --Grab current index
+    pseudoPlayer.SaveIndex:Get("Saves"):Then(function(saveIndex)
+        --If data is not found, insert saveId into saveIndex
+        if (not table.find(saveIndex, saveId)) then
+            table.insert(saveIndex, saveId)
 
-    -- If save does not exist, create new save
-    if (not table.find(saveIndex, saveId)) then
-        pseudoPlayer.SaveIndex:Update(function(currentIndex)
-            table.insert(currentIndex, saveId)
-
-            return currentIndex
-        end)
-
-    end
-
-    pseudoPlayer:LoadSave(saveId)
+            --Update table, mark as dirty
+            pseudoPlayer.SaveIndex:Set("Saves", saveIndex):Finally(function()
+                pseudoPlayer.SaveIndex:MarkDirty("Saves")
+            end)
+        end
+    end, function(err)
+        --Handle errors
+        warn("Saves not found!", err)
+    end):Finally(function()
+        --Finally, load save
+        pseudoPlayer:LoadSave(saveId)
+    end)
 end
 
 
@@ -72,7 +86,14 @@ function PlayerService.Client:RequestSaveIndex(player)
     local pseudoPlayer = self.Server:GetPseudoPlayer(player)
     if (not pseudoPlayer) then return end
 
-    return pseudoPlayer.SaveIndex:Get({})
+    --Grab saveIndex, return to client
+    local success, saves = pseudoPlayer.SaveIndex:Get("Saves", {}):Await()
+    if (success) then
+        return saves
+    else
+        warn(saves)
+        return {}
+    end
 end
 
 
@@ -104,6 +125,7 @@ end
 
 function PlayerService:Init()
     --//Api
+    DataApi = self.Modules.Data
     DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
 
     --//Services

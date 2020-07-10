@@ -8,11 +8,12 @@ local PseudoPlayer = {}
 PseudoPlayer.__index = PseudoPlayer
 
 --//Api
-local DataStore2
+local TableUtil
 local DataApi
 
 --//Services
 local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MetaDataService
 local PlayerService
@@ -26,13 +27,20 @@ local PlotClass
 --//Locals
 local DefaultPlayerData
 
+local EXCHANGE_TABLE = {
+    ["string"] = "StringValue",
+    ["number"] = "NumberValue",
+    ["table"] = "StringValue",
+    ["boolean"] = "BoolValue"
+}
+
 
 function PseudoPlayer.new(player)
     local self = setmetatable({
         Player = player,
 
         JoinTime = os.time(),
-        SaveIndex = DataStore2("SaveIndex", player),
+        SaveIndex = DataApi.ForPlayer(player.UserId),
 
         _Maid = MaidClass.new()
     }, PseudoPlayer)
@@ -40,12 +48,29 @@ function PseudoPlayer.new(player)
     --Construct a new plotObject
     self.Plot = PlotClass.new(self)
 
+    self.ReplicatedDataFolder = Instance.new("Folder")
+    self.ReplicatedDataFolder.Name = player.UserId
+    self.ReplicatedDataFolder.Parent = ReplicatedStorage.ReplicatedData
+
     return self
 end
 
 
+--//Handles the loading of specific data
 function PseudoPlayer:LoadSave(saveName)
+    self.Data = DataApi.new(tostring(self.Player.UserId), saveName)
 
+    for key, value in pairs(DefaultPlayerData) do
+        local replicatedValue = Instance.new(EXCHANGE_TABLE[typeof(value)])
+        replicatedValue.Name = key
+        replicatedValue.Parent = self.ReplicatedDataFolder
+
+        if (typeof(value) == "table") then
+            replicatedValue.Value = TableUtil.EncodeJSON(self.Data:Get(key, value))
+        else
+            replicatedValue.Value = self.Data:Get(key, value)
+        end
+    end
 end
 
 
@@ -59,15 +84,12 @@ end
 function PseudoPlayer:Start()
     DefaultPlayerData = MetaDataService:GetMetaData("DefaultPlayerData")
 
-    for key, value in pairs(DefaultPlayerData) do
-        DataStore2.Combine("PlayerData", key)
-    end
 end
 
 
 function PseudoPlayer:Init()
     --//Api
-    DataStore2 = require(ServerScriptService:WaitForChild("DataStore2"))
+    TableUtil = self.Shared.TableUtil
     DataApi = self.Modules.Data
 
     --//Services

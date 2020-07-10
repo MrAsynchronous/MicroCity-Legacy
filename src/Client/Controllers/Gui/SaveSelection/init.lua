@@ -40,6 +40,21 @@ function SaveSelection:Start()
         ui.Parent = SaveLoad.Object.SaveContainer
         ui.Visible = true
         ui.Text = saveId
+        ui.Name = saveId
+
+        SaveLoad:BindButton(ui, function()
+            SaveLoad:Hide()
+
+            local Confirmation = ConfirmationDialogClass.new(string.format('Load "%s"?', saveId),true)
+            Confirmation:BindButton(Confirmation.ButtonContainer.Yes, function()
+                Confirmation:Destroy()
+                local reponse = PlayerService:RequestSave(saveId)
+            end)
+            Confirmation:BindButton(Confirmation.ButtonContainer.No, function()
+                Confirmation:Destroy()
+                SaveLoad:Show()
+            end)
+        end)
     end
 
     MainMenu:Show()
@@ -76,7 +91,7 @@ function SaveSelection:Start()
     NewSave:BindButton(NewSave.ButtonContainer.Create, function()
         NewSave:Hide()
 
-        local Confirmation = ConfirmationDialogClass.new(true)
+        local Confirmation = ConfirmationDialogClass.new(string.format('Create "%s"?', NewSave.Object.NameInput.Text), true)
         Confirmation:BindButton(Confirmation.ButtonContainer.Yes, function()
             local reponse = PlayerService:RequestSave(NewSave.Object.NameInput.Text)
         end)

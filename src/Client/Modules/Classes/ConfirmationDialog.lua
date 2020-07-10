@@ -22,9 +22,10 @@ local CoreGui
 local ConfirmationDialog
 
 
-function Confirmation.new(isShowing)
+function Confirmation.new(textContent, isShowing)
     local object = ConfirmationDialog:Clone()
     object.Parent = CoreGui
+    object.Title.Text = textContent
 
     local self = setmetatable(GuiClass.new(object), Confirmation)
 

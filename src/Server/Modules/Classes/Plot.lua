@@ -40,6 +40,7 @@ function Plot.new(pseudoPlayer)
         _Maid = MaidClass.new()
     }, Plot)
 
+
     --Sterilization
     if (not self.Object) then
         warn(self.Player.Name, "was not given a plot!")
