@@ -31,8 +31,9 @@ end
 
 
 function CharacterController:Start()
-    Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
-    
+    Plot = PlayerService.PlotLoaded:Wait()
+    print(Plot.Name)
+
     SetupCharacter(self.Player.Character or self.Player.CharacterAdded:Wait())
 end
 
@@ -40,17 +41,17 @@ end
 function CharacterController:Init()
     --//Api
     FreeCamApi = self.Modules.Api.FreeCamApi
-    
+
     --//Services
     PlayerService = self.Services.PlayerService
 
     --//Classes
-    
+
     --//Controllers
     FadeController = self.Controllers.Fade
-    
+
     --//Locals
-    
+
 end
 
 

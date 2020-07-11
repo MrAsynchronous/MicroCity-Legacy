@@ -67,7 +67,7 @@ function PlayerService.Client:RequestSave(player, saveId)
             table.insert(saveIndex, saveId)
 
             --Update table, mark as dirty
-            pseudoPlayer.SaveIndex:Set("Saves", saveIndex):Finally(function()
+            pseudoPlayer.SaveIndex:Set("Saves", saveIndex):Then(function()
                 pseudoPlayer.SaveIndex:MarkDirty("Saves")
             end)
         end
@@ -88,12 +88,7 @@ function PlayerService.Client:RequestSaveIndex(player)
 
     --Grab saveIndex, return to client
     local success, saves = pseudoPlayer.SaveIndex:Get("Saves", {}):Await()
-    if (success) then
-        return saves
-    else
-        warn(saves)
-        return {}
-    end
+    return success and saves or {}
 end
 
 
@@ -137,7 +132,7 @@ function PlayerService:Init()
     --//Controllers
 
     --//Locals
-    self:RegisterClientEvent("PlotRequest")
+    self:RegisterClientEvent("PlotLoaded")
 end
 
 

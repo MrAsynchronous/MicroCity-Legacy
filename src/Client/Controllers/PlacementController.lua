@@ -35,16 +35,17 @@ function PlacementController:Init()
     --//Api
     PlacementApi = self.Modules.Api.PlacementApi
     FreeCamApi = self.Modules.Api.FreeCamApi
-    
+
     --//Services
     PlacementService = self.Services.PlacementService
     PlayerService = self.Services.PlayerService
-    
+
     --//Classes
-    
+
     --//Controllers
-    
+
     --//Locals
+
 end
 
 

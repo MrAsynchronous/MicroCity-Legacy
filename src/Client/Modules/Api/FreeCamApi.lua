@@ -100,6 +100,7 @@ end
 function FreeCamApi:EnterAsMenu()
     _Maid:GiveTask(RunService.RenderStepped:Connect(function(t)
         yAngle = yAngle - (0.125 * (t * 60))
+        zDistance = 100
 
         focalPoint = Vector3.new(-7.604, 8.44, 491.829)
         UpdateCamera()
@@ -214,9 +215,6 @@ end
 
 
 function FreeCamApi:Start()
-    _Maid = MaidClass.new()
-
-
     self.Loaded:Fire()
 end
 
@@ -224,19 +222,20 @@ end
 function FreeCamApi:Init()
     --//Api
     PlacementApi = self.Modules.Api.PlacementApi
-    
+
     --//Services
     PlayerService = self.Services.PlayerService
-    
+
     --//Classes
     EventClass = self.Shared.Event
     MaidClass = self.Shared.Maid
-    
+
     --//Controllers
-    
+
     --//Locals
+    _Maid = MaidClass.new()
     Camera = Workspace.CurrentCamera
-    
+
     self.Loaded = EventClass.new()
     self.Entered = EventClass.new()
     self.Exited = EventClass.new()

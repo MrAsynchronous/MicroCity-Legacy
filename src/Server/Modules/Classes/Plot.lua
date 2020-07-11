@@ -57,10 +57,8 @@ end
 
 function Plot:LoadSave(pseudoPlayer)
     self.Data:Get("Placements", ""):Then(function(rawBuildData)
-        if (rawBuildData == "") then 
-            PlayerService:FireClient("PlotRequest", self.Player, self.Object)
-
-            return
+        if (rawBuildData == "") then
+            return PlayerService:FireClient("PlotLoaded", self.Player, self.Object)
         end
 
         local buildData = self:DeserializeData(rawBuildData)
@@ -108,7 +106,7 @@ function Plot:LoadSave(pseudoPlayer)
                 steppedConnection:Disconnect()
 
                 --Tell client that their plot has finished loading
-                PlayerService:FireClient("PlotRequest", self.Player, self.Object)
+                PlayerService:FireClient("PlotLoaded", self.Player, self.Object)
 
                 --Disconnect failsafe
                 failSafe:Disconnect()
