@@ -61,7 +61,7 @@ function PlayerService.Client:RequestSave(player, saveId)
     if (not pseudoPlayer) then return end
 
     --Grab current index
-    pseudoPlayer.SaveIndex:Get("Saves"):Then(function(saveIndex)
+    pseudoPlayer.SaveIndex:Get("Saves", {}):Then(function(saveIndex)
         --If data is not found, insert saveId into saveIndex
         if (not table.find(saveIndex, saveId)) then
             table.insert(saveIndex, saveId)

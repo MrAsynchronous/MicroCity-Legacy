@@ -60,6 +60,10 @@ end
 function PseudoPlayer:LoadSave(saveName)
     self.Data = DataApi.new(tostring(self.Player.UserId), saveName)
 
+    self.Plot.Data = self.Data
+    self.Plot:LoadSave(self)
+
+    --Replicate data to client
     for key, value in pairs(DefaultPlayerData) do
         local replicatedValue = Instance.new(EXCHANGE_TABLE[typeof(value)])
         replicatedValue.Name = key

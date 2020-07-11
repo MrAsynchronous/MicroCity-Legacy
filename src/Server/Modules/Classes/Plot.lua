@@ -55,83 +55,82 @@ function Plot.new(pseudoPlayer)
 end
 
 
-function Plot:Setup(dataContainer)
-    self.DataContainer = dataContainer
+function Plot:LoadSave(pseudoPlayer)
+    self.Data:Get("Placements", ""):Then(function(rawBuildData)
+        if (rawBuildData == "") then 
+            PlayerService:FireClient("PlotRequest", self.Player, self.Object)
 
-    self.DataContainer:Get("Placements", {}):Then(
-        function(data)
-            print("Success")
-
-            local buildData = self:DeserializeData(rawBuildData)
-
-                --Plate loading
-            for _, ownedPlate in pairs(pseudoPlayer.OwnedPlates:Get({1, 2, 3, 4, 5, 6, 7})) do
-                local decor = self.Object.Locked.Decor:FindFirstChild(tostring(ownedPlate))
-                local plate = self.Object.Locked.Plates:FindFirstChild(tostring(ownedPlate))
-
-                decor.Parent = self.Object.Decor
-                plate.Parent = self.Object.Plates
-
-                decor.Transparency = 0
-                plate.Grid.Transparency = 1
-                plate.GridDash.Transparency = 1
-            end
-
-            --Load Data
-            self.Loading = true
-
-            local steppedConnection
-            local numericalTable = {}
-            local currentIndex = 1
-
-            --Temporarily store all items in a sub-table in numericalTable
-            for guid, JSONData in pairs(buildData) do
-                table.insert(numericalTable, {guid, JSONData})
-            end
-
-            --Failsafe to prevent error spam if player leaves while loading
-            local failSafe = Players.PlayerRemoving:Connect(function(player)
-                if (player.Name == pseudoPlayer.Player.Name) then
-                    if (steppedConnection) then
-                        steppedConnection:Disconnect()
-                    end
-                end
-            end)
-
-            --Load items when stepped
-            steppedConnection = RunService.Stepped:Connect(function()
-                local buildInfo = numericalTable[currentIndex]
-
-                --Run once all buildings are loaded
-                if (not buildInfo) then
-                    steppedConnection:Disconnect()
-
-                    --Tell client that their plot has finished loading
-                    PlayerService:FireClient("PlotRequest", self.Player, self.Object)
-
-                    --Disconnect failsafe
-                    failSafe:Disconnect()
-                    self.Loading = false
-
-                    return
-                end
-
-                local guid = buildInfo[1]
-                local jsonData = buildInfo[2]
-
-                --Construct a new BuildingObject
-                local buildingObject = BuildingClass.newFromSave(pseudoPlayer, guid, jsonData)
-                if (not buildingObject) then return end
-
-                self:AddBuildingObject(buildingObject)
-
-                currentIndex += 1
-            end)
-        end,
-        function(error)
-            print("Error")
+            return
         end
-    )
+
+        local buildData = self:DeserializeData(rawBuildData)
+        local ownedPlates = self.Data:Get("OwnedPlates", {})
+        self.Loading = true
+
+        --Load plates
+        for _, ownedPlate in pairs(ownedPlates) do
+            local decor = self.Object.Locked.Decor:FindFirstChild(tostring(ownedPlate))
+            local plate = self.Object.Locked.Plates:FindFirstChild(tostring(ownedPlate))
+
+            decor.Parent = self.Object.Decor
+            plate.Parent = self.Object.Plates
+
+            decor.Transparency = 0
+            plate.Grid.Transparency = 1
+            plate.GridDash.Transparency = 1
+        end
+
+        --Load builds
+        local steppedConnection
+        local numericalTable = {}
+        local currentIndex = 1
+
+        --Temporarily store all items in a sub-table in numericalTable
+        for guid, JSONData in pairs(buildData) do
+            table.insert(numericalTable, {guid, JSONData})
+        end
+
+        --Failsafe to prevent error spam if player leaves while loading
+        local failSafe = Players.PlayerRemoving:Connect(function(player)
+            if (player.Name == self.Player.Name) then
+                if (steppedConnection) then
+                    steppedConnection:Disconnect()
+                end
+            end
+        end)
+
+        --Load items when stepped
+        steppedConnection = RunService.Stepped:Connect(function()
+            local buildInfo = numericalTable[currentIndex]
+
+            --Run once all buildings are loaded
+            if (not buildInfo) then
+                steppedConnection:Disconnect()
+
+                --Tell client that their plot has finished loading
+                PlayerService:FireClient("PlotRequest", self.Player, self.Object)
+
+                --Disconnect failsafe
+                failSafe:Disconnect()
+                self.Loading = false
+
+                return
+            end
+
+            local guid = buildInfo[1]
+            local jsonData = buildInfo[2]
+
+            --Construct a new BuildingObject
+            local buildingObject = BuildingClass.newFromSave(pseudoPlayer, guid, jsonData)
+            if (not buildingObject) then return end
+
+            self:AddBuildingObject(buildingObject)
+
+            currentIndex += 1
+        end)
+    end, function(err)
+        warn(err)
+    end)
 end
 
 

@@ -19,7 +19,6 @@
 
 
 local FreeCamApi = {}
-FreeCamApi.IsLoaded = false
 
 --//Api
 local PlacementApi
@@ -196,11 +195,11 @@ function FreeCamApi:Exit(isFormality)
     character:SetPrimaryPartCFrame(originalCharacterCFrame or PlotCFrame + Vector3.new(0, 10, 0))
     character.PrimaryPart.Anchored = false
 
-    self.Exited:FireW()
+    self.Exited:Fire()
 end
 
 
-function FreeCamApi:Start()
+function FreeCamApi:Setup()
     Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
 
     PlotPosition = Plot.PrimaryPart.Position
@@ -211,10 +210,13 @@ function FreeCamApi:Start()
 
     focalPoint = PlotPosition + Vector3.new(0, 5, 0)
     zDistance = CAMERA_SETTINGS.MaxZ / 2
+end
 
+
+function FreeCamApi:Start()
     _Maid = MaidClass.new()
 
-    self.IsLoaded = true
+
     self.Loaded:Fire()
 end
 

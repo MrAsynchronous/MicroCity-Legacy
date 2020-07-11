@@ -105,7 +105,6 @@ function SaveSelection:Start()
     blurEffect.Parent = Camera
     blurEffect.Size = 12
 
-    repeat wait() until FreeCamApi.IsLoaded
     FreeCamApi:EnterAsMenu()
 end
 

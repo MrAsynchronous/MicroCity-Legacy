@@ -59,4 +59,14 @@ function VectorUtil.AngleBetweenSigned(vector1, vector2, axisVector)
 end
 
 
+function VectorUtil.ShowRayCast(origin, direction)
+	local length = (origin - direction).magnitude
+	local orientation = CFrame.new(origin, direction)
+	local part = Instance.new("Part")
+	part.Parent = workspace
+	part.Size = Vector3.new(length, length, legth) * orientation.LookVector
+	part.Position = (origin + direction) / 2
+end
+
+
 return VectorUtil
