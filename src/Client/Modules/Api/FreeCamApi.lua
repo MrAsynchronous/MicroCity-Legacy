@@ -130,7 +130,7 @@ function FreeCamApi:Enter()
     zTweenValue.Changed:Connect(function(newValue)
         zDistance = zTweenValue.Value
     end)
-    
+
     _Maid:GiveTask(zTweenValue)
 
     _Maid:GiveTask(UserInputService.InputChanged:Connect(function(inputObject, gameProcessed)
