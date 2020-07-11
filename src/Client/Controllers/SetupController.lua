@@ -113,7 +113,6 @@ function SetupController:Start()
     	end)
     end
 
-
     MainMenu:Show()
 end
 
