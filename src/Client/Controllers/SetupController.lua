@@ -15,6 +15,7 @@ local PlayerGui
 
 --//Classes
 local ConfirmationDialogClass
+local ErrorDialogClass
 local GuiClass
 
 --//Controllers
@@ -23,6 +24,11 @@ local GuiClass
 local CoreGui
 local Camera
 local Plot
+
+
+local function HandleResponse(saveId)
+
+end
 
 
 function SetupController:Start()
@@ -80,6 +86,13 @@ function SetupController:Start()
     	local confirmationDialog = ConfirmationDialogClass.new(string.format('Create "%s"?', saveId))
     	confirmationDialog:AddAcceptCallback(function()
     		local response = PlayerService:RequestSave(saveId)
+    		confirmationDialog:Destroy()
+
+    		if (response.Success) then
+				HandleResponse(PlayerService:RequestSave(saveId))
+    		else
+    			ErrorDialogClass.new(string.format('Error: %s', response.Error))
+    		end
     	end)
     	confirmationDialog:AddDenyCallback(function()
     		confirmationDialog:Destroy()
@@ -89,28 +102,39 @@ function SetupController:Start()
 
 
     --Populate SaveLoad with saves
-    local saveIndex = PlayerService:RequestSaveIndex()
-    for _, saveId in pairs(saveIndex) do
-    	local saveButton = SaveLoad.Object.Template:Clone()
-    	saveButton.Text = saveId
-    	saveButton.Name = saveId
+    local response = PlayerService:RequestSaveIndex()
+    if (response.Success) then
+   		for _, saveId in pairs(response.SaveIndex) do
+	    	local saveButton = SaveLoad.Object.Template:Clone()
+	    	saveButton.Text = saveId
+	    	saveButton.Name = saveId
 
-    	saveButton.Visible = true
-    	saveButton.Parent = SaveLoad.Object.SaveContainer
+	    	saveButton.Visible = true
+	    	saveButton.Parent = SaveLoad.Object.SaveContainer
 
-    	SaveLoad:BindButton(saveButton, function()
-    		SaveLoad:Hide()
+	    	SaveLoad:BindButton(saveButton, function()
+	    		SaveLoad:Hide()
 
-    		--Create confirmationDialog for loading slot
-    		local confirmationDialog = ConfirmationDialogClass.new(string.format('Load "%s"?', saveId))
-    		confirmationDialog:AddAcceptCallback(function()
-    			local response = PlayerService:RequestSave(saveId)
-    		end)
-    		confirmationDialog:AddDenyCallback(function()
-    			confirmationDialog:Destroy()
-    			SaveLoad:Show()
-    		end)
-    	end)
+	    		--Create confirmationDialog for loading slot
+	    		local confirmationDialog = ConfirmationDialogClass.new(string.format('Load "%s"?', saveId))
+	    		confirmationDialog:AddAcceptCallback(function()
+	    			local response = PlayerService:RequestSave(saveId)
+	    			confirmationDialog:Destroy()
+
+	    			if (response.Success) then
+						HandleResponse(PlayerService:RequestSave(saveId))
+					else
+						ErrorDialogClass.new(string.format('Error: %s', response.Error))
+	    			end
+	    		end)
+	    		confirmationDialog:AddDenyCallback(function()
+	    			confirmationDialog:Destroy()
+	    			SaveLoad:Show()
+	    		end)
+	    	end)
+	    end
+    else
+    	ErrorDialogClass.new(string.format('Error: %s', response.Error))
     end
 
     MainMenu:Show()
@@ -127,6 +151,7 @@ function SetupController:Init()
 
 	--//Classes
 	ConfirmationDialogClass = self.Modules.Classes.ConfirmationDialog
+	ErrorDialogClass = self.Modules.Classes.ErrorDialog
 	GuiClass = self.Modules.Classes.Gui
 
 	--//Controllers
