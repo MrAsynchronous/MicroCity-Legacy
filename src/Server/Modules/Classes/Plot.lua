@@ -55,9 +55,30 @@ function Plot.new(pseudoPlayer)
 end
 
 
+function Plot:ShowPlate(plateNumber)
+    local decor = self.Object.Locked.Decor:FindFirstChild(tostring(plateNumber))
+    local plate = self.Object.Locked.Plates:FindFirstChild(tostring(plateNumber))
+
+    decor.Parent = self.Object.Decor
+    plate.Parent = self.Object.Plates
+
+    decor.Transparency = 0
+    plate.Grid.Transparency = 1
+    plate.GridDash.Transparency = 1
+end
+
+
 function Plot:LoadSave(pseudoPlayer)
     self.Data:Get("Placements", ""):Then(function(rawBuildData)
+        print(rawBuildData)
+
         if (rawBuildData == "") then
+            print("HERE!")
+
+            self.Loading = true
+            wait(5)
+            self.Loading = false
+
             return PlayerService:FireClient("PlotLoaded", self.Player, self.Object)
         end
 
@@ -67,15 +88,7 @@ function Plot:LoadSave(pseudoPlayer)
 
         --Load plates
         for _, ownedPlate in pairs(ownedPlates) do
-            local decor = self.Object.Locked.Decor:FindFirstChild(tostring(ownedPlate))
-            local plate = self.Object.Locked.Plates:FindFirstChild(tostring(ownedPlate))
-
-            decor.Parent = self.Object.Decor
-            plate.Parent = self.Object.Plates
-
-            decor.Transparency = 0
-            plate.Grid.Transparency = 1
-            plate.GridDash.Transparency = 1
+            self:ShowPlate(ownedPlate)
         end
 
         --Load builds

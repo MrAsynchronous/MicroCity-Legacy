@@ -37,23 +37,6 @@ function MetaDataService.Client:RequestMetaData(player, itemId)
 end
 
 
-function MetaDataService:Start()
-
-    --Populate ItemData + Data Index's
-	for _, dataModule in pairs(ReplicatedFirst.MetaData:GetChildren()) do
-        if (dataModule:IsA("ModuleScript")) then
-            DataIndex[dataModule.Name] = require(dataModule)
-        else
-            for _, itemDataModule in pairs(dataModule:GetChildren()) do
-                local metaData = require(itemDataModule)
-
-                ItemDataIndex[metaData.Id] = metaData
-            end
-        end
-    end
-end
-
-
 function MetaDataService:Init()
 	--//Api
     TableUtil = self.Shared.TableUtil
@@ -67,6 +50,19 @@ function MetaDataService:Init()
     --//Locals
     ItemDataIndex = {}
     DataIndex = {}    
+
+    --Populate ItemData + Data Index's
+	for _, dataModule in pairs(ReplicatedFirst.MetaData:GetChildren()) do
+        if (dataModule:IsA("ModuleScript")) then
+            DataIndex[dataModule.Name] = require(dataModule)
+        else
+            for _, itemDataModule in pairs(dataModule:GetChildren()) do
+                local metaData = require(itemDataModule)
+
+                ItemDataIndex[metaData.Id] = metaData
+            end
+        end
+    end    
 end
 
 

@@ -280,9 +280,12 @@ function PlacementApi:StopPlacing()
 end
 
 
-function PlacementApi:Start()
-    Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
+function PlacementApi:Setup(plot)
+    Plot = plot
+end
 
+
+function PlacementApi:Start()
     --Setup constants
     MouseInputApi = UserInputApi:Get("Mouse")
 

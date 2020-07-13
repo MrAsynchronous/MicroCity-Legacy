@@ -97,17 +97,6 @@ local function UpdateFocalPoint(focalDelta)
 end
 
 
-function FreeCamApi:EnterAsMenu()
-    _Maid:GiveTask(RunService.RenderStepped:Connect(function(t)
-        yAngle = yAngle - (0.125 * (t * 60))
-        zDistance = 100
-
-        focalPoint = Vector3.new(-7.604, 8.44, 491.829)
-        UpdateCamera()
-    end))
-end
-
-
 --//Puts player's camera into build mode
 function FreeCamApi:Enter()
     FreeCamApi:Exit(true)
@@ -200,8 +189,9 @@ function FreeCamApi:Exit(isFormality)
 end
 
 
-function FreeCamApi:Setup()
-    Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
+function FreeCamApi:Setup(plot)
+    _Maid:DoCleaning()
+    Plot = plot
 
     PlotPosition = Plot.PrimaryPart.Position
     PlotCFrame = Plot.PrimaryPart.CFrame
@@ -211,10 +201,20 @@ function FreeCamApi:Setup()
 
     focalPoint = PlotPosition + Vector3.new(0, 5, 0)
     zDistance = CAMERA_SETTINGS.MaxZ / 2
+
+    self:Enter()
 end
 
 
 function FreeCamApi:Start()
+    _Maid:GiveTask(RunService.RenderStepped:Connect(function(t)
+        yAngle = yAngle - (0.125 * (t * 60))
+        zDistance = 100
+
+        focalPoint = Vector3.new(-7.604, 8.44, 491.829)
+        UpdateCamera()
+    end))
+
     self.Loaded:Fire()
 end
 

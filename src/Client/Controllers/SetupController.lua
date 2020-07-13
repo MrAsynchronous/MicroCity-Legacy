@@ -5,6 +5,7 @@
 local SetupController = {}
 
 --//Api
+local PlacementApi
 local FreeCamApi
 
 --//Services
@@ -19,6 +20,7 @@ local ErrorDialogClass
 local GuiClass
 
 --//Controllers
+local FadeController
 
 --//Locals
 local CoreGui
@@ -26,14 +28,27 @@ local Camera
 local Plot
 
 
-local function HandleResponse(saveId)
+local function SetupGame(response, saveId)
+	FadeController:SetBackgroundColor(Color3.fromRGB(255, 255, 255))
+	FadeController:Out(1)
 
+	--Setup core API's
+	FreeCamApi:Setup(response.Plot)
+	PlacementApi:Setup(response.Plot)
+
+	--Yield for plot to load
+	if (not PlayerService:IsPlotLoaded()) then
+		PlayerService.PlotLoaded:Wait()
+		FadeController:In(1)
+	else
+		FadeController:In(1)
+	end
+
+	PlacementApi:StartPlacing(1)
 end
 
 
 function SetupController:Start()
-	FreeCamApi:EnterAsMenu()
-
 	local blurEffect = Instance.new("BlurEffect")
     blurEffect.Parent = Camera
     blurEffect.Size = 12
@@ -84,12 +99,13 @@ function SetupController:Start()
     	--Create new confirmationDialog for creating slot
     	local saveId = NewSave.Object.NameInput.Text
     	local confirmationDialog = ConfirmationDialogClass.new(string.format('Create "%s"?', saveId))
-    	confirmationDialog:AddAcceptCallback(function()
+		confirmationDialog:AddAcceptCallback(function()
     		local response = PlayerService:RequestSave(saveId)
     		confirmationDialog:Destroy()
 
-    		if (response.Success) then
-				HandleResponse(PlayerService:RequestSave(saveId))
+			if (response.Success) then
+				blurEffect:Destroy()
+				SetupGame(response, saveId)
     		else
     			ErrorDialogClass.new(string.format('Error: %s', response.Error))
     		end
@@ -102,7 +118,7 @@ function SetupController:Start()
 
 
     --Populate SaveLoad with saves
-    local response = PlayerService:RequestSaveIndex()
+	local response = PlayerService:RequestSaveIndex()
     if (response.Success) then
    		for _, saveId in pairs(response.SaveIndex) do
 	    	local saveButton = SaveLoad.Object.Template:Clone()
@@ -121,8 +137,9 @@ function SetupController:Start()
 	    			local response = PlayerService:RequestSave(saveId)
 	    			confirmationDialog:Destroy()
 
-	    			if (response.Success) then
-						HandleResponse(PlayerService:RequestSave(saveId))
+					if (response.Success) then
+						blurEffect:Destroy()
+						SetupGame(response, saveId)
 					else
 						ErrorDialogClass.new(string.format('Error: %s', response.Error))
 	    			end
@@ -143,6 +160,7 @@ end
 
 function SetupController:Init()
 	--//Api
+	PlacementApi = self.Modules.Api.PlacementApi
 	FreeCamApi = self.Modules.Api.FreeCamApi
 
 	--//Services
@@ -155,6 +173,7 @@ function SetupController:Init()
 	GuiClass = self.Modules.Classes.Gui
 
 	--//Controllers
+	FadeController = self.Controllers.Fade
 
 	--//Locals
 	CoreGui = PlayerGui:WaitForChild("CoreGui")
