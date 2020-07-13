@@ -63,28 +63,23 @@ function PlayerService.Client:RequestSave(player, saveId)
     --Construct response
     local response = {}
 
-    --Grab current index
-    pseudoPlayer.SaveIndex:Get("Saves", {}):Then(function(saveIndex)
-        --If data is not found, insert saveId into saveIndex
-        if (not table.find(saveIndex, saveId)) then
-            table.insert(saveIndex, saveId)
+    local success, saveIndex = pseudoPlayer.SaveIndex:Get("Saves", {}):Await()
+    response.Success = success
+    response.SaveIndex = saveIndex
+    response.Error = (not success and saveIndex or nil)
 
-            --Update table, mark as dirty
-            pseudoPlayer.SaveIndex:Set("Saves", saveIndex):Then(function()
-                pseudoPlayer.SaveIndex:MarkDirty("Saves")
-            end)
-        end
+    if (not table.find(saveIndex, saveId)) then
+        table.insert(saveIndex, saveId)
+
+        --Update table, mark as dirty
+        pseudoPlayer.SaveIndex:Set("Saves", saveIndex):Then(function()
+            pseudoPlayer.SaveIndex:MarkDirty("Saves")
+        end)
 
         response.Plot = pseudoPlayer.Plot.Object
-        response.Success = true
-    end, function(err)
-        --Append response
-        response.Error = err
-        response.Success = false
-    end):Finally(function()
-        --Finally, load save
-        pseudoPlayer:LoadSave(saveId)
-    end)
+    end
+
+    pseudoPlayer:LoadSave(saveId)
 
     return response
 end
@@ -98,19 +93,10 @@ function PlayerService.Client:RequestSaveIndex(player)
     --Construct response
     local response = {}
 
-    --Grab saveIndex, return to client
-    pseudoPlayer.SaveIndex:Get("Saves", {}):Then(function(saveIndex)
-        response.SaveIndex = saveIndex
-        response.Success = true
-
-        print("Editing response!")
-    end, function(err)
-        --Appenmd response
-        response.Error = err
-        response.Success = false
-    end)
-
-    print("Returning response!")
+    local success, saveIndex = pseudoPlayer.SaveIndex:Get("Saves", {}):Await()
+    response.Success = success
+    response.SaveIndex = saveIndex
+    response.Error = (not success and saveIndex or nil)
 
     return response
 end
