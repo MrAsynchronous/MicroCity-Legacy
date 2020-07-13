@@ -63,23 +63,24 @@ function PlayerService.Client:RequestSave(player, saveId)
     --Construct response
     local response = {}
 
-    local success, saveIndex = pseudoPlayer.SaveIndex:Get("Saves", {}):Await()
-    response.Success = success
-    response.SaveIndex = saveIndex
-    response.Error = (not success and saveIndex or nil)
+    pseudoPlayer.SaveIndex:Get("Saves", {}):Then(function(saveIndex)
+        response.Success = true
 
-    if (not table.find(saveIndex, saveId)) then
-        table.insert(saveIndex, saveId)
+        --Handle creation of new saves
+        if (not table.find(saveIndex, saveId)) then
+            table.insert(saveIndex, saveId)
 
-        --Update table, mark as dirty
-        pseudoPlayer.SaveIndex:Set("Saves", saveIndex):Then(function()
-            pseudoPlayer.SaveIndex:MarkDirty("Saves")
-        end)
+            --Update table, mark as dirty
+            pseudoPlayer.SaveIndex:Set("Saves", saveIndex):Then(function()
+                pseudoPlayer.SaveIndex:MarkDirty("Saves")
+            end)
 
-        response.Plot = pseudoPlayer.Plot.Object
-    end
-
-    pseudoPlayer:LoadSave(saveId)
+            pseudoPlayer:LoadSave(saveId) 
+        end        
+    end, function(err)
+        response.Success = false
+        response.Error = err
+    end):Await()
 
     return response
 end
@@ -93,10 +94,14 @@ function PlayerService.Client:RequestSaveIndex(player)
     --Construct response
     local response = {}
 
-    local success, saveIndex = pseudoPlayer.SaveIndex:Get("Saves", {}):Await()
-    response.Success = success
-    response.SaveIndex = saveIndex
-    response.Error = (not success and saveIndex or nil)
+    --SaveIndex promise
+    pseudoPlayer.SaveIndex:Get("Saves", {}):Then(function(saveIndex)
+        response.SaveIndex = saveIndex
+        response.Success = true
+    end, function(err)
+        response.Success = false
+        response.Error = err
+    end):Await()
 
     return response
 end
