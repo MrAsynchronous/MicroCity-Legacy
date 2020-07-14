@@ -17,14 +17,13 @@ local PlayerService
 --//Classes
 
 --//Controllers
+local SetupController
 
 --//Locals
 local Plot
 
 
 function PlacementController:Start()
-    Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
-
     PlacementApi.ObjectPlaced:Connect(function(...)
         local response = PlacementService:RequestItemPlacement(...)
     end)

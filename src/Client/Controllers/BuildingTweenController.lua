@@ -32,9 +32,9 @@ local Particles
 local tweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
 
-function BuildingEffectController:Start()
-    Plot = (PlayerService:RequestPlot() or PlayerService.PlotRequest:Wait())
-    
+function BuildingEffectController:Setup(plot)
+    Plot = plot
+
     --Listen to Children being Added
     Plot.Placements.ChildAdded:Connect(function(newBuilding)
         while (newBuilding.PrimaryPart == nil) do wait() end

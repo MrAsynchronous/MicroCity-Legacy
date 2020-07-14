@@ -20,6 +20,7 @@ local ErrorDialogClass
 local GuiClass
 
 --//Controllers
+local BuildingTweenController
 local FadeController
 
 --//Locals
@@ -32,17 +33,12 @@ local function SetupGame(response, saveId)
 	FadeController:SetBackgroundColor(Color3.fromRGB(255, 255, 255))
 	FadeController:Out(1)
 
-	--Setup core API's
-	FreeCamApi:Setup(response.Plot)
-	PlacementApi:Setup(response.Plot)
+	--Yield for plot to fully load
+	if (not PlayerService:IsPlotLoaded()) then PlayerService.PlotLoaded:Wait() end
+	self:FireEvent(response.Plot, saveId)
 
-	--Yield for plot to load
-	if (not PlayerService:IsPlotLoaded()) then
-		PlayerService.PlotLoaded:Wait()
-		FadeController:In(1)
-	else
-		FadeController:In(1)
-	end
+	--Fade gui in
+	FadeController:In(1, true)
 
 	PlacementApi:StartPlacing(1)
 end
@@ -173,12 +169,14 @@ function SetupController:Init()
 	GuiClass = self.Modules.Classes.Gui
 
 	--//Controllers
+	BuildingTweenController = self.Controllers.BuildingTweenController
 	FadeController = self.Controllers.Fade
 
 	--//Locals
 	CoreGui = PlayerGui:WaitForChild("CoreGui")
 	Camera = Workspace.CurrentCamera
 
+	self:RegisterEvent("GetPlot")
 end
 
 
