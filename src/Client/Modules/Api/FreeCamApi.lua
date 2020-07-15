@@ -36,6 +36,7 @@ local EventClass
 local MaidClass
 
 --//Controllers
+local SetupController
 
 --//Locals
 local _Maid
@@ -189,24 +190,23 @@ function FreeCamApi:Exit(isFormality)
 end
 
 
-function FreeCamApi:Setup(plot)
-    _Maid:DoCleaning()
-    Plot = plot
-
-    PlotPosition = Plot.PrimaryPart.Position
-    PlotCFrame = Plot.PrimaryPart.CFrame
-    PlotSize = Plot.PrimaryPart.Size
-    PlotMin = PlotPosition - (PlotSize / 2)
-    PlotMax = PlotPosition + (PlotSize / 2)
-
-    focalPoint = PlotPosition + Vector3.new(0, 5, 0)
-    zDistance = CAMERA_SETTINGS.MaxZ / 2
-
-    self:Enter()
-end
-
-
 function FreeCamApi:Start()
+    SetupController:ConnectEvent("GetPlot", function(plot)
+        _Maid:DoCleaning()
+        Plot = plot
+
+        PlotPosition = Plot.PrimaryPart.Position
+        PlotCFrame = Plot.PrimaryPart.CFrame
+        PlotSize = Plot.PrimaryPart.Size
+        PlotMin = PlotPosition - (PlotSize / 2)
+        PlotMax = PlotPosition + (PlotSize / 2)
+    
+        focalPoint = PlotPosition + Vector3.new(0, 5, 0)
+        zDistance = CAMERA_SETTINGS.MaxZ / 2
+    
+        self:Enter()
+    end)
+
     _Maid:GiveTask(RunService.RenderStepped:Connect(function(t)
         yAngle = yAngle - (0.125 * (t * 60))
         zDistance = 100
@@ -231,6 +231,7 @@ function FreeCamApi:Init()
     MaidClass = self.Shared.Maid
 
     --//Controllers
+    SetupController = self.Controllers.SetupController
 
     --//Locals
     _Maid = MaidClass.new()

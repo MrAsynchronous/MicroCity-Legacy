@@ -35,7 +35,7 @@ local function SetupGame(response, saveId)
 
 	--Yield for plot to fully load
 	if (not PlayerService:IsPlotLoaded()) then PlayerService.PlotLoaded:Wait() end
-	self:FireEvent(response.Plot, saveId)
+	SetupController:FireEvent("GetPlot", response.Plot, saveId)
 
 	--Fade gui in
 	FadeController:In(1, true)

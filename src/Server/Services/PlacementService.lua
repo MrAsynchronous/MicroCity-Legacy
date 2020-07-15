@@ -46,8 +46,8 @@ function PlacementService.Client:RequestItemPlacement(player, plate, itemId, raw
     local worldCFrame, objectCFrame = SnapApi:SnapVector(pseudoPlayer.Plot.Object, plate, modelSize, rawVector, orientation)
     
     -- Validate player cash
-    if (pseudoPlayer:Get("Cash") >= itemMetaData.Cost) then
-        pseudoPlayer:Update("Cash", function(currentValue)
+    if (pseudoPlayer.Cash:Get() >= itemMetaData.Cost) then
+        pseudoPlayer.Cash:Update(function(currentValue)
             return currentValue - itemMetaData.Cost
         end)
 

@@ -50,6 +50,7 @@ local MaidClass
 
 --//Controllers
 local UserInputController
+local SetupController
 
 --//Locals
 local Canvases
@@ -280,12 +281,11 @@ function PlacementApi:StopPlacing()
 end
 
 
-function PlacementApi:Setup(plot)
-    Plot = plot
-end
-
-
 function PlacementApi:Start()
+    SetupController:ConnectEvent("GetPlot", function(plot)
+        Plot = plot
+    end)
+
     --Setup constants
     MouseInputApi = UserInputApi:Get("Mouse")
 
@@ -311,6 +311,7 @@ function PlacementApi:Init()
 
     --//Controllers
     UserInputController = self.Controllers.UserInput
+    SetupController = self.Controllers.SetupController
 
     --//Locals
     self.PositionChanged = EventApi.new()
