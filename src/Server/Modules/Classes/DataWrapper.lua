@@ -11,7 +11,7 @@ DataWrapper.__index = DataWrapper
 --//Api
 
 --//Services
-local DataStoreService = game:GetService("DataStoreService")
+local DataService
 
 --//Classes
 local PromiseClass
@@ -23,7 +23,15 @@ local MaidClass
 
 
 function DataWrapper.new(player, scope)
+    local self = setmetatable({
+        Player = player,
+        Scope  scope,
 
+        _Maid = MaidClass.new()
+    }, DataWrapper)
+
+
+    return self
 end
 
 
@@ -31,8 +39,10 @@ function DataWrapper:Init()
     --//Api
 
     --//Services
-
+    
     --//Classes
+    PromiseClass = self.Shared.Promise
+    MaidClass = self.Shared.Maid
 
     --//Controllers
 

@@ -60,6 +60,12 @@ end
 function PseudoPlayer:LoadSave(saveName)
     self.Data = DataApi.new(tostring(self.Player.UserId), saveName)
 
+    print("printing")
+    print(self.Data:Get("Visits", 0))
+    self.Data:Update("Visits", function(currentValue)
+        return currentValue + 1
+    end)
+
     self.Plot.Data = self.Data
     self.Plot:LoadSave(self)
 

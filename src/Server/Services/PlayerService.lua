@@ -82,6 +82,7 @@ function PlayerService.Client:RequestSave(player, saveId)
                 pseudoPlayer.SaveIndex:MarkDirty(GameSettings.SaveDB)
             end)
 
+            print("Loading save!")
             pseudoPlayer:LoadSave(saveId) 
         end        
     end, function(err)
