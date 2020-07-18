@@ -19,6 +19,7 @@ local MetaDataService
 local PlayerService
 
 --//Classes
+local DataWrapperClass
 local MaidClass
 local PlotClass
 
@@ -40,7 +41,7 @@ function PseudoPlayer.new(player)
         Player = player,
 
         JoinTime = os.time(),
-        SaveIndex = DataApi.ForPlayer(player.UserId),
+        SaveIndex = DataWrapperClass.new(player, "Saves"),
 
         _Maid = MaidClass.new()
     }, PseudoPlayer)
@@ -58,10 +59,12 @@ end
 
 --//Handles the loading of specific data
 function PseudoPlayer:LoadSave(saveName)
-    self.Data = DataApi.new(tostring(self.Player.UserId), saveName)
+    self.Data = DataWrapperClass.new(player, saveName)
 
-    print("printing")
-    print(self.Data:Get("Visits", 0))
+    self.Data:OnUpdate("Visits", function(newVisitAmount)
+        print("Player has played", newVisitAmount, "times!")
+    end)
+
     self.Data:Update("Visits", function(currentValue)
         return currentValue + 1
     end)
@@ -108,6 +111,7 @@ function PseudoPlayer:Init()
 
 
     --//Classes
+    DataWrapperClass = self.Modules.Classes.DataWrapper
     MaidClass = self.Shared.Maid
     PlotClass = self.Modules.Classes.Plot
 

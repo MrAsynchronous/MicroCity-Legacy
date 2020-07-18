@@ -81,10 +81,9 @@ function PlayerService.Client:RequestSave(player, saveId)
             pseudoPlayer.SaveIndex:Set(GameSettings.SaveDB, saveIndex):Then(function()
                 pseudoPlayer.SaveIndex:MarkDirty(GameSettings.SaveDB)
             end)
-
-            print("Loading save!")
-            pseudoPlayer:LoadSave(saveId) 
-        end        
+        end     
+        
+        pseudoPlayer:LoadSave(saveId) 
     end, function(err)
         response.Success = false
         response.Error = err
