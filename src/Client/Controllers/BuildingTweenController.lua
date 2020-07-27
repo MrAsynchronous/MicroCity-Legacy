@@ -16,65 +16,69 @@ local BuildingEffectController = {}
 --//Api
 
 --//Services
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage");
+local TweenService = game:GetService("TweenService");
 
-local PlayerService
+local PlayerService;
 
 --//Classes
+local Binder;
 
 --//Controllers
+local SetupController;
 
 --//Locals
-local Plot
-local Particles
+local Plot;
+local Particles;
 
-local tweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local tweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out);
 
 
-function BuildingEffectController:Setup(plot)
-    Plot = plot
+function BuildingEffectController:Start()
+    SetupController:ConnectEvent('GetPlot', function(plot)
+        Plot = plot;
 
-    --Listen to Children being Added
-    Plot.Placements.ChildAdded:Connect(function(newBuilding)
-        while (newBuilding.PrimaryPart == nil) do wait() end
+        Binder.new('NewPlacement', function(newBuilding)
+            while (newBuilding.PrimaryPart == nil) do wait(); end
 
-        --Localize
-        local normalCFrame = newBuilding.PrimaryPart.CFrame
-        local hiddenCFrame = normalCFrame - Vector3.new(0, newBuilding.PrimaryPart.Size.Y, 0)
+            --Localize
+            local normalCFrame = newBuilding.PrimaryPart.CFrame;
+            local hiddenCFrame = normalCFrame - Vector3.new(0, newBuilding.PrimaryPart.Size.Y, 0);
 
-        --Move the building and clone the particle
-        newBuilding:SetPrimaryPartCFrame(hiddenCFrame)
-        local newParticle = Particles.PlacementEffect:Clone()
-        newParticle.Parent = newBuilding.PrimaryPart
-        newParticle.Enabled = true
+            --Move the building and clone the particle
+            newBuilding:SetPrimaryPartCFrame(hiddenCFrame);
+            local newParticle = Particles.PlacementEffect:Clone();
+            newParticle.Parent = newBuilding.PrimaryPart;
+            newParticle.Enabled = true;
 
-        --Create and play the tween, cleaning up when finished
-        local effectTween = TweenService:Create(newBuilding.PrimaryPart, tweenInfo, {CFrame = normalCFrame})
-        effectTween.Completed:Connect(function(playbackState)
-            if (playbackState == Enum.PlaybackState.Completed) then
-                effectTween:Destroy()
-                newParticle:Destroy()
-            end
+            --Create and play the tween, cleaning up when finished
+            local effectTween = TweenService:Create(newBuilding.PrimaryPart, tweenInfo, {CFrame = normalCFrame});
+            effectTween.Completed:Connect(function(playbackState)
+                if (playbackState == Enum.PlaybackState.Completed) then
+                    effectTween:Destroy();
+                    newParticle:Destroy();
+                end
+            end)
+
+            effectTween:Play();
         end)
-
-        effectTween:Play()
     end)
 end
-
 
 function BuildingEffectController:Init()
     --//Api
 
     --//Services
-    PlayerService = self.Services.PlayerService
+    PlayerService = self.Services.PlayerService;
 
     --//Classes
+    Binder = self.Shared.Binder;
 
     --//Controllers
+    SetupController = self.Controllers.SetupController;
 
     --//Locals
-    Particles = ReplicatedStorage.Particles
+    Particles = ReplicatedStorage.Particles;
 
 end
 
