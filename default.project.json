@@ -9,6 +9,10 @@
         "Shared": {
           "$path": "src/Shared"
         }
+      },
+      "Resources": {
+        "$className": "Folder",
+        "$path": "src/Resources"
       }
     },
     "ReplicatedFirst": {

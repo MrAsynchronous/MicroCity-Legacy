@@ -28,15 +28,13 @@ local Binder;
 local SetupController;
 
 --//Locals
-local Plot;
+local Resources;
 local Particles;
 
 local tweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out);
 
-
 function BuildingEffectController:Start()
-    SetupController:ConnectEvent('GetPlot', function(plot)
-        Plot = plot;
+    SetupController:ConnectEvent('GetPlot', function()
 
         Binder.new('NewPlacement', function(newBuilding)
             while (newBuilding.PrimaryPart == nil) do wait(); end
@@ -67,12 +65,13 @@ end
 
 function BuildingEffectController:Init()
     --//Api
+    Resources = ReplicatedStorage:WaitForChild('Resources');
 
     --//Services
     PlayerService = self.Services.PlayerService;
 
     --//Classes
-    Binder = self.Shared.Binder;
+    Binder = require(Resources);
 
     --//Controllers
     SetupController = self.Controllers.SetupController;
